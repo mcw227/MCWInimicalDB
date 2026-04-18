@@ -4,6 +4,7 @@
 import java.sql.*;
 import java.util.Scanner;
 import java.util.InputMismatchException;
+import Customer;
 
 /** Provided to CSE241 Spring 2026
  * This class uses System.console() to protect the user's password from displaying (System.in would show it).
@@ -27,55 +28,6 @@ public class DatabaseCLI {
     public static void main(String[] args){
         System.out.println("Connecting to Oracle database...");
         dbLogin(args);
-    }
-
-    /**
-     * Login to database and then run the 
-     * @param args
-     */
-    public static void dbLogin(String[] args) {
-        System.out.println("---Attempting To Connect to DB---");
-        // Try-with-resources to manage connection --- auto closes conn
-        try (Connection conn = attemptLogin()) {
-            System.out.println("Logged into Database successfully!");
-            userLogin(conn);
-        } catch (SQLException e) {
-            System.err.println("[Error]: Connect error, re-enter login data.");
-            //e.printStackTrace(); //debug
-        }
-    }
-
-    /** get user name and password using Console (so password is not seen)
-     * @return uname in [0], pword in [1]
-     * */
-    static String[] getUserAndPass(){
-        java.io.Console in = System.console();
-        if (in == null) {
-            System.err.println("[Error]: Could not get console instance.");
-            System.exit(1);
-        }
-        System.out.print("Enter Oracle user id: ");
-        String user = in.readLine();
-        System.out.print("Enter Oracle user password: ");
-        String pass = new String(in.readPassword());
-        System.out.flush();
-        return new String[]{user, pass};
-    }
-
-    /**
-     * This function allows the user to login to the database and creates a connection. Allows the user to retry if they fail to enter their info correctly.
-     * @return JDBC Connection object
-     */
-    static Connection attemptLogin() {
-        while (true) {
-            String[] usrPass = getUserAndPass();
-            try {
-                return DriverManager.getConnection(DB_URL, usrPass[0], usrPass[1]);
-            } catch (SQLException e) {
-                System.err.println("[Error]: Connect error, re-enter login data.");
-                //e.printStackTrace(); //Probably unnecessary
-            }
-        }
     }
 
     /**
@@ -134,18 +86,49 @@ public class DatabaseCLI {
             System.err.println("An unexpected error occured.");
             e.printStackTrace();
         }
+        System.out.println("Goodbye! :)")
+        return 1;
     }
+
+    /**
+     * Customer Interface Functions
+     */
 
     static void cInterface(Connection conn, Scanner scn) {
-        System.out.println("Enter your customer id:");
-        return;
+        int c_id = cLogin();
+        if (c_id == -2) return;
     }
 
+    /**
+     * @param conn the Database connection to use
+     * @param scn the scanner to use to get input.
+     * @return a valid id or a -2 if the user is trying to quit.
+     */
+    static int cLogin(Connection conn, Scanner scn) {
+        System.out.println("Enter your customer id:");
+        int id = -1;
+        while (id == -1) {
+            id = nextId();
+            System.out.println("Enter a valid id, or press q to quit.")
+
+            if (id == -2) return -2; //quit casz
+        }
+        System.out.println("Got id: ")
+        return id;
+    }
+
+
+    /**
+     * Location Manager Interface Functions
+     */
     static void lmInterface(Connection conn, Scanner scn) {
         System.out.println("Enter your location manager id:");
         return;
     }
 
+    /**
+     * General Manager Interface Functions
+     */
     static void gmInterface(Connection conn, Scanner scn) {
         System.out.println("Enter your general manager id:");
         return;
@@ -158,6 +141,77 @@ public class DatabaseCLI {
         } catch(ClassNotFoundException e) {
             System.err.println("[Error]: Could not load required jdbc driver.");
             System.exit(1);
+        }
+    }
+
+    /**
+     * Helper Functions
+     */
+
+    /**
+     * @param scn Scanner to grab input from
+     * @return A positive integer or -1
+     */
+    static int nextId(Scanner scn) {
+        try {
+            String resp = scn.nextLine();
+            if (resp.equalsIgnoreCase("q") || resp.equalsIgnoreCase("quit")) return -2;
+            return Integer.parseInt(scn.nextLine());
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    /**
+     * Core DB Functions
+     */
+
+     /** get user name and password using Console (so password is not seen)
+     * @return uname in [0], pword in [1]
+     * */
+    static String[] getUserAndPass(){
+        java.io.Console in = System.console();
+        if (in == null) {
+            System.err.println("[Error]: Could not get console instance.");
+            System.exit(1);
+        }
+        System.out.print("Enter Oracle user id: ");
+        String user = in.readLine();
+        System.out.print("Enter Oracle user password: ");
+        String pass = new String(in.readPassword());
+        System.out.flush();
+        return new String[]{user, pass};
+    }
+
+    /**
+     * This function allows the user to login to the database and creates a connection. Allows the user to retry if they fail to enter their info correctly.
+     * @return JDBC Connection object
+     */
+    static Connection attemptLogin() {
+        while (true) {
+            String[] usrPass = getUserAndPass();
+            try {
+                return DriverManager.getConnection(DB_URL, usrPass[0], usrPass[1]);
+            } catch (SQLException e) {
+                System.err.println("[Error]: Connect error, re-enter login data.");
+                //e.printStackTrace(); //Probably unnecessary
+            }
+        }
+    }
+
+    /**
+     * Login to database and then run the 
+     * @param args
+     */
+    public static void dbLogin(String[] args) {
+        System.out.println("---Attempting To Connect to DB---");
+        // Try-with-resources to manage connection --- auto closes conn
+        try (Connection conn = attemptLogin()) {
+            System.out.println("Logged into Database successfully!");
+            userLogin(conn);
+        } catch (SQLException e) {
+            System.err.println("[Error]: Connect error, re-enter login data.");
+            //e.printStackTrace(); //debug
         }
     }
 }
