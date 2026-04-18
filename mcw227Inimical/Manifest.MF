@@ -1,0 +1,2 @@
+Main-Class: DatabaseCLI
+Class-Path: ojdbc11.jar
