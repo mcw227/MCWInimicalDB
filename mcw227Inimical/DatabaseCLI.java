@@ -114,7 +114,6 @@ public class DatabaseCLI {
             while (!resp.equals("q") && !resp.equalsIgnoreCase("quit")) {
                 System.out.println("Would you like to login to the customer (c), general management (gm) or location management (lm) interface? You may also quit (q)");
                 resp = scn.nextLine();
-                System.out.println("I just read:" + resp);
                 if (resp.equalsIgnoreCase("C") || resp.equalsIgnoreCase("customer")) {
                     cInterface(conn, scn);
                 }
@@ -127,7 +126,7 @@ public class DatabaseCLI {
                     gmInterface(conn, scn);
                 }
 
-                else if (!!resp.equals("q") && !resp.equalsIgnoreCase("quit")) {
+                else if (!resp.equals("q") && !resp.equalsIgnoreCase("quit")) {
                     System.out.println("Please pick a valid interface!");
                 }
             }
