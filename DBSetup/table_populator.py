@@ -37,6 +37,8 @@ def csv_to_oracle(file_path, table_name):
 def gen_customers():
     df = pd.read_csv('Mock Data/CUSTOMER_DATA.csv')
     df = df.drop(columns=['pass'])
+    df["membership"] = np.random.choice(['FALSE','TRUE'], size=len(df), p=[0.6,0.4])
+    df["points"] = np.where(df["membership"]=='TRUE', np.random.randint(1,10000), 0)
 
     try:
         engine = create_engine(connection_url)
@@ -98,26 +100,6 @@ def gen_cards():
     
     except Exception as e:
         print(f"Oracle Connection Error: {e}")
-
-# ASSIGNS SOME MEMBERSHIPS TO CUSTOMERS
-def gen_members():
-
-    df = pd.DataFrame(columns=["CUSTOMER_ID","POINTS"])
-
-    df["CUSTOMER_ID"] = np.random.randint(2,101, size=20)
-    df["POINTS"] = np.random.randint(0, 100000, size=20)
-
-    try:
-        engine = create_engine(connection_url)
-
-        with engine.begin() as connection:
-            df.to_sql('members', con = connection, if_exists='append', index=False, chunksize=1000)
-            print(f"Success! Data uploaded to Oracle table: members")
-        print("Connection closed automatically!")
-    
-    except Exception as e:
-        print(f"Oracle Connection Error: {e}")
-
 
 # Generates rows for the basic menus
 def gen_menus():
@@ -337,7 +319,6 @@ def populate_db():
     gen_employees()
     gen_customers()
     gen_phones()
-    gen_members()
     gen_cards()
     gen_menus()
     gen_items()
