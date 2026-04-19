@@ -1,4 +1,4 @@
-all: DatabaseCLI.class
+all: DatabaseCLI.class Customer.class
 
 %.class: %.java
 	javac $< 
@@ -10,7 +10,7 @@ run_jar: jar
 	java -jar DatabaseCLI.jar
 
 jar: all
-	jar cfmv DatabaseCLI.jar Manifest.MF DatabaseCLI.class
+	jar cfmv DatabaseCLI.jar Manifest.MF DatabaseCLI.class Customer.class
 
 clean:
 	rm -f *.class DatabaseCLI.jar

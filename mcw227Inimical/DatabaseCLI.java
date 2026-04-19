@@ -4,7 +4,6 @@
 import java.sql.*;
 import java.util.Scanner;
 import java.util.InputMismatchException;
-import Customer;
 
 /** Provided to CSE241 Spring 2026
  * This class uses System.console() to protect the user's password from displaying (System.in would show it).
@@ -59,6 +58,9 @@ public class DatabaseCLI {
         } while (rs.next()); //since we checked rs.next() above we have to use a do while loop instead, otherwise we skip the first one :(
     }
     
+    /**
+     * @param conn Database connection to use
+     */
     static void userLogin(Connection conn) {
         String resp = "";
         System.out.println("Welcome!");
@@ -86,36 +88,66 @@ public class DatabaseCLI {
             System.err.println("An unexpected error occured.");
             e.printStackTrace();
         }
-        System.out.println("Goodbye! :)")
-        return 1;
+        System.out.println("Goodbye! :)");
+        return;
     }
 
     /**
      * Customer Interface Functions
      */
-
     static void cInterface(Connection conn, Scanner scn) {
-        int c_id = cLogin();
-        if (c_id == -2) return;
+        Customer c = cLogin(conn, scn);
+        if (c == null) return; //user is quitting.
+        else {
+            System.out.println(String.format("Welcome, %s", c.name));
+            cMenu(c, conn, scn);
+        }
     }
 
     /**
      * @param conn the Database connection to use
      * @param scn the scanner to use to get input.
-     * @return a valid id or a -2 if the user is trying to quit.
+     * @return a valid customer or null
      */
-    static int cLogin(Connection conn, Scanner scn) {
-        System.out.println("Enter your customer id:");
+    static Customer cLogin(Connection conn, Scanner scn) {
+        ResultSet rs = null;
         int id = -1;
-        while (id == -1) {
-            id = nextId();
-            System.out.println("Enter a valid id, or press q to quit.")
+        Customer c = null;
+        while (rs == null) {
+            System.out.print("Enter a valid id, or press q to quit: ");
+            id = nextId(scn);
 
-            if (id == -2) return -2; //quit casz
-        }
-        System.out.println("Got id: ")
-        return id;
+            if (id == -2) return null;
+
+            while (id == -1) {
+                id = nextId(scn);
+                System.out.print("Enter a valid id, or press q to quit: ");
+
+                if (id == -2) return null; //quit casz
+            }
+
+            try {
+                PreparedStatement findCustomer = conn.prepareStatement("SELECT * FROM customers WHERE id = ?");
+                findCustomer.setInt(1, id);
+                rs = findCustomer.executeQuery();
+                if (rs == null)
+                    System.out.println("User id not found, try again.");
+                else {
+                    rs.next();
+                    c = new Customer(rs.getInt("id"), rs.getString("name"), rs.getString("email"));
+                }
+            } catch (Exception e) {
+                System.out.println("Could not query database, or found invalid customer, please try again.");
+                e.printStackTrace();
+            }
+            
+        }     
+        return c;
     }
+
+    /**
+     * @param Customer customer to take data from
+     */
 
 
     /**
@@ -156,7 +188,8 @@ public class DatabaseCLI {
         try {
             String resp = scn.nextLine();
             if (resp.equalsIgnoreCase("q") || resp.equalsIgnoreCase("quit")) return -2;
-            return Integer.parseInt(scn.nextLine());
+            System.out.println(resp);
+            return Integer.parseInt(resp);
         } catch (Exception e) {
             return -1;
         }
@@ -212,6 +245,8 @@ public class DatabaseCLI {
         } catch (SQLException e) {
             System.err.println("[Error]: Connect error, re-enter login data.");
             //e.printStackTrace(); //debug
+        } finally {
+            System.out.println("Disconnected from db.");
         }
     }
 }
