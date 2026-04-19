@@ -37,8 +37,12 @@ def csv_to_oracle(file_path, table_name):
 def gen_customers():
     df = pd.read_csv('Mock Data/CUSTOMER_DATA.csv')
     df = df.drop(columns=['pass'])
-    df["membership"] = np.random.choice(['FALSE','TRUE'], size=len(df), p=[0.6,0.4])
-    df["points"] = np.where(df["membership"]=='TRUE', np.random.randint(1,10000), 0)
+    df["membership"] = np.random.choice([1,0], size=len(df), p=[0.6,0.4])
+    df["points"] = 0
+
+    mask = df["membership"] == 1
+    df.loc[mask, "points"] = np.random.randint(0,10000, size=mask.sum())
+
 
     try:
         engine = create_engine(connection_url)
@@ -252,9 +256,11 @@ def gen_recipes():
             print(f"Success! Data uploaded to Oracle table: recipes")
 
         print("Connection closed automatically!")
+        return True
     
     except Exception as e:
         print(f"Oracle Connection Error: {e}")
+        return False
 
 # generates customer order numbers
 def gen_orders():
@@ -326,12 +332,14 @@ def populate_db():
     gen_cc()
     done = gen_menu_items()
     while (not done):
-        gen_menu_items()
-    gen_recipes()
+        done = gen_menu_items()
+    done = gen_recipes()
+    while (not done):
+        done = gen_recipes()
     gen_orders()
     done = gen_order_items()
     while (not done):
-           gen_order_items() #This is a hallmark of how bad this code is! 
+        done = gen_order_items() #This and the other try until it works statements are a hallmark of how bad this code is! 
     gen_price_change()
 
 populate_db()

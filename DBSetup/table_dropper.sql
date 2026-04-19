@@ -8,8 +8,6 @@ DROP TABLE order_items;
 
 DROP TABLE price_change;
 
-DROP TABLE members;
-
 DROP TABLE phone_numbers;
 
 DROP TABLE orders;
