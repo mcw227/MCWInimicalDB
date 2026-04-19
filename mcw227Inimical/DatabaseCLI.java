@@ -99,6 +99,7 @@ public class DatabaseCLI {
         Customer c = cLogin(conn, scn);
         if (c == null) return; //user is quitting.
         else {
+            System.out.println(c.toString()); // debug
             System.out.println(String.format("Welcome, %s", c.name));
             cMenu(c, conn, scn);
         }
@@ -134,7 +135,7 @@ public class DatabaseCLI {
                     System.out.println("User id not found, try again.");
                 else {
                     rs.next();
-                    c = new Customer(rs.getInt("id"), rs.getString("name"), rs.getString("email"));
+                    c = new Customer(rs.getInt("id"), rs.getString("name"), rs.getString("email"), rs.getInt("membership"), rs.getInt("points"));
                 }
             } catch (Exception e) {
                 System.out.println("Could not query database, or found invalid customer, please try again.");
@@ -147,7 +148,50 @@ public class DatabaseCLI {
 
     /**
      * @param Customer customer to take data from
+     * @param conn DB Connection to query
+     * @param scn Scanner to use for input
      */
+    static void cMenu(Customer c, Connection conn, Scanner scn) {
+        int resp = 0;
+        while (resp != -2) {
+            printCMenu();
+            resp = nextId(scn);
+            if (resp == 0 || resp > 5 || resp == -1) {
+                System.out.println("Please pick a valid option!");
+            } else if (resp != -2) {
+                switch(resp) {
+                    case 1:
+                        cNameChange(c, conn, scn);
+                        break;
+                    case 2:
+                        cEmailChange(c, conn, scn);
+                        break;
+                    case 3:
+                        cMemberChange(c, conn, scn);
+                        break;
+                    case 4:
+                        cMakeOrder(c, conn, scn);
+                        break;
+                    case 5:
+                        if (cDeleteAccount(c, conn, scn) == true) {
+                            return;
+                        }
+                        break;
+                }
+            }
+        }
+        return;
+    }
+
+    static void cNameChange(Customer c, Connection conn, Scanner scn) {return;}
+    static void cEmailChange(Customer c, Connection conn, Scanner scn) {return;}
+    static void cMemberChange(Customer c, Connection conn, Scanner scn) {return;}
+    static void cMakeOrder(Customer c, Connection conn, Scanner scn) {return;}
+    static boolean cDeleteAccount(Customer c, Connection conn, Scanner scn) {return false;}
+
+    static void printCMenu() {
+        System.out.println("What would you like to do today?\n\t1. Change Name\n\t2. Change Email\n\t3. View Membership Details or Enroll \n\t4. Make An Order\n\t5. Delete Account\nEnter a 1-5 to select an option or enter quit (q) to quit!");
+    }
 
 
     /**
@@ -181,6 +225,7 @@ public class DatabaseCLI {
      */
 
     /**
+     * This is also used to get non-negative integer input while handling quit case
      * @param scn Scanner to grab input from
      * @return A positive integer or -1
      */

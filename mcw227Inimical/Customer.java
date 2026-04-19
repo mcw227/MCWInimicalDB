@@ -9,15 +9,19 @@ public class Customer {
     public boolean membership;
     public int points;
 
-    public Customer(int id, String name, String email, boolean member, int points) {
+    public Customer(int id, String name, String email, int member, int points) {
         this.id = id;
         this.name = name;
         this.email = email;
-        this.membership = member;
+        if (member == 0) {
+            this.membership = false;
+        } else {
+            this.membership = true;
+        }
         this.points = points;
     }
 
     public String toString() {
-        return String.format("ID: %-8d| NAME: %-30s| EMAIL: %-40s",id,name,email);
+        return String.format("ID: %-8d| NAME: %-30s| EMAIL: %-40s| MEMBERSHIP:%b\t| POINTS: %-8d",id,name,email, membership, points);
     }
 }
