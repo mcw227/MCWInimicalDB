@@ -5,6 +5,8 @@ import java.sql.*;
 import java.util.Scanner;
 import java.util.InputMismatchException;
 
+import java.util.regex.*;
+
 /** Provided to CSE241 Spring 2026
  * This class uses System.console() to protect the user's password from displaying (System.in would show it).
  * It also shows an example of creating a statement, executing a query, and using the result set.
@@ -99,8 +101,7 @@ public class DatabaseCLI {
         Customer c = cLogin(conn, scn);
         if (c == null) return; //user is quitting.
         else {
-            System.out.println(c.toString()); // debug
-            System.out.println(String.format("Welcome, %s", c.name));
+            //System.out.println(c.toString()); // debug
             cMenu(c, conn, scn);
         }
     }
@@ -154,7 +155,7 @@ public class DatabaseCLI {
     static void cMenu(Customer c, Connection conn, Scanner scn) {
         int resp = 0;
         while (resp != -2) {
-            printCMenu();
+            printCMenu(c);
             resp = nextId(scn);
             if (resp == 0 || resp > 5 || resp == -1) {
                 System.out.println("Please pick a valid option!");
@@ -183,14 +184,65 @@ public class DatabaseCLI {
         return;
     }
 
-    static void cNameChange(Customer c, Connection conn, Scanner scn) {return;}
-    static void cEmailChange(Customer c, Connection conn, Scanner scn) {return;}
+    /**
+     * Allows the signed-in user to change their name if they desire.
+     * @param c The customer who is currently signed in
+     * @param conn The database connection to use
+     * @param scn The scanner to grab input from
+     */
+    static void cNameChange(Customer c, Connection conn, Scanner scn) {
+        System.out.printf("Your current name is: %s, would you like to change it? ([y]es/[n]o)\n", c.name);
+        int choice = nextYN(scn);
+        if (choice == -2) { return; }
+        try {
+            PreparedStatement nameChange = conn.prepareStatement("UPDATE customers SET name=? WHERE id=?");
+            System.out.println("What would you like your new name to be?");
+            String newName = nextSafeString(scn, 30); //Names can be up to 30 characters long
+            System.out.printf("\nChanging name to %s... ", newName);
+            nameChange.setString(1, newName);
+            nameChange.setInt(2, c.id);
+            nameChange.executeUpdate();
+            System.out.println("Name updated.");
+        } catch (Exception e) {
+            System.out.println("Could not update customer name. Please try again later.");
+            e.printStackTrace();
+        } finally {
+            return;
+        }
+    }
+
+    /**
+     * Allows the user to change their email, if they desire.
+     * @param c The customer who is logged in
+     * @param conn The database connection to use
+     * @param scn The scanner to grab input from
+     */
+    static void cEmailChange(Customer c, Connection conn, Scanner scn) {
+        System.out.printf("Your current email is: %s, would you like to change it? ([y]es/[n]o)\n", c.email);
+        int choice = nextYN(scn);
+        if (choice == -2) { return; }
+        try {
+            PreparedStatement emailChange = conn.prepareStatement("UPDATE customers SET email=? WHERE id=?");
+            System.out.println("What would you like your new email to be?");
+            String newEmail = nextEmail(scn);
+            System.out.printf("\nChanging email to %s... ", newEmail);
+            emailChange.setString(1, newEmail);
+            emailChange.setInt(2, c.id);
+            emailChange.executeUpdate();
+            System.out.println("email updated.");
+        } catch (Exception e) {
+            System.out.println("Could not update customer email. Please try again later.");
+            //e.printStackTrace(); //debug
+        } finally {
+            return;
+        }
+    }
     static void cMemberChange(Customer c, Connection conn, Scanner scn) {return;}
     static void cMakeOrder(Customer c, Connection conn, Scanner scn) {return;}
     static boolean cDeleteAccount(Customer c, Connection conn, Scanner scn) {return false;}
 
-    static void printCMenu() {
-        System.out.println("What would you like to do today?\n\t1. Change Name\n\t2. Change Email\n\t3. View Membership Details or Enroll \n\t4. Make An Order\n\t5. Delete Account\nEnter a 1-5 to select an option or enter quit (q) to quit!");
+    static void printCMenu(Customer c) {
+        System.out.printf("\n\nHello, %s!\nWhat would you like to do today?\n\t1. Change Name\n\t2. Change Email\n\t3. View Membership Details or Enroll \n\t4. Make An Order\n\t5. Delete Account\nEnter a 1-5 to select an option or enter quit (q) to quit!\n", c.name);
     }
 
 
@@ -237,6 +289,59 @@ public class DatabaseCLI {
             return Integer.parseInt(resp);
         } catch (Exception e) {
             return -1;
+        }
+    }
+
+
+    /**
+     * Gets the next valid email address input from the user.
+     */
+    static String nextEmail(Scanner scn) {
+        String email_regex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"; //Plagiarized from Gemini. :)
+        Pattern email_pattern = Pattern.compile(email_regex);
+
+        while(true) {
+            String resp = nextSafeString(scn, 40);
+            Matcher email_matcher = email_pattern.matcher(resp);
+            if (email_matcher.matches())
+                return resp;
+            System.out.println("Please provide a valid email.");
+        }
+    }
+
+    /**
+     * This function handles yes/no input from user. Also handles quit for interface cohesiveness. Note that no and quit have the same return value
+     * @param scn The scanner to grab input from
+     * @return 1 if user types yes, -2 if user types no or wants to quit. Retries until a valid input is reached.
+     */
+    static int nextYN(Scanner scn) {
+        int r = 0;
+        while (r == 0) {
+            String resp = scn.nextLine();
+            if (resp.equalsIgnoreCase("q") || resp.equalsIgnoreCase("quit") || resp.equalsIgnoreCase("n") || resp.equalsIgnoreCase("no"))
+                return -2;
+            else if (resp.equalsIgnoreCase("y") || resp.equalsIgnoreCase("yes"))
+                return 1;
+            System.out.println("Please type either (y)es or (n)o");
+        }
+        return -2;
+    }
+
+    /**
+     * This function prompts the user for a string that is within a particular length and does not contain the character "'"
+     * @param scn Scanner to grab input from
+     * @param len Maximum length of string to accept
+     * @return a sane user string.
+     */
+    static String nextSafeString(Scanner scn, int len) {
+        while (true) {
+            String resp = scn.nextLine();
+            if (resp.length() > len) {
+                System.out.printf("Provided string is longer than %d characters. Please shorten it.\n", len);
+            } else if (resp.contains("'")) {
+                System.out.printf("Provided string contains an invalid character ('). Please remove it.\n");
+            }
+            else { return resp; }
         }
     }
 
@@ -291,7 +396,7 @@ public class DatabaseCLI {
             System.err.println("[Error]: Connect error, re-enter login data.");
             //e.printStackTrace(); //debug
         } finally {
-            System.out.println("Disconnected from db.");
+            System.out.println("You are no longer connected to the database.");
         }
     }
 }
