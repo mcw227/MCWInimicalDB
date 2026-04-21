@@ -180,6 +180,7 @@ public class DatabaseCLI {
                         break;
                 }
             }
+            updateCustomerInfo(c, conn);
         }
         return;
     }
@@ -237,12 +238,107 @@ public class DatabaseCLI {
             return;
         }
     }
-    static void cMemberChange(Customer c, Connection conn, Scanner scn) {return;}
+
+    /**
+     * Allows the user to check their membership status and cancel if they want to.
+     * @param c Customer logged in
+     * @param conn the Database connection to use
+     * @param scn Scanner to grab input from
+     */
+    static void cMemberChange(Customer c, Connection conn, Scanner scn) {
+        if (c.membership) {
+            System.out.println("You are currently a member! Yay!");
+            System.out.printf("You have %d points. That equates to about %.2f dollars!\nWould you like to cancel your membership? (You will lose your points...) [y]es/[n]o/[q]uit\n", c.points, (float)(c.points)/100);
+            
+            if (nextYN(scn) == -2)
+                return;
+            System.out.println("Are you really sure?");
+            if (nextYN(scn) == -2)
+                return;
+
+            try {
+                PreparedStatement cancelMembership = conn.prepareStatement("UPDATE customers SET membership=0 WHERE id=?");
+                cancelMembership.setInt(1,c.id);
+
+                PreparedStatement setPointsZero = conn.prepareStatement("UPDATE customers SET points=0 WHERE id=?");
+                setPointsZero.setInt(1,c.id);
+
+                conn.setAutoCommit(false); //start transaction
+                System.out.print("Cancelling membership... ");
+                cancelMembership.executeUpdate();
+                setPointsZero.executeUpdate();
+                conn.commit();
+                System.out.println("Done!");
+            } catch (Exception e) {
+                try {
+                    System.out.println("Could not update membership status. Try again later");
+                    conn.rollback();
+                } catch (Exception f) { //Critical db error
+                    System.err.println("Database connection terminated. Please restart software");
+                    System.exit(-1);
+                }
+
+            } finally {
+                try {
+                    conn.setAutoCommit(true);
+                } catch (Exception e) { //Critical db error
+                    System.err.println("Database connection terminated. Please restart software.");
+                    System.exit(-1);
+                }
+            }
+        } else {
+            System.out.println("You are not a member yet, would you like to enroll? [y]es/[n]o/[q]uit");
+            if (nextYN(scn) == -2)
+                return;
+            try {
+                PreparedStatement enrollMembership = conn.prepareStatement("UPDATE customers SET membership=1 WHERE id=?");
+                enrollMembership.setInt(1, c.id);
+
+                System.out.print("Enrolling in membership... ");
+                enrollMembership.executeUpdate();
+                System.out.println("Done!");
+            } catch (Exception e) {
+                System.out.println("Could not update membership status. Please try again later.");
+                return;
+            }
+        }
+    }
     static void cMakeOrder(Customer c, Connection conn, Scanner scn) {return;}
     static boolean cDeleteAccount(Customer c, Connection conn, Scanner scn) {return false;}
 
+    /**
+     * Fetches new customer data.
+     * @param c The customer object to update. Uses its id to find the customer in the db.
+     * @param conn The database connection to use
+     */
+    static void updateCustomerInfo(Customer c, Connection conn) {
+        try {
+            PreparedStatement findCustomer = conn.prepareStatement("SELECT * FROM customers WHERE id = ?");
+            findCustomer.setInt(1, c.id);
+            ResultSet rs = findCustomer.executeQuery();
+            if (rs == null) {//critical error
+                System.err.println("Customer not found in database. Please restart software.\n");
+                System.exit(-1);
+            }
+            else {
+                rs.next();
+                c.id = rs.getInt("id");
+                c.name = rs.getString("name");
+                c.email = rs.getString("email");
+                c.membership = (rs.getInt("membership") == 1) ? true : false;
+                c.points = rs.getInt("points");
+            }
+        } catch (Exception e) {
+            System.out.println("Could not update customer info.\n");
+        }
+    }
+
     static void printCMenu(Customer c) {
-        System.out.printf("\n\nHello, %s!\nWhat would you like to do today?\n\t1. Change Name\n\t2. Change Email\n\t3. View Membership Details or Enroll \n\t4. Make An Order\n\t5. Delete Account\nEnter a 1-5 to select an option or enter quit (q) to quit!\n", c.name);
+        if (c.membership)
+            System.out.printf("\n\nHello, esteemed %s! You have %d points!", c.name, c.points);
+        else
+            System.out.printf("\n\nHello, %s!", c.name);
+        System.out.printf("\nWhat would you like to do today?\n\t1. Change Name\n\t2. Change Email\n\t3. View Membership Details or Enroll \n\t4. Make An Order\n\t5. Delete Account\nEnter a 1-5 to select an option or enter quit (q) to quit!\n", c.name);
     }
 
 
