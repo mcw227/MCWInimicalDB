@@ -163,7 +163,7 @@ public class DatabaseCLI {
         while (resp != -2) {
             printCMenu(c);
             resp = nextId(scn);
-            if (resp == 0 || resp > 5 || resp == -1) {
+            if (resp == 0 || resp > 6 || resp == -1) {
                 System.out.println("Please pick a valid option!");
             } else if (resp != -2) {
                 switch(resp) {
@@ -433,7 +433,6 @@ public class DatabaseCLI {
         try {
             String resp = scn.nextLine();
             if (resp.equalsIgnoreCase("q") || resp.equalsIgnoreCase("quit")) return -2;
-            System.out.println(resp);
             return Integer.parseInt(resp);
         } catch (Exception e) {
             return -1;
