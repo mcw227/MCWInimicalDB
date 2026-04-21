@@ -11,8 +11,11 @@ CREATE TABLE customers (
     email varchar(40) NOT NULL,
     membership number(1) NOT NULL,
     points number(7) DEFAULT 0,
+    active number(1) DEFAULT 1,
     CONSTRAINT membership_chk
         CHECK (membership BETWEEN 0 AND 1)
+    CONSTRAINT active_chk
+        CHECK (active BETWEEN 0 AND 1)
 );
 
 CREATE TABLE phone_numbers (

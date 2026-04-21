@@ -136,7 +136,11 @@ public class DatabaseCLI {
                     System.out.println("User id not found, try again.");
                 else {
                     rs.next();
-                    c = new Customer(rs.getInt("id"), rs.getString("name"), rs.getString("email"), rs.getInt("membership"), rs.getInt("points"));
+                    if (rs.getInt("active") != 0) { //Account is inactive. They cannot login.
+                        c = new Customer(rs.getInt("id"), rs.getString("name"), rs.getString("email"), rs.getInt("membership"), rs.getInt("points"));
+                    } else {
+                        rs = null;
+                    }
                 }
             } catch (Exception e) {
                 System.out.println("Could not query database, or found invalid customer, please try again.");
@@ -174,7 +178,7 @@ public class DatabaseCLI {
                         cMakeOrder(c, conn, scn);
                         break;
                     case 5:
-                        if (cDeleteAccount(c, conn, scn) == true) {
+                        if (cDeactivateAccount(c, conn, scn) == true) {
                             return;
                         }
                         break;
@@ -304,7 +308,34 @@ public class DatabaseCLI {
         }
     }
     static void cMakeOrder(Customer c, Connection conn, Scanner scn) {return;}
-    static boolean cDeleteAccount(Customer c, Connection conn, Scanner scn) {return false;}
+
+    /**
+     * Allows the user to "delete" their account. Note that this just sets it as inactive in the system rather than deleting it for... record keeping purposes.
+     * @param c Customer that is logged in
+     * @param conn Database connection to use
+     * @param scn Scanner to grab input from
+     */
+    static boolean cDeactivateAccount(Customer c, Connection conn, Scanner scn) {
+        System.out.println("Are you sure you want to deactivate your account? You can contact support to reinstate it... [y]es/[n]o/[q]uit");
+        if (nextYN(scn) == -2)
+            return false;
+        System.out.println("Are you really sure?");
+        if (nextYN(scn) == -2)
+            return false;
+
+        System.out.println("Okay...");
+        try {
+            PreparedStatement deactivateAccount = conn.prepareStatement("UPDATE customers SET active=0 WHERE id=?");
+            deactivateAccount.setInt(1,c.id);
+            System.out.print("Deactivating account... ");
+            deactivateAccount.executeUpdate();
+            System.out.println("Done! Goodbye!");
+            return true;
+        } catch (Exception e) {
+            System.out.println("Could not delete account. Try again later.");
+            return false;
+        }
+    }
 
     /**
      * Fetches new customer data.
@@ -338,7 +369,7 @@ public class DatabaseCLI {
             System.out.printf("\n\nHello, esteemed %s! You have %d points!", c.name, c.points);
         else
             System.out.printf("\n\nHello, %s!", c.name);
-        System.out.printf("\nWhat would you like to do today?\n\t1. Change Name\n\t2. Change Email\n\t3. View Membership Details or Enroll \n\t4. Make An Order\n\t5. Delete Account\nEnter a 1-5 to select an option or enter quit (q) to quit!\n", c.name);
+        System.out.printf("\nWhat would you like to do today?\n\t1. Change Name\n\t2. Change Email\n\t3. View Membership Details or Enroll \n\t4. Make An Order\n\t5. Deactivate Account\nEnter a 1-5 to select an option or enter quit (q) to quit!\n", c.name);
     }
 
 

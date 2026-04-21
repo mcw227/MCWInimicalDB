@@ -39,6 +39,7 @@ def gen_customers():
     df = df.drop(columns=['pass'])
     df["membership"] = np.random.choice([1,0], size=len(df), p=[0.6,0.4])
     df["points"] = 0
+    df["active"] = 1
 
     mask = df["membership"] == 1
     df.loc[mask, "points"] = np.random.randint(0,10000, size=mask.sum())
