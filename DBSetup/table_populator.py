@@ -94,6 +94,7 @@ def gen_cards():
     df = pd.read_csv('Mock Data/CARD_DATA.csv')
 
     df['customer_id'] = np.random.randint(2, 101, size=len(df))
+    df['active'] = 1
 
     try:
         engine = create_engine(connection_url)

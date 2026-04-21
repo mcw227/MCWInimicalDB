@@ -4,6 +4,7 @@
 import java.sql.*;
 import java.util.Scanner;
 import java.util.InputMismatchException;
+import java.util.ArrayList;
 
 import java.util.regex.*;
 
@@ -139,6 +140,7 @@ public class DatabaseCLI {
                     if (rs.getInt("active") != 0) { //Account is inactive. They cannot login.
                         c = new Customer(rs.getInt("id"), rs.getString("name"), rs.getString("email"), rs.getInt("membership"), rs.getInt("points"));
                     } else {
+                        System.out.println("User is inactive. Contact management to reinstate account or type a valid ID.");
                         rs = null;
                     }
                 }
@@ -178,6 +180,9 @@ public class DatabaseCLI {
                         cMakeOrder(c, conn, scn);
                         break;
                     case 5:
+                        cCheckCreditCards(c, conn, scn);
+                        break;
+                    case 6:
                         if (cDeactivateAccount(c, conn, scn) == true) {
                             return;
                         }
@@ -185,6 +190,10 @@ public class DatabaseCLI {
                 }
             }
             updateCustomerInfo(c, conn);
+            if (c.id == -2) { //acount was marked as inactive while another user was logged in!
+                System.out.println("Customer is now marked inactive. Please contact management if you think this is an error.");
+                return;
+            }
         }
         return;
     }
@@ -307,6 +316,14 @@ public class DatabaseCLI {
             }
         }
     }
+
+    /**
+     * @param c Customer that is logged in
+     * @param conn Database connection to use
+     * @param scn Scanner to grab input from
+     */
+    static void cCheckCreditCards(Customer c, Connection conn, Scanner scn) {return;}
+
     static void cMakeOrder(Customer c, Connection conn, Scanner scn) {return;}
 
     /**
@@ -330,6 +347,7 @@ public class DatabaseCLI {
             System.out.print("Deactivating account... ");
             deactivateAccount.executeUpdate();
             System.out.println("Done! Goodbye!");
+            c = Customer.InactiveCustomer(); //set c to inactive customer
             return true;
         } catch (Exception e) {
             System.out.println("Could not delete account. Try again later.");
@@ -353,6 +371,8 @@ public class DatabaseCLI {
             }
             else {
                 rs.next();
+                if (rs.getInt("active") == 0) //someone cancelled the account while the person was logged in
+                    c = Customer.InactiveCustomer();
                 c.id = rs.getInt("id");
                 c.name = rs.getString("name");
                 c.email = rs.getString("email");
@@ -364,12 +384,13 @@ public class DatabaseCLI {
         }
     }
 
+    /** Prints the customer control menu */
     static void printCMenu(Customer c) {
         if (c.membership)
             System.out.printf("\n\nHello, esteemed %s! You have %d points!", c.name, c.points);
         else
             System.out.printf("\n\nHello, %s!", c.name);
-        System.out.printf("\nWhat would you like to do today?\n\t1. Change Name\n\t2. Change Email\n\t3. View Membership Details or Enroll \n\t4. Make An Order\n\t5. Deactivate Account\nEnter a 1-5 to select an option or enter quit (q) to quit!\n", c.name);
+        System.out.printf("\nWhat would you like to do today?\n\t1. Change Name\n\t2. Change Email\n\t3. View Membership Details or Enroll \n\t4. Make An Order\n\t5. Check And Adjust Credit Cards\n\t6. Deactivate Account\nEnter a 1-6 to select an option or enter quit (q) to quit!\n", c.name);
     }
 
 
@@ -470,6 +491,49 @@ public class DatabaseCLI {
             }
             else { return resp; }
         }
+    }
+
+    /**
+     * Gets all cards for a particular customer id
+     * @param c_id Customer id to query. If set to -1, gets all credit cards and puts them in a list.
+     * @param conn Database connection to use.
+     * @return an ArrayList populated with the cards obtained
+     */
+    static ArrayList<Card> fetchCards(int c_id, Connection conn) {
+        ArrayList<Card> cards = new ArrayList<>();
+
+        try {
+            PreparedStatement getCards;
+            if (c_id == -1)
+                getCards = conn.prepareStatement("SELECT * FROM cards");
+            else {
+                getCards = conn.prepareStatement("SELECT * FROM cards WHERE c_id = ?");
+                getCards.setInt(1, c_id);
+            }
+            ResultSet rs = getCards.executeQuery();
+            
+            if (!rs.next()) { //No cards, return empty arraylist
+                return cards;
+            }
+
+            do {
+                int id = rs.getInt("id");
+                int cid = rs.getInt("customer_id");
+                String brand = rs.getString("brand");
+                String name = rs.getString("name");
+                String card_number = rs.getString("card_number");
+                String expr_date = rs.getString("expr_date");
+                String cvv = rs.getString("cvv");
+
+                cards.add(new Card(id, cid, brand, name, card_number, expr_date, cvv));
+            } while (rs.next()); //since we checked rs.next() above we have to use a do while loop instead, otherwise we skip the first one :(
+
+        } catch (Exception e) {
+            System.out.println("Could not query Database for cards. Please try again later.");
+            e.printStackTrace(); //debug
+            return null;
+        }
+        return null;
     }
 
     /**

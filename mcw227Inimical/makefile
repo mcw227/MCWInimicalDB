@@ -1,16 +1,17 @@
-all: DatabaseCLI.class Customer.class
+APP_NAME = DatabaseCLI.jar
+CLASSES = DatabaseCLI.class Customer.class Card.class
 
 %.class: %.java
 	javac $< 
 
-run: all
+run: $(CLASSES)
 	java -cp "ojdbc11.jar:." DatabaseCLI
 
-run_jar: jar
+run_jar: $(APP_NAME)
 	java -jar DatabaseCLI.jar
 
-jar: all
-	jar cfmv DatabaseCLI.jar Manifest.MF DatabaseCLI.class Customer.class
+$(APP_NAME): $(CLASSES)
+	jar cfmv $(APP_NAME) Manifest.MF $(CLASSES)
 
 clean:
 	rm -f *.class DatabaseCLI.jar

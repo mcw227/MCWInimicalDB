@@ -9,6 +9,7 @@ public class Customer {
     public boolean membership;
     public int points;
 
+    /** Standard account creator. */
     public Customer(int id, String name, String email, int member, int points) {
         this.id = id;
         this.name = name;
@@ -19,6 +20,11 @@ public class Customer {
             this.membership = true;
         }
         this.points = points;
+    }
+
+    /** Inactive account object */
+    public static Customer InactiveCustomer() {
+        return new Customer(-2, "Inactive Customer", null, 0, 0);
     }
 
     public String toString() {
