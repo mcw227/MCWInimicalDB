@@ -33,35 +33,6 @@ public class DatabaseCLI {
     }
 
     /**
-     * Allows use to query database to obtain students with a name like the input. Sanitized
-     * @param conn Database connection to query
-     * @param scn Scanner to use
-     */
-    static void findIDsByName(Connection conn, Scanner scn) throws SQLException {
-        ResultSet rs = null;
-        PreparedStatement likeSearch = conn.prepareStatement("SELECT id, name FROM student WHERE name LIKE ?");
-
-        while (rs == null || !rs.next()) { //result set is empty.
-            System.out.println("Input name for string subsearch:");
-            String in = scn.nextLine();
-            if (in.contains("'")) {
-                System.out.println("A single quote is not allowed in the substring query!");
-                continue;
-            }
-            
-            likeSearch.setString(1,"%" + in + "%");
-            rs = likeSearch.executeQuery();
-        }
-        
-        System.out.println("Here is a list of all students that match the pattern provided:");
-        do {
-            Integer id = rs.getInt("id");
-            String name = rs.getString("name");
-            System.out.println(id.toString() + "\t" + name);
-        } while (rs.next()); //since we checked rs.next() above we have to use a do while loop instead, otherwise we skip the first one :(
-    }
-    
-    /**
      * @param conn Database connection to use
      */
     static void userLogin(Connection conn) {
@@ -322,7 +293,20 @@ public class DatabaseCLI {
      * @param conn Database connection to use
      * @param scn Scanner to grab input from
      */
-    static void cCheckCreditCards(Customer c, Connection conn, Scanner scn) {return;}
+    static void cCheckCreditCards(Customer c, Connection conn, Scanner scn) {
+        PagedList<Card> cards = new PagedList(getCards(-1, conn), 5);
+        while (true) {
+            cards.printCurrentPage();
+            System.out.println("Press n to go to next page, p to go to previous, q to quit");
+            int resp = nextPNQ(scn);
+            if (resp == -2)
+                return;
+            else if (resp == 1)
+                cards.previousPage();
+            else
+                cards.nextPage();
+        }
+    }
 
     static void cMakeOrder(Customer c, Connection conn, Scanner scn) {return;}
 
@@ -386,6 +370,8 @@ public class DatabaseCLI {
 
     /** Prints the customer control menu */
     static void printCMenu(Customer c) {
+        clearConsole();
+        System.out.flush();
         if (c.membership)
             System.out.printf("\n\nHello, esteemed %s! You have %d points!", c.name, c.points);
         else
@@ -393,6 +379,23 @@ public class DatabaseCLI {
         System.out.printf("\nWhat would you like to do today?\n\t1. Change Name\n\t2. Change Email\n\t3. View Membership Details or Enroll \n\t4. Make An Order\n\t5. Check And Adjust Credit Cards\n\t6. Deactivate Account\nEnter a 1-6 to select an option or enter quit (q) to quit!\n", c.name);
     }
 
+    /** Attempts to clear console */
+    /** Shamelessly sourced from Copilot, but I understand how it works. */
+    static void clearConsole() {
+        try {
+            String os = System.getProperty("os.name");
+            if (os.contains("Windows")) { //windwos needs special handling bc its so special...
+                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+            } else { //unix-like systems
+                new ProcessBuilder("clear").inheritIO().start().waitFor();
+            }
+            return;
+        } catch (Exception e) {
+            System.out.println("Cannot clear console."); //debug
+            return;
+        }
+        
+    }
 
     /**
      * Location Manager Interface Functions
@@ -470,6 +473,26 @@ public class DatabaseCLI {
             else if (resp.equalsIgnoreCase("y") || resp.equalsIgnoreCase("yes"))
                 return 1;
             System.out.println("Please type either (y)es or (n)o");
+        }
+        return -2;
+    }
+
+    /**
+     * This function handles previous/next/quit input from user.
+     * @param scn The scanner to grab input from
+     * @return 1 if user types previous, 2 if user types next, -2 if user quits. Retries until a valid input is reached.
+     */
+    static int nextPNQ(Scanner scn) {
+        int r = 0;
+        while (r == 0) {
+            String resp = scn.nextLine();
+            if (resp.equalsIgnoreCase("q") || resp.equalsIgnoreCase("quit"))
+                return -2;
+            else if (resp.equalsIgnoreCase("p") || resp.equalsIgnoreCase("previous"))
+                return 1;
+            else if (resp.equalsIgnoreCase("n") || resp.equalsIgnoreCase("next"))
+                return 2;
+            System.out.println("Please type either (n)ext, (p)revious, or (q)uit");
         }
         return -2;
     }

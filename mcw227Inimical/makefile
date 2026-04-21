@@ -1,5 +1,5 @@
 APP_NAME = DatabaseCLI.jar
-CLASSES = DatabaseCLI.class Customer.class Card.class
+CLASSES = DatabaseCLI.class Customer.class Card.class PagedList.class
 
 %.class: %.java
 	javac $< 
