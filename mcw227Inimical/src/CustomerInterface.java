@@ -246,19 +246,21 @@ public final class CustomerInterface {
         boolean update = false;
         while (true) {
             if (update) //update, restart list
-                Pager<Card> cards = new Pager(Helper.fetchCards(c.id, conn), 5);
+                cards = new Pager(Helper.fetchCards(c.id, conn), 5);
             cards.printCurrentPage();
             if (!cards.list.isEmpty()) {
                 System.out.println("Press n to go to next page, p to go to previous, q to quit.");
-                System.out.println("You may type a to add or d -[id] (ex: d -2) to delete")
+                System.out.println("You may type a to add or d to delete");
                 int resp = Helper.nextPNQAD(scn);
                 switch (resp) {
                     case -2:
                         return;
                     case 1:
+                        Helper.clearConsole();
                         cards.previousPage();
                         break;
                     case 2:
+                        Helper.clearConsole();
                         cards.nextPage();
                         break;
                     case 3:
@@ -270,7 +272,7 @@ public final class CustomerInterface {
                 }
             }
             else {
-                System.out.println("You have no cards saved to your account. Would you like to add one? (y)es/(n)o")
+                System.out.println("You have no cards saved to your account. Would you like to add one? (y)es/(n)o");
                 int resp = Helper.nextYN(scn);
                 if (resp == -2)
                     return;

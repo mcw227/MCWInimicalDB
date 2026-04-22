@@ -2,16 +2,17 @@ import java.sql.*;
 import java.util.Scanner;
 import java.util.InputMismatchException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.regex.*;
 
 public final class Helper {
 
     /** These variables dictate the behavior of certain functionality. The database also enforces some of these rules but perhaps we would want to control them here as well? */
-    private final int MAX_BRAND_LEN = 40; //max is 40 according to db
-    private final int MAX_NAME_LEN = 30; //max is 30 according to db
-    private final int MAX_EXPR_DATE_LEN = 7; //max is 7 according to db
-    private final int MAX_CARD_NUM_LEN = 20; //max is 20 according to db
-    private final String[] allowedCreditCardBrands = ["visa","mastercard","american-express","discover"];
+    private final static int MAX_BRAND_LEN = 40; //max is 40 according to db
+    private final static int MAX_NAME_LEN = 30; //max is 30 according to db
+    private final static int MAX_EXPR_DATE_LEN = 7; //max is 7 according to db
+    private final static int MAX_CARD_NUM_LEN = 20; //max is 20 according to db
+    private final static ArrayList<String> allowedCreditCardBrands = new ArrayList<>(Arrays.asList("visa","mastercard","american-express","discover"));
 
     public Helper() {
         throw new UnsupportedOperationException("This is a utility class. Do not instantiate it.");
@@ -160,7 +161,7 @@ public final class Helper {
             if (c_id == -1)
                 getCards = conn.prepareStatement("SELECT * FROM cards");
             else {
-                getCards = conn.prepareStatement("SELECT * FROM cards WHERE c_id = ?");
+                getCards = conn.prepareStatement("SELECT * FROM cards WHERE customer_id = ?");
                 getCards.setInt(1, c_id);
             }
             ResultSet rs = getCards.executeQuery();
@@ -196,6 +197,10 @@ public final class Helper {
      * @param conn The database connection to use
      */
     static void updateCustomerInfo(Customer c, Connection conn) {
+        // admin account short circuit
+        if (c.id == -1) {
+            return;
+        }
         try {
             PreparedStatement findCustomer = conn.prepareStatement("SELECT * FROM customers WHERE id = ?");
             findCustomer.setInt(1, c.id);
@@ -224,7 +229,7 @@ public final class Helper {
      * @return either the input string or null if user is trying to quit.
      */
     static String safeCheckQuit(Scanner scn, int len) {
-        String resp = scn.nextSafeString(len);
+        String resp = nextSafeString(scn, len);
         if (resp.equalsIgnoreCase("!q") || resp.equalsIgnoreCase("!quit"))
             return null;
         return resp;
@@ -232,57 +237,62 @@ public final class Helper {
 
     /**
      * Opens an add card screen. Uses the provided customer number, or queries user for one if it is null.
-     * @param c Customer adding card, or null (if admin)
+     * @param c Customer adding card. Should have id of -1 if admin
      * @param conn Database connection to use
      * @param scn Scanner to grab input from
      * @return true if card was added, false if not.
      */
     static boolean addCardScreen(Customer c, Connection conn, Scanner scn) {
         String resp = null;
-        String brand; String holder_name; String card_number; String expr_date; String cvv;
+        String brand = ""; String holder_name=""; String card_number=""; String expr_date=""; String cvv="";
         System.out.println("Type (!q)uit at any time to quit.\n");
 
-        if (!c) {
+        if (c.id == -1) {
             System.out.println("What is the customer id of the card holder?");
             int c_id = nextId(scn);
-            
+            c = new Customer(c_id, c.name, c.email, 0, c.points);
         }
 
-        (while !resp) {
-            System.out.println("What is the brand?");
-            String resp = safeCheckQuit(scn, MAX_BRAND_LEN);
-            if (!resp)
+        while (resp == null) {
+            System.out.println("What is the brand? Must be one of " + allowedCreditCardBrands.toString());
+            resp = safeCheckQuit(scn, MAX_BRAND_LEN);
+            if (resp == null)
                 return false;
             // else check to make sure the brand is allowed
-            if (Arrays.asList(allowedCreditCardBrands).contains(resp)) {
+            if (allowedCreditCardBrands.contains(resp)) {
                 brand = resp;
+            } else {
+                resp = null;
             }
-            resp = null;
         }
 
+        brand = resp;
+
         System.out.println("What is the name of the card holder?");
-        String resp = safeCheckQuit(scn, MAX_NAME_LEN);
-        if (!resp)
+        resp = safeCheckQuit(scn, MAX_NAME_LEN);
+        if (resp == null)
             return false;
         holder_name = resp;
 
+        resp = null;
         System.out.println("What is the number on the card? Enter with no spaces.");
-        while (!resp) {
-            String resp = safeCheckQuit(scn, MAX_CARD_NUM_LEN);
-            if (!resp)
+        while (resp == null) {
+            resp = safeCheckQuit(scn, MAX_CARD_NUM_LEN);
+            if (resp == null)
                 return false;
 
-            if (resp.contains(' ') || !matchRegex(resp,String.format("\\d{%d}",MAX_CARD_NUM_LEN))) {
+            if (resp.contains(" ")) {
                 resp = null;
                 System.out.println("Do not enter spaces or non-numerics.");
             }
         }
         card_number = resp;
 
+        resp = null;
         System.out.println("What is the expiration date. Enter in the format (YEAR-MO. example: 2026-04)");
-        while (!resp) {
-            String resp = safeCheckQuit(scn, MAX_EXPR_DATE_LEN);
-            if (!resp)
+        while (resp == null) {
+            resp = safeCheckQuit(scn, MAX_EXPR_DATE_LEN);
+            if (resp == null)
                 return false;
             
             if (!matchRegex(resp, "\\d{4}-\\d{2}")) {
@@ -292,10 +302,11 @@ public final class Helper {
         }
         expr_date = resp;
 
+        resp = null;
         System.out.println("What is the cvv?");
-        while(!resp) {
-            String resp = safeCheckQuit(scn, 3);
-            if (!resp)
+        while(resp == null) {
+            resp = safeCheckQuit(scn, 3);
+            if (resp == null)
                 return false;
 
             if(!matchRegex(resp, "\\d{3}")) {
@@ -306,22 +317,52 @@ public final class Helper {
         cvv = resp;
 
         try {
-            PreparedStatement addCard = conn.prepareStatement("INSERT INTO cards (brand, name, card_number, expr_date, cvv) VALUES (?, ?, ?, ?, ?)")
-            addCard.setString(1, brand);
-            addCard.setString(2, holder_name);
-            addCard.setString(3, card_number);
-            addCard.setString(4, expr_date);
-            addCard.setString(5, cvv);
-
-            System.out.print("Adding card to Database...");
-            addCard.executeUpdate();
-            System.out.println("Done!");
+            Card.addCard(conn, new Card(-1, c.id, brand, holder_name, card_number, expr_date, cvv));
             return true;
         } catch (Exception e) {
             System.err.println("Could not update database. Try again later.");
             e.printStackTrace(); //debug
         }
         return false;
+    }
+
+    /**
+     * Allows the customer to delete a card if their id matches the card or if the admin "account" is provided
+     * @param c The customer currently logged in. Could be an admin user with c.id == -1
+     * @param conn The database connection to use
+     * @param scn The scanner to grab input from
+     * @return True if cards were updated, false if not
+     */
+    static boolean removeCardScreen(Customer c, Connection conn, Scanner scn) {
+        System.out.println("What is the id of the card you would like to delete?");
+        int id = nextId(scn);
+
+        try {
+            PreparedStatement delCard;
+            if (c.id == -1) {
+                delCard = conn.prepareStatement("DELETE FROM cards WHERE id=?");
+                delCard.setInt(1,id);
+            }
+            else {
+                delCard = conn.prepareStatement("DELETE FROM cards WHERE id=? AND customer_id=?");
+                delCard.setInt(1, id); //card entry id
+                delCard.setInt(2, c.id); //customer id
+            }
+
+            System.out.print("Removing card from database...");
+            int row_update = delCard.executeUpdate();
+            if (row_update == 0) {
+                System.out.printf("Card with id %d not found!\n", id);
+                return false;
+            }
+            else {
+                System.out.println("Done!");
+                return true;
+            }
+        } catch (Exception e) {
+            System.out.println("Unable to remove card from database, please try again later.");
+            return false;
+        }
     }
 
     /**

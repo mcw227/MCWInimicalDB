@@ -2,7 +2,7 @@ import java.util.List;
 
 public class Pager<T> {
 
-    private List<? extends T> list;
+    public List<? extends T> list;
     
     private int pageSize;
 
@@ -28,16 +28,17 @@ public class Pager<T> {
     public void printCurrentPage() {
         if (list.size() == 0) {
             System.out.println("--- EMPTY LIST ---");
+            return;
         }
 
-        if (currentPage == list.size()/pageSize) {
+        if (currentPage == list.size()/pageSize + 1) {
             nextPage();
             printCurrentPage();
             return;
         }
 
-        System.out.printf("--- PAGE %d OF %d ---\n", currentPage+1, list.size()/pageSize);
-        int end_index = ((current_start_index + pageSize) < list.size()) ? (current_start_index + pageSize) : list.size()-1;
+        System.out.printf("--- PAGE %d OF %d ---\n", currentPage+1, (int)Math.ceil((double)list.size()/pageSize));
+        int end_index = ((current_start_index + pageSize) < list.size()) ? (current_start_index + pageSize) : list.size();
         //System.out.println(end_index); //debug
         
         for (int i = current_start_index; i < end_index; i++) {
@@ -79,12 +80,21 @@ public class Pager<T> {
 
         if (current_start_index < list.size()) {
             int temp = current_start_index;
-            System.out.printf("CURRENT START INDEX:%d ", current_start_index);
-            current_start_index = ((current_start_index - pageSize) < 0) ? (list.size()-(pageSize+1)) : (current_start_index - pageSize);
-            System.out.printf("NEW START INDEX:%d\n", current_start_index);
+
+            if (current_start_index == 0) {
+                if (pageSize >= list.size())
+                    current_start_index = 0;
+                else
+                    current_start_index = (list.size() - pageSize -1);
+            }
+            else {
+                current_start_index = ((current_start_index - pageSize) < 0) ? (current_start_index - pageSize) : 0;
+            }
             
             if (temp < current_start_index) //looped around
                 currentPage = (list.size()/pageSize)-1;
+            else if (current_start_index == 0)
+                currentPage = 1;
             else
                 currentPage--;
         }
