@@ -7,7 +7,7 @@ public class Card {
     public int customer_id;
     public String brand;
     public String name;
-    public int card_number;
+    public String card_number;
     public String expr_date;
     public int cvv;
 
@@ -17,11 +17,7 @@ public class Card {
         this.brand = brand;
         this.name = name;
 
-        try {
-            this.card_number = Integer.parseInt(card_number);
-        } catch (Exception e) {
-            this.card_number = -1;
-        }
+        this.card_number = card_number;
 
         this.expr_date = expr_date;
 
@@ -32,7 +28,11 @@ public class Card {
         }
     }
 
+    /**
+     * Standard toString function
+     * @return formatted ID, Brand, Holder name, Card number, expiration date and cvv.
+     */
     public String toString() {
-        return String.format("BRAND: %-40s\t| HOLDER NAME: %-30s\t| CARD NUMBER: %d\t| EXPR DATE: %-7s\t| CVV: %-3d", brand, name, card_number, expr_date, cvv);
+        return String.format("ID: %-3d\t| BRAND: %-10s\t| HOLDER NAME: %-30s\t| CARD NUMBER: %s\t| EXPR DATE: %-7s\t| CVV: %-3d", id, brand, name, card_number, expr_date, cvv);
     }
 }

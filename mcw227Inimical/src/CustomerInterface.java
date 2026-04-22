@@ -242,17 +242,42 @@ public final class CustomerInterface {
      * @param scn Scanner to grab input from
      */
     static void cCheckCreditCards(Customer c, Connection conn, Scanner scn) {
-        Pager<Card> cards = new Pager(Helper.fetchCards(-1, conn), 5);
+        Pager<Card> cards = new Pager(Helper.fetchCards(c.id, conn), 5);
+        boolean update = false;
         while (true) {
+            if (update) //update, restart list
+                Pager<Card> cards = new Pager(Helper.fetchCards(c.id, conn), 5);
             cards.printCurrentPage();
-            System.out.println("Press n to go to next page, p to go to previous, q to quit");
-            int resp = Helper.nextPNQ(scn);
-            if (resp == -2)
-                return;
-            else if (resp == 1)
-                cards.previousPage();
-            else
-                cards.nextPage();
+            if (!cards.list.isEmpty()) {
+                System.out.println("Press n to go to next page, p to go to previous, q to quit.");
+                System.out.println("You may type a to add or d -[id] (ex: d -2) to delete")
+                int resp = Helper.nextPNQAD(scn);
+                switch (resp) {
+                    case -2:
+                        return;
+                    case 1:
+                        cards.previousPage();
+                        break;
+                    case 2:
+                        cards.nextPage();
+                        break;
+                    case 3:
+                        update = Helper.addCardScreen(c, conn, scn);
+                        break;
+                    case 4:
+                        update = Helper.removeCardScreen(c, conn, scn);
+                        break;
+                }
+            }
+            else {
+                System.out.println("You have no cards saved to your account. Would you like to add one? (y)es/(n)o")
+                int resp = Helper.nextYN(scn);
+                if (resp == -2)
+                    return;
+                else {
+                    update = Helper.addCardScreen(c, conn, scn);
+                }
+            }
         }
     }
 

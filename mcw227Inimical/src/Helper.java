@@ -6,6 +6,13 @@ import java.util.regex.*;
 
 public final class Helper {
 
+    /** These variables dictate the behavior of certain functionality. The database also enforces some of these rules but perhaps we would want to control them here as well? */
+    private final int MAX_BRAND_LEN = 40; //max is 40 according to db
+    private final int MAX_NAME_LEN = 30; //max is 30 according to db
+    private final int MAX_EXPR_DATE_LEN = 7; //max is 7 according to db
+    private final int MAX_CARD_NUM_LEN = 20; //max is 20 according to db
+    private final String[] allowedCreditCardBrands = ["visa","mastercard","american-express","discover"];
+
     public Helper() {
         throw new UnsupportedOperationException("This is a utility class. Do not instantiate it.");
     }
@@ -45,15 +52,15 @@ public final class Helper {
 
     /**
      * Gets the next valid email address input from the user.
+     * @param scn The scanner to grab input from
+     * @return A string that has been regex-suggested to be a valid email
      */
     public static String nextEmail(Scanner scn) {
         String email_regex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"; //Plagiarized from Gemini. :)
-        Pattern email_pattern = Pattern.compile(email_regex);
 
         while(true) {
             String resp = nextSafeString(scn, 40);
-            Matcher email_matcher = email_pattern.matcher(resp);
-            if (email_matcher.matches())
+            if (matchRegex(resp, email_regex))
                 return resp;
             System.out.println("Please provide a valid email.");
         }
@@ -96,6 +103,30 @@ public final class Helper {
         }
         return -2;
     }
+
+    /**
+     * This function handles previous/next/quit/add/delete input from user.
+     * @param scn The scanner to grab input from
+     * @return 1 if user types previous, 2 if user types next, 3 if user types add, 4 if user types delete -2 if user quits. Retries until a valid input is reached.
+     */
+    public static int nextPNQAD(Scanner scn) {
+        int r = 0;
+        while (r == 0) {
+            String resp = scn.nextLine();
+            if (resp.equalsIgnoreCase("q") || resp.equalsIgnoreCase("quit"))
+                return -2;
+            else if (resp.equalsIgnoreCase("p") || resp.equalsIgnoreCase("previous"))
+                return 1;
+            else if (resp.equalsIgnoreCase("n") || resp.equalsIgnoreCase("next"))
+                return 2;
+            else if (resp.equalsIgnoreCase("a") || resp.equalsIgnoreCase("add"))
+                return 3;
+            else if (resp.equalsIgnoreCase("d") || resp.equalsIgnoreCase("delete"))
+                return 4;
+            System.out.println("Please type either (n)ext, (p)revious, (a)dd, (d)elete, or (q)uit");
+        }
+        return -2;
+    }    
 
     /**
      * This function prompts the user for a string that is within a particular length and does not contain the character "'"
@@ -186,5 +217,124 @@ public final class Helper {
         } catch (Exception e) {
             System.out.println("Could not update customer info.\n");
         }
+    }
+
+    /**
+     * Checks whether user is trying to quit by typing !q or !quit
+     * @return either the input string or null if user is trying to quit.
+     */
+    static String safeCheckQuit(Scanner scn, int len) {
+        String resp = scn.nextSafeString(len);
+        if (resp.equalsIgnoreCase("!q") || resp.equalsIgnoreCase("!quit"))
+            return null;
+        return resp;
+    }
+
+    /**
+     * Opens an add card screen. Uses the provided customer number, or queries user for one if it is null.
+     * @param c Customer adding card, or null (if admin)
+     * @param conn Database connection to use
+     * @param scn Scanner to grab input from
+     * @return true if card was added, false if not.
+     */
+    static boolean addCardScreen(Customer c, Connection conn, Scanner scn) {
+        String resp = null;
+        String brand; String holder_name; String card_number; String expr_date; String cvv;
+        System.out.println("Type (!q)uit at any time to quit.\n");
+
+        if (!c) {
+            System.out.println("What is the customer id of the card holder?");
+            int c_id = nextId(scn);
+            
+        }
+
+        (while !resp) {
+            System.out.println("What is the brand?");
+            String resp = safeCheckQuit(scn, MAX_BRAND_LEN);
+            if (!resp)
+                return false;
+            // else check to make sure the brand is allowed
+            if (Arrays.asList(allowedCreditCardBrands).contains(resp)) {
+                brand = resp;
+            }
+            resp = null;
+        }
+
+        System.out.println("What is the name of the card holder?");
+        String resp = safeCheckQuit(scn, MAX_NAME_LEN);
+        if (!resp)
+            return false;
+        holder_name = resp;
+
+        System.out.println("What is the number on the card? Enter with no spaces.");
+        while (!resp) {
+            String resp = safeCheckQuit(scn, MAX_CARD_NUM_LEN);
+            if (!resp)
+                return false;
+
+            if (resp.contains(' ') || !matchRegex(resp,String.format("\\d{%d}",MAX_CARD_NUM_LEN))) {
+                resp = null;
+                System.out.println("Do not enter spaces or non-numerics.");
+            }
+        }
+        card_number = resp;
+
+        System.out.println("What is the expiration date. Enter in the format (YEAR-MO. example: 2026-04)");
+        while (!resp) {
+            String resp = safeCheckQuit(scn, MAX_EXPR_DATE_LEN);
+            if (!resp)
+                return false;
+            
+            if (!matchRegex(resp, "\\d{4}-\\d{2}")) {
+                System.out.println("Please provide expiration date in the format: XXXX-XX");
+                resp = null;
+            }
+        }
+        expr_date = resp;
+
+        System.out.println("What is the cvv?");
+        while(!resp) {
+            String resp = safeCheckQuit(scn, 3);
+            if (!resp)
+                return false;
+
+            if(!matchRegex(resp, "\\d{3}")) {
+                System.out.println("Please provide a valid, three digit cvv");
+                resp = null;
+            }
+        }
+        cvv = resp;
+
+        try {
+            PreparedStatement addCard = conn.prepareStatement("INSERT INTO cards (brand, name, card_number, expr_date, cvv) VALUES (?, ?, ?, ?, ?)")
+            addCard.setString(1, brand);
+            addCard.setString(2, holder_name);
+            addCard.setString(3, card_number);
+            addCard.setString(4, expr_date);
+            addCard.setString(5, cvv);
+
+            System.out.print("Adding card to Database...");
+            addCard.executeUpdate();
+            System.out.println("Done!");
+            return true;
+        } catch (Exception e) {
+            System.err.println("Could not update database. Try again later.");
+            e.printStackTrace(); //debug
+        }
+        return false;
+    }
+
+    /**
+     * Sees whether the base string contains the target pattern.
+     * @param base The string to compare to the pattern
+     * @param target The regex pattern to search for
+     * @return true if the pattern is contained, false if not.
+     */
+    static boolean matchRegex(String base, String target) {
+        Pattern re_pattern = Pattern.compile(target);
+        Matcher pattern_matcher = re_pattern.matcher(base);
+        if (pattern_matcher.matches())
+            return true;
+        return false;
     }
 }
