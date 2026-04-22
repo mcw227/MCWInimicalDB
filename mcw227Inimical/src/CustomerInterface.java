@@ -1,0 +1,301 @@
+import java.sql.*;
+import java.util.Scanner;
+import java.util.InputMismatchException;
+import java.util.ArrayList;
+
+import java.util.regex.*;
+
+/**
+ * This is a utility class encapsulating the behavior of the customer interface.
+ */
+public final class CustomerInterface {
+    
+    public CustomerInterface() {
+        throw new UnsupportedOperationException("This is a utility class. Do not instantiate");
+    }
+
+    /**
+     * Customer Interface Functions
+     */
+    public static void start(Connection conn, Scanner scn) {
+        Customer c = cLogin(conn, scn);
+        if (c == null) return; //user is quitting.
+        else {
+            //System.out.println(c.toString()); // debug
+            cMenu(c, conn, scn);
+        }
+    }
+
+    /**
+     * @param conn the Database connection to use
+     * @param scn the scanner to use to get input.
+     * @return a valid customer or null
+     */
+    static Customer cLogin(Connection conn, Scanner scn) {
+        ResultSet rs = null;
+        int id = -1;
+        Customer c = null;
+        while (rs == null) {
+            System.out.print("Enter a valid id, or press q to quit: ");
+            id = Helper.nextId(scn);
+
+            if (id == -2) return null;
+
+            while (id == -1) {
+                id = Helper.nextId(scn);
+                System.out.print("Enter a valid id, or press q to quit: ");
+
+                if (id == -2) return null; //quit casz
+            }
+
+            try {
+                PreparedStatement findCustomer = conn.prepareStatement("SELECT * FROM customers WHERE id = ?");
+                findCustomer.setInt(1, id);
+                rs = findCustomer.executeQuery();
+                if (rs == null)
+                    System.out.println("User id not found, try again.");
+                else {
+                    rs.next();
+                    if (rs.getInt("active") != 0) { //Account is inactive. They cannot login.
+                        c = new Customer(rs.getInt("id"), rs.getString("name"), rs.getString("email"), rs.getInt("membership"), rs.getInt("points"));
+                    } else {
+                        System.out.println("User is inactive. Contact management to reinstate account or type a valid ID.");
+                        rs = null;
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("Could not query database, or found invalid customer, please try again.");
+                e.printStackTrace();
+            }
+            
+        }     
+        return c;
+    }
+
+    /**
+     * @param Customer customer to take data from
+     * @param conn DB Connection to query
+     * @param scn Scanner to use for input
+     */
+    static void cMenu(Customer c, Connection conn, Scanner scn) {
+        int resp = 0;
+        while (resp != -2) {
+            printCMenu(c);
+            resp = Helper.nextId(scn);
+            if (resp == 0 || resp > 6 || resp == -1) {
+                System.out.println("Please pick a valid option!");
+            } else if (resp != -2) {
+                switch(resp) {
+                    case 1:
+                        cNameChange(c, conn, scn);
+                        break;
+                    case 2:
+                        cEmailChange(c, conn, scn);
+                        break;
+                    case 3:
+                        cMemberChange(c, conn, scn);
+                        break;
+                    case 4:
+                        cMakeOrder(c, conn, scn);
+                        break;
+                    case 5:
+                        cCheckCreditCards(c, conn, scn);
+                        break;
+                    case 6:
+                        if (cDeactivateAccount(c, conn, scn) == true) {
+                            return;
+                        }
+                        break;
+                }
+            }
+            Helper.updateCustomerInfo(c, conn);
+            if (c.id == -2) { //acount was marked as inactive while another user was logged in!
+                System.out.println("Customer is now marked inactive. Please contact management if you think this is an error.");
+                return;
+            }
+        }
+        return;
+    }
+
+    /**
+     * Allows the signed-in user to change their name if they desire.
+     * @param c The customer who is currently signed in
+     * @param conn The database connection to use
+     * @param scn The scanner to grab input from
+     */
+    static void cNameChange(Customer c, Connection conn, Scanner scn) {
+        System.out.printf("Your current name is: %s, would you like to change it? ([y]es/[n]o)\n", c.name);
+        int choice = Helper.nextYN(scn);
+        if (choice == -2) { return; }
+        try {
+            PreparedStatement nameChange = conn.prepareStatement("UPDATE customers SET name=? WHERE id=?");
+            System.out.println("What would you like your new name to be?");
+            String newName = Helper.nextSafeString(scn, 30); //Names can be up to 30 characters long
+            System.out.printf("\nChanging name to %s... ", newName);
+            nameChange.setString(1, newName);
+            nameChange.setInt(2, c.id);
+            nameChange.executeUpdate();
+            System.out.println("Name updated.");
+        } catch (Exception e) {
+            System.out.println("Could not update customer name. Please try again later.");
+            e.printStackTrace();
+        } finally {
+            return;
+        }
+    }
+
+    /**
+     * Allows the user to change their email, if they desire.
+     * @param c The customer who is logged in
+     * @param conn The database connection to use
+     * @param scn The scanner to grab input from
+     */
+    static void cEmailChange(Customer c, Connection conn, Scanner scn) {
+        System.out.printf("Your current email is: %s, would you like to change it? ([y]es/[n]o)\n", c.email);
+        int choice = Helper.nextYN(scn);
+        if (choice == -2) { return; }
+        try {
+            PreparedStatement emailChange = conn.prepareStatement("UPDATE customers SET email=? WHERE id=?");
+            System.out.println("What would you like your new email to be?");
+            String newEmail = Helper.nextEmail(scn);
+            System.out.printf("\nChanging email to %s... ", newEmail);
+            emailChange.setString(1, newEmail);
+            emailChange.setInt(2, c.id);
+            emailChange.executeUpdate();
+            System.out.println("email updated.");
+        } catch (Exception e) {
+            System.out.println("Could not update customer email. Please try again later.");
+            //e.printStackTrace(); //debug
+        } finally {
+            return;
+        }
+    }
+
+    /**
+     * Allows the user to check their membership status and cancel if they want to.
+     * @param c Customer logged in
+     * @param conn the Database connection to use
+     * @param scn Scanner to grab input from
+     */
+    static void cMemberChange(Customer c, Connection conn, Scanner scn) {
+        if (c.membership) {
+            System.out.println("You are currently a member! Yay!");
+            System.out.printf("You have %d points. That equates to about %.2f dollars!\nWould you like to cancel your membership? (You will lose your points...) [y]es/[n]o/[q]uit\n", c.points, (float)(c.points)/100);
+            
+            if (Helper.nextYN(scn) == -2)
+                return;
+            System.out.println("Are you really sure?");
+            if (Helper.nextYN(scn) == -2)
+                return;
+
+            try {
+                PreparedStatement cancelMembership = conn.prepareStatement("UPDATE customers SET membership=0 WHERE id=?");
+                cancelMembership.setInt(1,c.id);
+
+                PreparedStatement setPointsZero = conn.prepareStatement("UPDATE customers SET points=0 WHERE id=?");
+                setPointsZero.setInt(1,c.id);
+
+                conn.setAutoCommit(false); //start transaction
+                System.out.print("Cancelling membership... ");
+                cancelMembership.executeUpdate();
+                setPointsZero.executeUpdate();
+                conn.commit();
+                System.out.println("Done!");
+            } catch (Exception e) {
+                try {
+                    System.out.println("Could not update membership status. Try again later");
+                    conn.rollback();
+                } catch (Exception f) { //Critical db error
+                    System.err.println("Database connection terminated. Please restart software");
+                    System.exit(-1);
+                }
+
+            } finally {
+                try {
+                    conn.setAutoCommit(true);
+                } catch (Exception e) { //Critical db error
+                    System.err.println("Database connection terminated. Please restart software.");
+                    System.exit(-1);
+                }
+            }
+        } else {
+            System.out.println("You are not a member yet, would you like to enroll? [y]es/[n]o/[q]uit");
+            if (Helper.nextYN(scn) == -2)
+                return;
+            try {
+                PreparedStatement enrollMembership = conn.prepareStatement("UPDATE customers SET membership=1 WHERE id=?");
+                enrollMembership.setInt(1, c.id);
+
+                System.out.print("Enrolling in membership... ");
+                enrollMembership.executeUpdate();
+                System.out.println("Done!");
+            } catch (Exception e) {
+                System.out.println("Could not update membership status. Please try again later.");
+                return;
+            }
+        }
+    }
+
+    /**
+     * @param c Customer that is logged in
+     * @param conn Database connection to use
+     * @param scn Scanner to grab input from
+     */
+    static void cCheckCreditCards(Customer c, Connection conn, Scanner scn) {
+        Pager<Card> cards = new Pager(Helper.fetchCards(-1, conn), 5);
+        while (true) {
+            cards.printCurrentPage();
+            System.out.println("Press n to go to next page, p to go to previous, q to quit");
+            int resp = Helper.nextPNQ(scn);
+            if (resp == -2)
+                return;
+            else if (resp == 1)
+                cards.previousPage();
+            else
+                cards.nextPage();
+        }
+    }
+
+    static void cMakeOrder(Customer c, Connection conn, Scanner scn) {return;}
+
+    /**
+     * Allows the user to "delete" their account. Note that this just sets it as inactive in the system rather than deleting it for... record keeping purposes.
+     * @param c Customer that is logged in
+     * @param conn Database connection to use
+     * @param scn Scanner to grab input from
+     */
+    static boolean cDeactivateAccount(Customer c, Connection conn, Scanner scn) {
+        System.out.println("Are you sure you want to deactivate your account? You can contact support to reinstate it... [y]es/[n]o/[q]uit");
+        if (Helper.nextYN(scn) == -2)
+            return false;
+        System.out.println("Are you really sure?");
+        if (Helper.nextYN(scn) == -2)
+            return false;
+
+        System.out.println("Okay...");
+        try {
+            PreparedStatement deactivateAccount = conn.prepareStatement("UPDATE customers SET active=0 WHERE id=?");
+            deactivateAccount.setInt(1,c.id);
+            System.out.print("Deactivating account... ");
+            deactivateAccount.executeUpdate();
+            System.out.println("Done! Goodbye!");
+            c = Customer.InactiveCustomer(); //set c to inactive customer
+            return true;
+        } catch (Exception e) {
+            System.out.println("Could not delete account. Try again later.");
+            return false;
+        }
+    }
+
+    /** Prints the customer control menu */
+    static void printCMenu(Customer c) {
+        Helper.clearConsole();
+        System.out.flush();
+        if (c.membership)
+            System.out.printf("\n\nHello, esteemed %s! You have %d points!", c.name, c.points);
+        else
+            System.out.printf("\n\nHello, %s!", c.name);
+        System.out.printf("\nWhat would you like to do today?\n\t1. Change Name\n\t2. Change Email\n\t3. View Membership Details or Enroll \n\t4. Make An Order\n\t5. Check And Adjust Credit Cards\n\t6. Deactivate Account\nEnter a 1-6 to select an option or enter quit (q) to quit!\n", c.name);
+    }
+
+}

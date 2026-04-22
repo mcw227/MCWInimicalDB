@@ -33,6 +33,6 @@ public class Card {
     }
 
     public String toString() {
-        return String.format("BRAND: %-40s\t| HOLDER NAME: %-30s\t| CARD NUMBER: %d\t| EXPR DATE: %d\t| CVV: %-3d", brand, name, card_number, expr_date, cvv);
+        return String.format("BRAND: %-40s\t| HOLDER NAME: %-30s\t| CARD NUMBER: %d\t| EXPR DATE: %-7s\t| CVV: %-3d", brand, name, card_number, expr_date, cvv);
     }
 }
