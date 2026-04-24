@@ -52,4 +52,28 @@ public class Card {
         System.out.println("Done!");
         return true;
     }
+
+    public static boolean removeCard(Customer c, Connection conn, int id) throws SQLException {
+        PreparedStatement delCard;
+        if (c.id == -1) {
+            delCard = conn.prepareStatement("DELETE FROM cards WHERE id=?");
+            delCard.setInt(1,id);
+        }
+        else {
+            delCard = conn.prepareStatement("DELETE FROM cards WHERE id=? AND customer_id=?");
+            delCard.setInt(1, id); //card entry id
+            delCard.setInt(2, c.id); //customer id
+        }
+
+        System.out.print("Removing card from database...");
+        int row_update = delCard.executeUpdate();
+        if (row_update == 0) {
+            System.out.printf("Card with id %d not found!\n", id);
+            return false;
+        }
+        else {
+            System.out.println("Done!");
+            return true;
+        }
+    }
 }

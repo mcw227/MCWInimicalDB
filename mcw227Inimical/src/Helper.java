@@ -147,6 +147,8 @@ public final class Helper {
         }
     }
 
+    public static ArrayList<Items> 
+
     /**
      * Gets all cards for a particular customer id
      * @param c_id Customer id to query. If set to -1, gets all credit cards and puts them in a list.
@@ -336,29 +338,8 @@ public final class Helper {
     static boolean removeCardScreen(Customer c, Connection conn, Scanner scn) {
         System.out.println("What is the id of the card you would like to delete?");
         int id = nextId(scn);
-
         try {
-            PreparedStatement delCard;
-            if (c.id == -1) {
-                delCard = conn.prepareStatement("DELETE FROM cards WHERE id=?");
-                delCard.setInt(1,id);
-            }
-            else {
-                delCard = conn.prepareStatement("DELETE FROM cards WHERE id=? AND customer_id=?");
-                delCard.setInt(1, id); //card entry id
-                delCard.setInt(2, c.id); //customer id
-            }
-
-            System.out.print("Removing card from database...");
-            int row_update = delCard.executeUpdate();
-            if (row_update == 0) {
-                System.out.printf("Card with id %d not found!\n", id);
-                return false;
-            }
-            else {
-                System.out.println("Done!");
-                return true;
-            }
+            return Card.removeCard(c, conn, id);
         } catch (Exception e) {
             System.out.println("Unable to remove card from database, please try again later.");
             return false;
