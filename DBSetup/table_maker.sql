@@ -152,3 +152,32 @@ CREATE TABLE employees (
         FOREIGN KEY (location_id)
         REFERENCES locations(id)
 )
+
+-- VIEWS
+
+CREATE VIEW dinner_menu_view AS
+SELECT * FROM items
+JOIN menu_items ON items.id = menu_items.item_id AND menu_items.menu_id = 2;
+
+CREATE VIEW lunch_menu_view AS
+SELECT * FROM items
+JOIN menu_items ON items.id = menu_items.item_id AND menu_items.menu_id = 1;
+
+CREATE VIEW dessert_menu_view AS
+SELECT * FROM items
+JOIN menu_items ON items.id = menu_items.item_id AND menu_items.menu_id = 3;
+
+CREATE VIEW signature_item_view AS
+SELECT items.id, items.name, items.price FROM items
+JOIN signature_items ON items.id = signature_items.id;
+
+CREATE VIEW customer_creations_view AS
+SELECT i.id, i.name, i.price 
+FROM items i
+JOIN customer_creations c ON i.id = c.id;
+
+CREATE VIEW ingredients AS
+SELECT * FROM items
+WHERE NOT EXISTS (
+    SELECT sig.id FROM signature_items sig WHERE sig.id = items.id
+);

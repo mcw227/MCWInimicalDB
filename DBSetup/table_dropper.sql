@@ -1,3 +1,18 @@
+-- VIEWS
+DROP VIEW dinner_menu_view;
+
+DROP VIEW lunch_menu_view;
+
+DROP VIEW dessert_menu_view;
+
+DROP VIEW signature_item_view;
+
+DROP VIEW customer_creations_view;
+
+DROP VIEW ingredients;
+
+-- TABLES
+
 DROP TABLE employees;
 
 DROP TABLE menu_items;
@@ -25,3 +40,4 @@ DROP TABLE items;
 DROP TABLE locations;
 
 DROP TABLE customers;
+
