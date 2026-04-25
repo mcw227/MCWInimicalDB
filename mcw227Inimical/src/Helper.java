@@ -406,7 +406,7 @@ public final class Helper {
             }
         } catch (Exception e) {
             System.out.println("Could not add phone to database. Please try again later.");
-            e.printStackTrace() //debug
+            //e.printStackTrace(); //debug
             return false;
         }
     }
@@ -425,7 +425,8 @@ public final class Helper {
         try {
                 return PhoneNumber.removePhone(c,conn, id);
         } catch (Exception e) {
-            System.out.println("Could not add phone to database. Please try again later.");
+            System.out.println("Could not remove phone from database. Please try again later.");
+            //e.printStackTrace(); //debug
             return false;
         }
     }
