@@ -2,21 +2,22 @@ import java.sql.*;
 
 /** Public class signature item models a signature item entity in the db */
 public class SignatureItem extends Item {
-    
-    public SignatureItem(int id, String name, double price) {
+    public String author;
+
+    public SignatureItem(int id, String name, String author, double price) {
         super(id,name,price);
         this.author = author;
     }
 
-    public static addSig(Connection conn, SignatureItem si) {
-        PreparedStatement addSig = conn.prepareStatement("INSERT INTO items (name, price) VALUES (?, ?)");
-        addItem.setString(1, si.name);
-        addItem.setFloat(2, si.price);
-
-        PreparedStatement addSigToSigList = conn.prepareStatement("INSERT INTO signature_items (id) VALUES (?)");
+    public static void addSig(Connection conn, SignatureItem si) {
         
         try {
-            conn.setAutoCommit(false)
+            PreparedStatement addSig = conn.prepareStatement("INSERT INTO items (name, price) VALUES (?, ?)");
+            PreparedStatement addSigToSigList = conn.prepareStatement("INSERT INTO signature_items (id) VALUES (?)");
+            conn.setAutoCommit(false);
+            addSig.setString(1, si.name);
+            addSig.setDouble(2, si.price);
+            
             System.out.print("Adding signature item to Database...");
             int upd_rows = addSig.executeUpdate();
             if (upd_rows > 0) {
@@ -37,7 +38,7 @@ public class SignatureItem extends Item {
             System.out.println("Could not add signature item to database.");
             try {
                 conn.rollback();
-            } catch (Exception e) {
+            } catch (Exception f) {
                 System.err.println("Critical database error. Please restart application.");
                 System.exit(-1);
             }
@@ -49,11 +50,6 @@ public class SignatureItem extends Item {
                 System.exit(-1);
             }
         }
-
-        System.out.print("Adding item to Database...");
-        addItem.executeUpdate();
-        System.out.println("Done!");
-        return true;
     }
 
 

@@ -68,6 +68,21 @@ public final class Helper {
     }
 
     /**
+     * Gets the next valid phone number from the user
+     * @param scn Scanner to grab input from
+     * @return A string that has been regex-suggested to be a valid phone number
+     */
+    public static String nextPhoneNumber(Scanner scn) {
+        String phone_regex = "\\+\\d{1,3}-\\d{3}-\\d{3}-\\d{4}";
+
+        while(true) {
+            String resp = nextSafeString(scn, 40);
+            if (matchRegex(resp, phone_regex))
+                return resp;
+            System.out.println("Please provide a valid phone number in the format +X-XXX-XXX-XXXX. (Country code up to three digits)");
+        }
+    }
+    /**
      * This function handles yes/no input from user. Also handles quit for interface cohesiveness. Note that no and quit have the same return value
      * @param scn The scanner to grab input from
      * @return 1 if user types yes, -2 if user types no or wants to quit. Retries until a valid input is reached.
@@ -147,7 +162,10 @@ public final class Helper {
         }
     }
 
-    public static ArrayList<Items> 
+    public static ArrayList<Item> getMenu(Connection conn, Scanner scn)
+    {
+        return null;
+    }
 
     /**
      * Gets all cards for a particular customer id
@@ -190,6 +208,45 @@ public final class Helper {
             return null;
         }
         return cards;
+    }
+
+    /**
+     * Gets all cards for a particular customer id
+     * @param c_id Customer id to query. If set to -1, gets all credit cards and puts them in a list.
+     * @param conn Database connection to use.
+     * @return an ArrayList populated with the cards obtained
+     */
+    public static ArrayList<PhoneNumber> fetchPhones(int c_id, Connection conn) {
+        ArrayList<PhoneNumber> phones = new ArrayList<>();
+
+        try {
+            PreparedStatement getPhones;
+            if (c_id == -1)
+                getPhones = conn.prepareStatement("SELECT * FROM phone_numbers");
+            else {
+                getPhones = conn.prepareStatement("SELECT * FROM phone_numbers WHERE customer_id = ?");
+                getPhones.setInt(1, c_id);
+            }
+            ResultSet rs = getPhones.executeQuery();
+            
+            if (!rs.next()) { //No cards, return empty arraylist
+                return phones;
+            }
+
+            do {
+                int id = rs.getInt("id");
+                int cid = rs.getInt("customer_id");
+                String number = rs.getString("phone");
+
+                phones.add(new PhoneNumber(id, cid, number));
+            } while (rs.next()); //since we checked rs.next() above we have to use a do while loop instead, otherwise we skip the first one :(
+
+        } catch (Exception e) {
+            System.out.println("Could not query Database for phone numbers. Please try again later.");
+            e.printStackTrace(); //debug
+            return null;
+        }
+        return phones;
     }
 
     
@@ -326,6 +383,51 @@ public final class Helper {
             e.printStackTrace(); //debug
         }
         return false;
+    }
+
+    /**
+     * Allows for easy adding of phone numbers
+     * @param c The customer to add the phone number under. If id is -1 (admin account) then prompts for valid id
+     * @param conn The database connection to use
+     * @param scn The scanner to grab input from
+     * @return True if phone was added, false if not.
+     */
+    static boolean addPhoneScreen(Customer c, Connection conn, Scanner scn) {
+        System.out.println("Please enter a phone number in the format: +XXX-XXX-XXX-XXXX (with support for 3 digit country code)");
+        String phone = nextPhoneNumber(scn);
+
+        try {
+            if (c.id != -1)
+                return PhoneNumber.addPhone(conn, new PhoneNumber(-1, c.id, phone));
+            else {
+                System.out.println("Which user would you like to add the phone number under?");
+                int id = nextId(scn);
+                return PhoneNumber.addPhone(conn, new PhoneNumber(-1, id, phone));
+            }
+        } catch (Exception e) {
+            System.out.println("Could not add phone to database. Please try again later.");
+            e.printStackTrace() //debug
+            return false;
+        }
+    }
+
+    /**
+     * Allows for easy adding of phone numbers
+     * @param c The customer to add the phone number under. If id is -1 (admin account) then prompts for valid id
+     * @param conn The database connection to use
+     * @param scn The scanner to grab input from
+     * @return True if phone was added, false if not.
+     */
+    static boolean removePhoneScreen(Customer c, Connection conn, Scanner scn) {
+        System.out.println("What is the id of the phone number you'd like to remove?");
+        int id = nextId(scn);
+
+        try {
+                return PhoneNumber.removePhone(c,conn, id);
+        } catch (Exception e) {
+            System.out.println("Could not add phone to database. Please try again later.");
+            return false;
+        }
     }
 
     /**

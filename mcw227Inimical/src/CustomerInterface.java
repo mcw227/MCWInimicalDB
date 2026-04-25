@@ -82,7 +82,7 @@ public final class CustomerInterface {
         while (resp != -2) {
             printCMenu(c);
             resp = Helper.nextId(scn);
-            if (resp == 0 || resp > 6 || resp == -1) {
+            if (resp == 0 || resp > 7 || resp == -1) {
                 System.out.println("Please pick a valid option!");
             } else if (resp != -2) {
                 switch(resp) {
@@ -102,6 +102,9 @@ public final class CustomerInterface {
                         cCheckCreditCards(c, conn, scn);
                         break;
                     case 6:
+                        cCheckPhoneNumbers(c, conn, scn);
+                        break;
+                    case 7:
                         if (cDeactivateAccount(c, conn, scn) == true) {
                             return;
                         }
@@ -154,21 +157,10 @@ public final class CustomerInterface {
         System.out.printf("Your current email is: %s, would you like to change it? ([y]es/[n]o)\n", c.email);
         int choice = Helper.nextYN(scn);
         if (choice == -2) { return; }
-        try {
-            PreparedStatement emailChange = conn.prepareStatement("UPDATE customers SET email=? WHERE id=?");
-            System.out.println("What would you like your new email to be?");
-            String newEmail = Helper.nextEmail(scn);
-            System.out.printf("\nChanging email to %s... ", newEmail);
-            emailChange.setString(1, newEmail);
-            emailChange.setInt(2, c.id);
-            emailChange.executeUpdate();
-            System.out.println("email updated.");
-        } catch (Exception e) {
-            System.out.println("Could not update customer email. Please try again later.");
-            //e.printStackTrace(); //debug
-        } finally {
-            return;
-        }
+
+        System.out.println("What would you like your new email to be?");
+        String newEmail = Helper.nextEmail(scn);
+        c.emailChange(conn, newEmail);
     }
 
     /**
@@ -187,56 +179,18 @@ public final class CustomerInterface {
             System.out.println("Are you really sure?");
             if (Helper.nextYN(scn) == -2)
                 return;
+            c.deactivateMembership(conn);
 
-            try {
-                PreparedStatement cancelMembership = conn.prepareStatement("UPDATE customers SET membership=0 WHERE id=?");
-                cancelMembership.setInt(1,c.id);
-
-                PreparedStatement setPointsZero = conn.prepareStatement("UPDATE customers SET points=0 WHERE id=?");
-                setPointsZero.setInt(1,c.id);
-
-                conn.setAutoCommit(false); //start transaction
-                System.out.print("Cancelling membership... ");
-                cancelMembership.executeUpdate();
-                setPointsZero.executeUpdate();
-                conn.commit();
-                System.out.println("Done!");
-            } catch (Exception e) {
-                try {
-                    System.out.println("Could not update membership status. Try again later");
-                    conn.rollback();
-                } catch (Exception f) { //Critical db error
-                    System.err.println("Database connection terminated. Please restart software");
-                    System.exit(-1);
-                }
-
-            } finally {
-                try {
-                    conn.setAutoCommit(true);
-                } catch (Exception e) { //Critical db error
-                    System.err.println("Database connection terminated. Please restart software.");
-                    System.exit(-1);
-                }
-            }
         } else {
             System.out.println("You are not a member yet, would you like to enroll? [y]es/[n]o/[q]uit");
             if (Helper.nextYN(scn) == -2)
                 return;
-            try {
-                PreparedStatement enrollMembership = conn.prepareStatement("UPDATE customers SET membership=1 WHERE id=?");
-                enrollMembership.setInt(1, c.id);
-
-                System.out.print("Enrolling in membership... ");
-                enrollMembership.executeUpdate();
-                System.out.println("Done!");
-            } catch (Exception e) {
-                System.out.println("Could not update membership status. Please try again later.");
-                return;
-            }
+            c.activateMembership(conn);
         }
     }
 
     /**
+     * Allows the user to check their credit cards
      * @param c Customer that is logged in
      * @param conn Database connection to use
      * @param scn Scanner to grab input from
@@ -283,6 +237,54 @@ public final class CustomerInterface {
         }
     }
 
+    /**
+     * Allows the user to check their phone numbers
+     * @param c Customer that is logged in
+     * @param conn Database connection to use
+     * @param scn Scanner to grab input from
+     */
+    static void cCheckPhoneNumbers(Customer c, Connection conn, Scanner scn) {
+        Pager<PhoneNumber> phones = new Pager(Helper.fetchPhones(c.id, conn), 5);
+        boolean update = false;
+        while (true) {
+            if (update) //update, restart list
+                phones = new Pager(Helper.fetchPhones(c.id, conn), 5);
+            phones.printCurrentPage();
+            if (!phones.list.isEmpty()) {
+                System.out.println("Press n to go to next page, p to go to previous, q to quit.");
+                System.out.println("You may type a to add or d to delete");
+                int resp = Helper.nextPNQAD(scn);
+                switch (resp) {
+                    case -2:
+                        return;
+                    case 1:
+                        Helper.clearConsole();
+                        phones.previousPage();
+                        break;
+                    case 2:
+                        Helper.clearConsole();
+                        phones.nextPage();
+                        break;
+                    case 3:
+                        update = Helper.addPhoneScreen(c, conn, scn);
+                        break;
+                    case 4:
+                        update = Helper.removePhoneScreen(c, conn, scn);
+                        break;
+                }
+            }
+            else {
+                System.out.println("You have no phone numbers saved to your account. Would you like to add one? (y)es/(n)o");
+                int resp = Helper.nextYN(scn);
+                if (resp == -2)
+                    return;
+                else {
+                    update = Helper.addPhoneScreen(c, conn, scn);
+                }
+            }
+        }
+    }
+
     static void cMakeOrder(Customer c, Connection conn, Scanner scn) {return;}
 
     /**
@@ -322,7 +324,7 @@ public final class CustomerInterface {
             System.out.printf("\n\nHello, esteemed %s! You have %d points!", c.name, c.points);
         else
             System.out.printf("\n\nHello, %s!", c.name);
-        System.out.printf("\nWhat would you like to do today?\n\t1. Change Name\n\t2. Change Email\n\t3. View Membership Details or Enroll \n\t4. Make An Order\n\t5. Check And Adjust Credit Cards\n\t6. Deactivate Account\nEnter a 1-6 to select an option or enter quit (q) to quit!\n", c.name);
+        System.out.printf("\nWhat would you like to do today?\n\t1. Change Name\n\t2. Change Email\n\t3. View Membership Details or Enroll \n\t4. Make An Order\n\t5. Check And Adjust Credit Cards\n\t6. Check and Adjust Phone Numbers\n\t7. Deactivate Account\nEnter a 1-6 to select an option or enter quit (q) to quit!\n", c.name);
     }
 
 }

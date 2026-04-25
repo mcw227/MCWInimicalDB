@@ -28,7 +28,7 @@ public class Item {
     public static boolean addItem(Connection conn, Item i) throws SQLException {
         PreparedStatement addItem = conn.prepareStatement("INSERT INTO items (name, price) VALUES (?, ?)");
         addItem.setString(1, i.name);
-        addItem.setFloat(2,i.price);
+        addItem.setDouble(2,i.price);
 
         System.out.print("Adding item to Database...");
         addItem.executeUpdate();
@@ -47,5 +47,6 @@ public class Item {
         System.out.print("Removing item from Database...");
         delItem.executeUpdate();
         System.out.println("Done!");
+        return true;
     }
 }
