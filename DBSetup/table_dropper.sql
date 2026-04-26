@@ -42,3 +42,5 @@ DROP TABLE locations;
 DROP TABLE customers;
 
 DROP TRIGGER upd_item_price;
+
+DROP TRIGGER upd_order_price;

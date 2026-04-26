@@ -75,7 +75,9 @@ CREATE TABLE recipes (
         FOREIGN KEY (ingredient_id)
         REFERENCES items(id) ON DELETE CASCADE,
     CONSTRAINT recipe_pk
-        PRIMARY KEY (recipe_id, ingredient_id)
+        PRIMARY KEY (recipe_id, ingredient_id),
+    CONSTRAINT recipe_quantity_chk
+        CHECK (quantity > 0)
 );
 
 CREATE TABLE menus (
@@ -102,6 +104,8 @@ CREATE TABLE orders (
     location_id NUMBER NOT NULL,
     customer_id NUMBER NOT NULL,
     payment_id NUMBER,
+    status NUMBER,
+    total NUMBER(6,2),
     CONSTRAINT loc_fk
         FOREIGN KEY (location_id)
         REFERENCES locations(id) ON DELETE CASCADE,
@@ -110,12 +114,16 @@ CREATE TABLE orders (
         REFERENCES customers(id) ON DELETE CASCADE,
     CONSTRAINT pay_fk
         FOREIGN KEY (payment_id)
-        REFERENCES cards(id) ON DELETE CASCADE
+        REFERENCES cards(id) ON DELETE CASCADE,
+    CONSTRAINT status_chk
+        CHECK (status BETWEEN 0 AND 4) -- CANCELLED, RECIEVED, IN-PROGRESS, WAITING-FOR PICKUP, COMPLETED
 );
 
 CREATE TABLE order_items (
     order_id NUMBER,
     item_id NUMBER,
+    quantity NUMBER NOT NULL,
+    cost NUMBER(5,2) NOT NULL, --individual item cost. This needs to be set like this to account for price adjustments based on location
     CONSTRAINT order_id_fk
         FOREIGN KEY (order_id)
         REFERENCES orders(id) ON DELETE CASCADE,
@@ -123,7 +131,9 @@ CREATE TABLE order_items (
         FOREIGN KEY (item_id)
         REFERENCES items(id) ON DELETE CASCADE,
     CONSTRAINT order_items_pk
-        PRIMARY KEY (order_id, item_id)
+        PRIMARY KEY (order_id, item_id),
+    CONSTRAINT order_quantity_chk
+        CHECK (quantity > 0)
 );
 
 CREATE TABLE price_change (
@@ -210,6 +220,41 @@ BEGIN
     UPDATE items
     SET price = nvl(price, 0) + added_cost
     WHERE items.id = nvl(:NEW.recipe_id, :OLD.recipe_id);
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+    NULL;
+
+END;
+/
+
+create or replace TRIGGER upd_order_price
+AFTER INSERT OR DELETE ON order_items
+FOR EACH ROW
+DECLARE 
+    item_price NUMBER;
+    added_cost NUMBER;
+BEGIN
+
+    IF INSERTING THEN
+        SELECT price INTO item_price
+        FROM items
+        WHERE id = :NEW.item_id;
+
+        added_cost := item_price * :NEW.quantity;
+
+    ELSIF DELETING THEN
+        SELECT price INTO item_price
+        FROM items
+        WHERE id = :OLD.item_id;
+
+        added_cost := item_price * :OLD.quantity * -1;
+
+    END IF;
+
+    UPDATE orders
+    SET total = nvl(total, 0) + added_cost
+    WHERE order.id = nvl(:NEW.order_id, :OLD.order_id);
 
 EXCEPTION
     WHEN NO_DATA_FOUND THEN
