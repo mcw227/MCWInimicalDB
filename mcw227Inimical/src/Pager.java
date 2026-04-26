@@ -37,7 +37,7 @@ public class Pager<T> {
             return;
         }
 
-        System.out.printf("--- PAGE %d OF %d ---\n", currentPage+1, (int)Math.ceil((double)list.size()/pageSize));
+        System.out.printf("--- PAGE %d OF %d ---\n", currentPage+1, (int)Math.ceil((double)list.size()/pageSize)+1);
         int end_index = ((current_start_index + pageSize) < list.size()) ? (current_start_index + pageSize) : list.size();
         //System.out.println(end_index); //debug
         
@@ -85,16 +85,16 @@ public class Pager<T> {
                 if (pageSize >= list.size())
                     current_start_index = 0;
                 else
-                    current_start_index = (list.size() - pageSize -1);
+                    current_start_index = (list.size() - list.size()%pageSize -1);
             }
             else {
                 current_start_index = ((current_start_index - pageSize) < 0) ? (current_start_index - pageSize) : 0;
             }
             
             if (temp < current_start_index) //looped around
-                currentPage = (list.size()/pageSize)-1;
+                currentPage = (list.size()/pageSize);
             else if (current_start_index == 0)
-                currentPage = 1;
+                currentPage = 0;
             else
                 currentPage--;
         }

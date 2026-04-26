@@ -188,7 +188,7 @@ public final class CustomerInterface {
      */
     static void cCheckCreditCards(Customer c, Connection conn, Scanner scn) {
         Helper.clearConsole();
-        c.cardScreen();
+        c.cardScreen(conn, scn);
     }
 
     /**
@@ -244,7 +244,7 @@ public final class CustomerInterface {
         Helper.clearConsole();
         while (true) {
             System.out.println("Would you like to make a new order or check order history/status? (n)ew/(c)heck/(q)uit");
-            int r = nextACQ(scn);
+            int r = Helper.nextNCQ(scn);
             if (r == -2)
                 return;
             
@@ -292,7 +292,6 @@ public final class CustomerInterface {
 
     /** Prints the customer control menu */
     static void printCMenu(Customer c) {
-        Helper.clearConsole();
         System.out.flush();
         if (c.membership)
             System.out.printf("\n\nHello, esteemed %s! You have %d points!", c.name, c.points);

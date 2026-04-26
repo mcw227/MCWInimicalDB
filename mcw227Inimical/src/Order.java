@@ -169,7 +169,7 @@ public class Order {
 
     public static void newOrderScreen(Customer c, Connection conn, Scanner scn) {
         Order customer_order = new Order(c);
-
+        System.out.println("Rah!");
         int loc_id = Location.locationSelectScreen(conn, scn); //User must first select a location
         if (loc_id == -2)
             return;
@@ -183,34 +183,38 @@ public class Order {
             System.out.println("Type (n)ext to go to next page, or (p)revious to go to previous page.");
             System.out.println("Type (a)dd to add an item to your bag, (c)heck to check out an item's details, (b)ag to check bag");
             System.out.println("Type (ch)eckout to checkout or (q)uit to quit [Deletes order progress!]");
-            int resp = Helper.nextACQNP(scn);
+            int resp = Helper.nextACQNPB(scn);
             if (resp == -2)
                 return;
 
             switch (resp) {
                 case (1):
-                    Helper.clearConsole();
                     customer_order.addItemScreen(scn, items);
+                    Helper.clearConsole();
                     break;
                 case (2):
                     Helper.clearConsole();
                     Item.checkItemScreen(conn, scn, items);
+                    break;
                 case (3):
                     Helper.clearConsole();
                     menu.nextPage();
+                    break;
                 case(4):
                     Helper.clearConsole();
                     menu.previousPage();
+                    break;
                 case(5):
                     Helper.clearConsole();
-                    customer_order.bagScreen();
+                    customer_order.checkBagScreen(scn);
+                    break;
                 case(6):
                     Helper.clearConsole();
                     if (customer_order.checkout(c, conn, scn))
                         return;
                 break;
             }
-            Helper.clearConsole();
+            //Helper.clearConsole();
         }
     }
 
@@ -219,7 +223,7 @@ public class Order {
      * @param id The id of the item to search for
      * @return True if it exists in the bag, false if not
      */
-    public boolean bagHasItem(id) {
+    public boolean bagHasItem(int id) {
         return this.bag.stream().anyMatch(item -> item.id == id);
     }
 
@@ -227,8 +231,9 @@ public class Order {
      * @param id The item id of the order_item to search for
      * @return the item in the bag if it exists, or null if not
      */
-    public Item getBagItem(id) {
-        OrderItem item = this.bag.stream().filter(i -> i.item_id == id).findFirst(); //grabs the first item from the list, feels like javascript style :)
+    public OrderItem getBagItem(int id) {
+        OrderItem item = this.bag.stream().filter(i -> i.id == id).findFirst().orElse(null); //grabs the first item from the list, feels like javascript style :)
+        return item;
     }
     /**
      * Allows someone to add an item to the order
@@ -239,7 +244,7 @@ public class Order {
             int item_id = Helper.nextId(scn);
             if (item_id == -2)
                 return;
-            Item item = items.stream().filter(i -> i.id == item_id).findFirst(); //grabs the first item from the list, feels like javascript style :)
+            Item item = items.stream().filter(i -> i.id == item_id).findFirst().orElse(null); //grabs the first item from the list, feels like javascript style :)
 
             if (item != null) {
                 System.out.printf("How many servings of %s would you like?\n", item.name);
@@ -270,9 +275,11 @@ public class Order {
                 return;
             if (!this.bagHasItem(id)) {
                 System.out.printf("Item with id: %d not found in bag!", id);
+                return;
             } else {
                 this.removeItemFromBag(id);
                 System.out.println("Removed.");
+                return;
             }
         }
     }
@@ -289,8 +296,9 @@ public class Order {
                 return;
             if (!this.bagHasItem(id)) {
                 System.out.printf("Item with id: %d not found in bag!", id);
+                return;
             } else {
-                System.out.println("What would you like to set the new quantity to?")
+                System.out.println("What would you like to set the new quantity to?");
                 int quantity = Helper.nextId(scn);
                 if (quantity == -2)
                     return;
@@ -298,7 +306,8 @@ public class Order {
                     this.removeItemFromBag(id);
                 }
                 getBagItem(id).quantity = quantity;
-                System.out.printf("Changed quantity to %d", quantity);
+                System.out.printf("Changed quantity to %d\n", quantity);
+                return;
             }
         }
     }
@@ -311,6 +320,7 @@ public class Order {
         if (this.bag.size() == 0) {
             System.out.println("Bag is empty!");
         }
+        System.out.println(this.getOrderSummary());
         System.out.println("Press (d)elete to delete an item, (e) to edit an item's quantity or (q)uit to return to menu screen.");
         while (true) {
             int resp = Helper.nextDEQ(scn);
@@ -320,6 +330,8 @@ public class Order {
                 this.removeItemScreen(scn);
             else if (resp == 2)
                 this.editItemScreen(scn);
+            Helper.clearConsole();
+            System.out.println(this.getOrderSummary());
             System.out.println("Press (d)elete to delete an item, (e) to edit an item's quantity or (q)uit to return to menu screen.");
         }
     }
@@ -333,11 +345,15 @@ public class Order {
         if (this.bag.size() == 0) {
             return "Bag is empty!";
         }
-        for (item : this.bag) {
+        for (Item item : this.bag) {
             ret += "\t" + item.toString() + "\n";
         }
         ret += String.format("TOTAL: %.2f\n AT LOCATION:%d", this.total, this.location_id);
         return ret;
+    }
+
+    public static void checkOrderScreen(Connection conn, Scanner scn) {
+        return;
     }
 
     /**
@@ -345,11 +361,12 @@ public class Order {
      */
     public boolean checkout(Customer c, Connection conn, Scanner scn) {
         System.out.println("What card would you like to pay with?");
-        int card_id = c.selectCardScreen(conn);
+        int card_id = c.selectCardScreen(conn, scn);
         if (card_id == -2)
             return false;
         else {
             this.payment_id = card_id;
         }
+        return false;
     }
 }

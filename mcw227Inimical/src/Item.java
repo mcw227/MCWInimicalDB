@@ -1,4 +1,5 @@
 import java.sql.*;
+import java.util.Scanner;
 import java.util.ArrayList;
 
 /** Public class items to model an entry into the item db */
@@ -8,7 +9,6 @@ public class Item {
     public int id;
     public String name;
     public double price;
-    public String type;
 
     public Item(int id, String name, double price) {
         this.id = id;
@@ -18,7 +18,7 @@ public class Item {
 
     /** Standard toString method */
     public String toString() {
-        return String.format("ID: %-3d\t| NAME:%-50%s\t| PRICE:%.2f", id, name, price);
+        return String.format("ID: %-3d\t| NAME: %-50s\t| PRICE: $%.2f", id, name, price);
     }
 
     /**
@@ -85,15 +85,15 @@ public class Item {
         ArrayList<Item> menu_items = new ArrayList<>();
         try {
             PreparedStatement fetchMenuItems = conn.prepareStatement("SELECT * FROM menu_item_view");
-            ResultSet rs = fetchItems.executeQuery();
+            ResultSet rs = fetchMenuItems.executeQuery();
 
             if (!rs.next()) //no items in db for some reason..
-                return items;
+                return menu_items;
             do {
                 int id = rs.getInt("id");
                 String name = rs.getString("name");
                 Double price = rs.getDouble("price");
-                items.add(new Item(id,name,price));
+                menu_items.add(new Item(id,name,price));
             } while(rs.next());
 
         } catch (Exception e) {
@@ -110,5 +110,71 @@ public class Item {
      */
     public static ArrayList<Item> fetchMenuItems(Connection conn, int location_id) {
         return fetchMenuItems(conn);
+    }
+
+    /**
+     * Creates an item object by querying the databse for an item with the given id
+     * @param conn The database connection to use
+     * @param query_id The item id to query
+     * @return The item found in the database, or null if it did not exist
+     */
+    public static Item createItemFromID(Connection conn, int query_id) {
+        try {
+            PreparedStatement getItem = conn.prepareStatement("SELECT * FROM items WHERE id = ?");
+            getItem.setInt(1, query_id);
+            ResultSet rs = getItem.executeQuery();
+            if (!rs.next()) { //item not found
+                System.out.printf("Unable to create item from ID: %d, not found in database!\n", query_id);
+                return null;
+            }
+            String n = rs.getString("name");
+            double p = rs.getDouble("price");
+            return new Item(query_id, n, p);
+        } catch (Exception e) {
+            System.out.printf("Unable to create item from ID: %d\n", query_id);
+            return null;
+        }
+    }
+
+    /**
+     * Creates an item object by querying the databse for an item with the given id and ensure that it is the correct price based on the location
+     * @param conn The database connection to use
+     * @param query_id The item id to query
+     * @param loc_id The location the item is sold at (in case of location specific price updates)
+     * @return The item found in the database, or null if it did not exist
+     * @override
+     */
+    public static Item createItemFromID(Connection conn, int query_id, int loc_id) {
+        try {
+            PreparedStatement getItem = conn.prepareStatement("SELECT * FROM items WHERE id = ?");
+            getItem.setInt(1, query_id);
+            ResultSet rs_gi = getItem.executeQuery();
+            if (!rs_gi.next()) { //item not found
+                System.out.printf("Unable to create item from ID: %d, not found in database!\n", query_id);
+                return null;
+            }
+            String n = rs_gi.getString("name");
+            double p;
+            
+            //See whether there is a price change for this item
+            PreparedStatement getItemPriceUpdate = conn.prepareStatement("SELECT * FROM price_change WHERE item_id = ? AND location_id = ?");
+            getItemPriceUpdate.setInt(1, query_id);
+            getItemPriceUpdate.setInt(2, loc_id);
+
+            ResultSet rs_gipu = getItemPriceUpdate.executeQuery();
+            if (!rs_gipu.next())
+                p = rs_gi.getDouble("price");
+            else
+                p = rs_gipu.getDouble("price");
+
+            return new Item(query_id, n, p);
+        } catch (Exception e) {
+            System.out.printf("Unable to create item from ID: %d\n", query_id);
+            return null;
+        }
+    }
+
+    public static void checkItemScreen(Connection conn, Scanner scn, ArrayList<Item> items) {
+        return;
     }
 }
