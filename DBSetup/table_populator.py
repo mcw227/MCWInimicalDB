@@ -285,6 +285,12 @@ def gen_orders():
 # generates items in customer orders
 def gen_order_items():
     df = pd.DataFrame(gen_unique_pairs(16, 91, 27), columns=["order_id","item_id"])
+    df["quantity"] = np.random.randint(1,5,27)
+
+    raw_data = np.random.uniform(0.00, 10.00, size=27)
+
+    formatted_numbers = np.round(raw_data, 2)
+    df["price"] = formatted_numbers
 
     try:
         engine = create_engine(connection_url)

@@ -123,7 +123,7 @@ CREATE TABLE order_items (
     order_id NUMBER,
     item_id NUMBER,
     quantity NUMBER NOT NULL,
-    cost NUMBER(5,2) NOT NULL, --individual item cost. This needs to be set like this to account for price adjustments based on location
+    price NUMBER(5,2) NOT NULL, --individual item cost. This needs to be set like this to account for price adjustments based on location
     CONSTRAINT order_id_fk
         FOREIGN KEY (order_id)
         REFERENCES orders(id) ON DELETE CASCADE,
@@ -228,6 +228,7 @@ EXCEPTION
 END;
 /
 
+-- Updates an order's total based on the price of it's items
 create or replace TRIGGER upd_order_price
 AFTER INSERT OR DELETE ON order_items
 FOR EACH ROW
@@ -241,20 +242,19 @@ BEGIN
         FROM items
         WHERE id = :NEW.item_id;
 
-        added_cost := item_price * :NEW.quantity;
+        added_cost := :NEW.price * :NEW.quantity;
 
     ELSIF DELETING THEN
         SELECT price INTO item_price
         FROM items
         WHERE id = :OLD.item_id;
 
-        added_cost := item_price * :OLD.quantity * -1;
-
+        added_cost := :OLD.price * :OLD.quantity * -1;
     END IF;
 
     UPDATE orders
     SET total = nvl(total, 0) + added_cost
-    WHERE order.id = nvl(:NEW.order_id, :OLD.order_id);
+    WHERE orders.id = nvl(:NEW.order_id, :OLD.order_id);
 
 EXCEPTION
     WHEN NO_DATA_FOUND THEN
