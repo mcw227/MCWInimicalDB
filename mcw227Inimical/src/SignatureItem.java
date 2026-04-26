@@ -2,13 +2,17 @@ import java.sql.*;
 
 /** Public class signature item models a signature item entity in the db */
 public class SignatureItem extends Item {
-    public String author;
 
-    public SignatureItem(int id, String name, String author, double price) {
+    /** Standard constructor */
+    public SignatureItem(int id, String name, double price) {
         super(id,name,price);
-        this.author = author;
     }
 
+    /**
+     * Adds a signature item to the database
+     * @param conn The database connection to use
+     * @param si The signature item to add
+     */
     public static void addSig(Connection conn, SignatureItem si) {
         
         try {
@@ -49,6 +53,44 @@ public class SignatureItem extends Item {
                 System.err.println("Critical database error. Please restart application.");
                 System.exit(-1);
             }
+        }
+    }
+
+    // There's no real difference since the dependency between signature items table and items table is cascading on deletion
+    /**
+     * Deletes a signature item
+     * @param conn The database connection to use
+     * @param id The id of the signature item to delete
+     */
+    public static boolean delSig(Connection conn, int id) {
+       return super.delItem(conn, id);
+    }
+
+    /**
+     * Obtains all signature items currently in the database.
+     * @param conn The database connection to use
+     */
+    public static ArrayList<SignatureItem> fetchSigs(Connection conn) {
+        ArrayList<SignatureItem> signature_items = new ArrayList<>();
+        try {
+            PreparedStatement fetchCustomerCreations = conn.prepareStatement("SELECT * FROM customer_creations_view");
+                ResultSet rs = fetchSignatures.executeQuery();
+
+                if (!rs.next())
+                    continue;
+                else {
+                    do {
+                        int id = rs.getInt("id");
+                        String name = rs.getString("name");
+                        double price = rs.getDouble("price");
+                        signature_items.add(new SignatureItem(id, name, price));
+                    } (while rs.next());
+                }
+
+            return signature_items;
+        } catch (Exception e) {
+            System.out.println("Unable to fetch signature items. Try again later.");
+            return null;
         }
     }
 

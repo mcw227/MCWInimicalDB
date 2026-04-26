@@ -7,13 +7,6 @@ import java.util.regex.*;
 
 public final class Helper {
 
-    /** These variables dictate the behavior of certain functionality. The database also enforces some of these rules but perhaps we would want to control them here as well? */
-    private final static int MAX_BRAND_LEN = 40; //max is 40 according to db
-    private final static int MAX_NAME_LEN = 30; //max is 30 according to db
-    private final static int MAX_EXPR_DATE_LEN = 7; //max is 7 according to db
-    private final static int MAX_CARD_NUM_LEN = 20; //max is 20 according to db
-    private final static ArrayList<String> allowedCreditCardBrands = new ArrayList<>(Arrays.asList("visa","mastercard","american-express","discover"));
-
     public Helper() {
         throw new UnsupportedOperationException("This is a utility class. Do not instantiate it.");
     }
@@ -76,7 +69,9 @@ public final class Helper {
         String phone_regex = "\\+\\d{1,3}-\\d{3}-\\d{3}-\\d{4}";
 
         while(true) {
-            String resp = nextSafeString(scn, 40);
+            String resp = safeCheckQuit(scn, 40);
+            if (resp == null)
+                return null;
             if (matchRegex(resp, phone_regex))
                 return resp;
             System.out.println("Please provide a valid phone number in the format +X-XXX-XXX-XXXX. (Country code up to three digits)");
@@ -168,122 +163,6 @@ public final class Helper {
     }
 
     /**
-     * Gets all cards for a particular customer id
-     * @param c_id Customer id to query. If set to -1, gets all credit cards and puts them in a list.
-     * @param conn Database connection to use.
-     * @return an ArrayList populated with the cards obtained
-     */
-    public static ArrayList<Card> fetchCards(int c_id, Connection conn) {
-        ArrayList<Card> cards = new ArrayList<>();
-
-        try {
-            PreparedStatement getCards;
-            if (c_id == -1)
-                getCards = conn.prepareStatement("SELECT * FROM cards");
-            else {
-                getCards = conn.prepareStatement("SELECT * FROM cards WHERE customer_id = ?");
-                getCards.setInt(1, c_id);
-            }
-            ResultSet rs = getCards.executeQuery();
-            
-            if (!rs.next()) { //No cards, return empty arraylist
-                return cards;
-            }
-
-            do {
-                int id = rs.getInt("id");
-                int cid = rs.getInt("customer_id");
-                String brand = rs.getString("brand");
-                String name = rs.getString("name");
-                String card_number = rs.getString("card_number");
-                String expr_date = rs.getString("expr_date");
-                String cvv = rs.getString("cvv");
-
-                cards.add(new Card(id, cid, brand, name, card_number, expr_date, cvv));
-            } while (rs.next()); //since we checked rs.next() above we have to use a do while loop instead, otherwise we skip the first one :(
-
-        } catch (Exception e) {
-            System.out.println("Could not query Database for cards. Please try again later.");
-            e.printStackTrace(); //debug
-            return null;
-        }
-        return cards;
-    }
-
-    /**
-     * Gets all cards for a particular customer id
-     * @param c_id Customer id to query. If set to -1, gets all credit cards and puts them in a list.
-     * @param conn Database connection to use.
-     * @return an ArrayList populated with the cards obtained
-     */
-    public static ArrayList<PhoneNumber> fetchPhones(int c_id, Connection conn) {
-        ArrayList<PhoneNumber> phones = new ArrayList<>();
-
-        try {
-            PreparedStatement getPhones;
-            if (c_id == -1)
-                getPhones = conn.prepareStatement("SELECT * FROM phone_numbers");
-            else {
-                getPhones = conn.prepareStatement("SELECT * FROM phone_numbers WHERE customer_id = ?");
-                getPhones.setInt(1, c_id);
-            }
-            ResultSet rs = getPhones.executeQuery();
-            
-            if (!rs.next()) { //No cards, return empty arraylist
-                return phones;
-            }
-
-            do {
-                int id = rs.getInt("id");
-                int cid = rs.getInt("customer_id");
-                String number = rs.getString("phone");
-
-                phones.add(new PhoneNumber(id, cid, number));
-            } while (rs.next()); //since we checked rs.next() above we have to use a do while loop instead, otherwise we skip the first one :(
-
-        } catch (Exception e) {
-            System.out.println("Could not query Database for phone numbers. Please try again later.");
-            e.printStackTrace(); //debug
-            return null;
-        }
-        return phones;
-    }
-
-    
-    /**
-     * Fetches new customer data.
-     * @param c The customer object to update. Uses its id to find the customer in the db.
-     * @param conn The database connection to use
-     */
-    static void updateCustomerInfo(Customer c, Connection conn) {
-        // admin account short circuit
-        if (c.id == -1) {
-            return;
-        }
-        try {
-            PreparedStatement findCustomer = conn.prepareStatement("SELECT * FROM customers WHERE id = ?");
-            findCustomer.setInt(1, c.id);
-            ResultSet rs = findCustomer.executeQuery();
-            if (rs == null) {//critical error
-                System.err.println("Customer not found in database. Please restart software.\n");
-                System.exit(-1);
-            }
-            else {
-                rs.next();
-                if (rs.getInt("active") == 0) //someone cancelled the account while the person was logged in
-                    c = Customer.InactiveCustomer();
-                c.id = rs.getInt("id");
-                c.name = rs.getString("name");
-                c.email = rs.getString("email");
-                c.membership = (rs.getInt("membership") == 1) ? true : false;
-                c.points = rs.getInt("points");
-            }
-        } catch (Exception e) {
-            System.out.println("Could not update customer info.\n");
-        }
-    }
-
-    /**
      * Checks whether user is trying to quit by typing !q or !quit
      * @return either the input string or null if user is trying to quit.
      */
@@ -292,161 +171,6 @@ public final class Helper {
         if (resp.equalsIgnoreCase("!q") || resp.equalsIgnoreCase("!quit"))
             return null;
         return resp;
-    }
-
-    /**
-     * Opens an add card screen. Uses the provided customer number, or queries user for one if it is null.
-     * @param c Customer adding card. Should have id of -1 if admin
-     * @param conn Database connection to use
-     * @param scn Scanner to grab input from
-     * @return true if card was added, false if not.
-     */
-    static boolean addCardScreen(Customer c, Connection conn, Scanner scn) {
-        String resp = null;
-        String brand = ""; String holder_name=""; String card_number=""; String expr_date=""; String cvv="";
-        System.out.println("Type (!q)uit at any time to quit.\n");
-
-        if (c.id == -1) {
-            System.out.println("What is the customer id of the card holder?");
-            int c_id = nextId(scn);
-            c = new Customer(c_id, c.name, c.email, 0, c.points);
-        }
-
-        while (resp == null) {
-            System.out.println("What is the brand? Must be one of " + allowedCreditCardBrands.toString());
-            resp = safeCheckQuit(scn, MAX_BRAND_LEN);
-            if (resp == null)
-                return false;
-            // else check to make sure the brand is allowed
-            if (allowedCreditCardBrands.contains(resp)) {
-                brand = resp;
-            } else {
-                resp = null;
-            }
-        }
-
-        brand = resp;
-
-        System.out.println("What is the name of the card holder?");
-        resp = safeCheckQuit(scn, MAX_NAME_LEN);
-        if (resp == null)
-            return false;
-        holder_name = resp;
-
-        resp = null;
-        System.out.println("What is the number on the card? Enter with no spaces.");
-        while (resp == null) {
-            resp = safeCheckQuit(scn, MAX_CARD_NUM_LEN);
-            if (resp == null)
-                return false;
-
-            if (resp.contains(" ")) {
-                resp = null;
-                System.out.println("Do not enter spaces or non-numerics.");
-            }
-        }
-        card_number = resp;
-
-        resp = null;
-        System.out.println("What is the expiration date. Enter in the format (YEAR-MO. example: 2026-04)");
-        while (resp == null) {
-            resp = safeCheckQuit(scn, MAX_EXPR_DATE_LEN);
-            if (resp == null)
-                return false;
-            
-            if (!matchRegex(resp, "\\d{4}-\\d{2}")) {
-                System.out.println("Please provide expiration date in the format: XXXX-XX");
-                resp = null;
-            }
-        }
-        expr_date = resp;
-
-        resp = null;
-        System.out.println("What is the cvv?");
-        while(resp == null) {
-            resp = safeCheckQuit(scn, 3);
-            if (resp == null)
-                return false;
-
-            if(!matchRegex(resp, "\\d{3}")) {
-                System.out.println("Please provide a valid, three digit cvv");
-                resp = null;
-            }
-        }
-        cvv = resp;
-
-        try {
-            Card.addCard(conn, new Card(-1, c.id, brand, holder_name, card_number, expr_date, cvv));
-            return true;
-        } catch (Exception e) {
-            System.err.println("Could not update database. Try again later.");
-            e.printStackTrace(); //debug
-        }
-        return false;
-    }
-
-    /**
-     * Allows for easy adding of phone numbers
-     * @param c The customer to add the phone number under. If id is -1 (admin account) then prompts for valid id
-     * @param conn The database connection to use
-     * @param scn The scanner to grab input from
-     * @return True if phone was added, false if not.
-     */
-    static boolean addPhoneScreen(Customer c, Connection conn, Scanner scn) {
-        System.out.println("Please enter a phone number in the format: +XXX-XXX-XXX-XXXX (with support for 3 digit country code)");
-        String phone = nextPhoneNumber(scn);
-
-        try {
-            if (c.id != -1)
-                return PhoneNumber.addPhone(conn, new PhoneNumber(-1, c.id, phone));
-            else {
-                System.out.println("Which user would you like to add the phone number under?");
-                int id = nextId(scn);
-                return PhoneNumber.addPhone(conn, new PhoneNumber(-1, id, phone));
-            }
-        } catch (Exception e) {
-            System.out.println("Could not add phone to database. Please try again later.");
-            //e.printStackTrace(); //debug
-            return false;
-        }
-    }
-
-    /**
-     * Allows for easy adding of phone numbers
-     * @param c The customer to add the phone number under. If id is -1 (admin account) then prompts for valid id
-     * @param conn The database connection to use
-     * @param scn The scanner to grab input from
-     * @return True if phone was added, false if not.
-     */
-    static boolean removePhoneScreen(Customer c, Connection conn, Scanner scn) {
-        System.out.println("What is the id of the phone number you'd like to remove?");
-        int id = nextId(scn);
-
-        try {
-                return PhoneNumber.removePhone(c,conn, id);
-        } catch (Exception e) {
-            System.out.println("Could not remove phone from database. Please try again later.");
-            //e.printStackTrace(); //debug
-            return false;
-        }
-    }
-
-    /**
-     * Allows the customer to delete a card if their id matches the card or if the admin "account" is provided
-     * @param c The customer currently logged in. Could be an admin user with c.id == -1
-     * @param conn The database connection to use
-     * @param scn The scanner to grab input from
-     * @return True if cards were updated, false if not
-     */
-    static boolean removeCardScreen(Customer c, Connection conn, Scanner scn) {
-        System.out.println("What is the id of the card you would like to delete?");
-        int id = nextId(scn);
-        try {
-            return Card.removeCard(c, conn, id);
-        } catch (Exception e) {
-            System.out.println("Unable to remove card from database, please try again later.");
-            return false;
-        }
     }
 
     /**

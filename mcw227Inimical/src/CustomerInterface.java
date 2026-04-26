@@ -111,7 +111,7 @@ public final class CustomerInterface {
                         break;
                 }
             }
-            Helper.updateCustomerInfo(c, conn);
+            Customer.updateCustomerInfo(c, conn);
             if (c.id == -2) { //acount was marked as inactive while another user was logged in!
                 System.out.println("Customer is now marked inactive. Please contact management if you think this is an error.");
                 return;
@@ -130,21 +130,9 @@ public final class CustomerInterface {
         System.out.printf("Your current name is: %s, would you like to change it? ([y]es/[n]o)\n", c.name);
         int choice = Helper.nextYN(scn);
         if (choice == -2) { return; }
-        try {
-            PreparedStatement nameChange = conn.prepareStatement("UPDATE customers SET name=? WHERE id=?");
-            System.out.println("What would you like your new name to be?");
-            String newName = Helper.nextSafeString(scn, 30); //Names can be up to 30 characters long
-            System.out.printf("\nChanging name to %s... ", newName);
-            nameChange.setString(1, newName);
-            nameChange.setInt(2, c.id);
-            nameChange.executeUpdate();
-            System.out.println("Name updated.");
-        } catch (Exception e) {
-            System.out.println("Could not update customer name. Please try again later.");
-            e.printStackTrace();
-        } finally {
-            return;
-        }
+        System.out.println("What would you like your new name to be?");
+        String newName = Helper.nextSafeString(scn, 30); //Names can be up to 30 characters long
+        c.changeName(conn, newName);
     }
 
     /**
@@ -196,11 +184,11 @@ public final class CustomerInterface {
      * @param scn Scanner to grab input from
      */
     static void cCheckCreditCards(Customer c, Connection conn, Scanner scn) {
-        Pager<Card> cards = new Pager(Helper.fetchCards(c.id, conn), 5);
+        Pager<Card> cards = new Pager(Card.fetchCards(c.id, conn), 5);
         boolean update = false;
         while (true) {
             if (update) //update, restart list
-                cards = new Pager(Helper.fetchCards(c.id, conn), 5);
+                cards = new Pager(Card.fetchCards(c.id, conn), 5);
             cards.printCurrentPage();
             if (!cards.list.isEmpty()) {
                 System.out.println("Press n to go to next page, p to go to previous, q to quit.");
@@ -218,10 +206,10 @@ public final class CustomerInterface {
                         cards.nextPage();
                         break;
                     case 3:
-                        update = Helper.addCardScreen(c, conn, scn);
+                        update = Card.addCardScreen(c, conn, scn);
                         break;
                     case 4:
-                        update = Helper.removeCardScreen(c, conn, scn);
+                        update = Card.removeCardScreen(c, conn, scn);
                         break;
                 }
             }
@@ -231,7 +219,7 @@ public final class CustomerInterface {
                 if (resp == -2)
                     return;
                 else {
-                    update = Helper.addCardScreen(c, conn, scn);
+                    update = Card.addCardScreen(c, conn, scn);
                 }
             }
         }
@@ -244,11 +232,11 @@ public final class CustomerInterface {
      * @param scn Scanner to grab input from
      */
     static void cCheckPhoneNumbers(Customer c, Connection conn, Scanner scn) {
-        Pager<PhoneNumber> phones = new Pager(Helper.fetchPhones(c.id, conn), 5);
+        Pager<PhoneNumber> phones = new Pager(PhoneNumber.fetchPhones(c.id, conn), 5);
         boolean update = false;
         while (true) {
             if (update) //update, restart list
-                phones = new Pager(Helper.fetchPhones(c.id, conn), 5);
+                phones = new Pager(PhoneNumber.fetchPhones(c.id, conn), 5);
             phones.printCurrentPage();
             if (!phones.list.isEmpty()) {
                 System.out.println("Press n to go to next page, p to go to previous, q to quit.");
@@ -266,10 +254,10 @@ public final class CustomerInterface {
                         phones.nextPage();
                         break;
                     case 3:
-                        update = Helper.addPhoneScreen(c, conn, scn);
+                        update = PhoneNumber.addPhoneScreen(c, conn, scn);
                         break;
                     case 4:
-                        update = Helper.removePhoneScreen(c, conn, scn);
+                        update = PhoneNumber.removePhoneScreen(c, conn, scn);
                         break;
                 }
             }
@@ -279,13 +267,15 @@ public final class CustomerInterface {
                 if (resp == -2)
                     return;
                 else {
-                    update = Helper.addPhoneScreen(c, conn, scn);
+                    update = PhoneNumber.addPhoneScreen(c, conn, scn);
                 }
             }
         }
     }
 
-    static void cMakeOrder(Customer c, Connection conn, Scanner scn) {return;}
+    static void cOrders(Customer c, Connection conn, Scanner scn) {
+        
+    }
 
     /**
      * Allows the user to "delete" their account. Note that this just sets it as inactive in the system rather than deleting it for... record keeping purposes.
@@ -324,7 +314,7 @@ public final class CustomerInterface {
             System.out.printf("\n\nHello, esteemed %s! You have %d points!", c.name, c.points);
         else
             System.out.printf("\n\nHello, %s!", c.name);
-        System.out.printf("\nWhat would you like to do today?\n\t1. Change Name\n\t2. Change Email\n\t3. View Membership Details or Enroll \n\t4. Make An Order\n\t5. Check And Adjust Credit Cards\n\t6. Check and Adjust Phone Numbers\n\t7. Deactivate Account\nEnter a 1-6 to select an option or enter quit (q) to quit!\n", c.name);
+        System.out.printf("\nWhat would you like to do today?\n\t1. Change Name\n\t2. Change Email\n\t3. View Membership Details or Enroll \n\t4. Make/View Status Of Orders\n\t5. Check And Adjust Credit Cards\n\t6. Check and Adjust Phone Numbers\n\t7. Deactivate Account\nEnter a 1-6 to select an option or enter quit (q) to quit!\n", c.name);
     }
 
 }
