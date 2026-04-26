@@ -210,7 +210,9 @@ public class Customer {
     } 
 
     /**
-     * Changes the 
+     * Changes the name of the customer based on the given string
+     * @param conn The database connection to use
+     * @param newName the name to set to
      */
     public boolean nameChange(Connection conn, String newName) {
         if (this.id < 0)
@@ -415,6 +417,125 @@ public class Customer {
             }
         } catch (Exception e) {
             System.out.println("Could not update customer info.\n");
+        }
+    }
+
+    /**
+     * Fetches cards for a given customer id
+     * @param c_id The customer id to query
+     * @param conn The database connection to use
+     * @return An arrayList of cards
+     */
+    public static ArrayList<Card> fetchCards(int c_id, Connection conn) {
+        return Card.fetchCards(c_id, conn);
+    }
+
+    /**
+     * Fetches cards for the customer
+     * @param conn the Database connection to use
+     * @return An arraylist of cards
+     */
+    public ArrayList<Card> fetchCards(Connection conn) {
+        return Card.fetchCards(this.id, conn);
+    }
+
+    public cardScreen(Connection conn, Scanner scn) {
+        Helper.clearConsole();
+        Pager<Card> cards = new Pager(Card.fetchCards(this.id, conn), 5);
+        boolean update = false;
+        while (true) {
+            if (update) //update, restart list
+                cards = new Pager(Card.fetchCards(this.id, conn), 5);
+            cards.printCurrentPage();
+            if (!cards.list.isEmpty()) {
+                System.out.println("Press n to go to next page, p to go to previous, q to quit.");
+                System.out.println("You may type a to add or d to delete");
+                int resp = Helper.nextPNQAD(scn);
+                switch (resp) {
+                    case -2:
+                        return;
+                    case 1:
+                        Helper.clearConsole();
+                        cards.previousPage();
+                        break;
+                    case 2:
+                        Helper.clearConsole();
+                        cards.nextPage();
+                        break;
+                    case 3:
+                        update = Card.addCardScreen(c, conn, scn);
+                        break;
+                    case 4:
+                        update = Card.removeCardScreen(c, conn, scn);
+                        break;
+                }
+            }
+            else {
+                System.out.println("You have no cards saved to your account. Would you like to add one? (y)es/(n)o");
+                int resp = Helper.nextYN(scn);
+                if (resp == -2)
+                    return;
+                else {
+                    update = Card.addCardScreen(this, conn, scn);
+                }
+            }
+        }
+    }
+
+    public int selectCardScreen(Connection conn, Scanner scn) {
+        Helper.clearConsole();
+        Pager<Card> cards = new Pager(Card.fetchCards(this.id, conn), 5);
+        boolean update = false;
+        while (true) {
+            if (update) //update, restart list
+                cards = new Pager(Card.fetchCards(this.id, conn), 5);
+            cards.printCurrentPage();
+            if (!cards.list.isEmpty()) {
+                System.out.println("Press n to go to next page, p to go to previous, q to quit");
+                System.out.println("You may type a to add or d to delete");
+                System.out.println("Press s to select a card");
+                int resp = Helper.nextPNQAD(scn);
+                switch (resp) {
+                    case -2:
+                        return -2;
+                    case 1:
+                        Helper.clearConsole();
+                        cards.previousPage();
+                        break;
+                    case 2:
+                        Helper.clearConsole();
+                        cards.nextPage();
+                        break;
+                    case 3:
+                        update = Card.addCardScreen(c, conn, scn);
+                        break;
+                    case 4:
+                        update = Card.removeCardScreen(c, conn, scn);
+                        break;
+                    case 5:
+                        System.out.println("What card would you like to select? (!q)uit to return");
+                        while (id == 0) {
+                            int id = Helper.nextId(scn);
+                            if (id == -2)
+                                return;
+                            if (cards.list.stream().anyMatch(card -> card.id == id))
+                                return id;
+                            else {
+                                System.out.printf("Card with id %d not found!\n", id);
+                            }
+                        }
+                        break;
+                }
+            }
+            else {
+                System.out.println("You have no cards saved to your account. Would you like to add one? (y)es/(n)o");
+                int resp = Helper.nextYN(scn);
+                if (resp == -2)
+                    return -2;
+                else {
+                    update = Card.addCardScreen(this, conn, scn);
+                }
+            }
         }
     }
 }

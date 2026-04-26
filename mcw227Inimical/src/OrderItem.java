@@ -13,6 +13,13 @@ public class OrderItem extends Item {
         this.order_id = order_id;
     }
 
+    /** Allows us to create an order line from an item. */
+    public OrderItem(Item item, int order_id, int quantity) {
+        super(item.id, item.name, item.price);
+        this.quantity = quantity;
+        this.order_id = order_id;
+    }
+
     /** Standard toString method */
     public String toString() {
         return String.format("ID: %-3d\t| ORDER_ID: %-3d\t| NAME:%-50%s\t| QUANTITY:%3d\t| PRICE:%.2f\t | CUMULATIVE TOTAL:%.2f", id, name, quantity, price, price*quantity);

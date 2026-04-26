@@ -78,13 +78,37 @@ public class Item {
     }
 
     /**
-     * Fetches all items which should be on the menu. Customer creations and signature items. Not ingredients
+     * Fetches all items which could be on the menu. Customer creations and signature items. Not ingredients
      * @param conn The database connection to use
      */
     public static ArrayList<Item> fetchMenuItems(Connection conn) {
         ArrayList<Item> menu_items = new ArrayList<>();
-        menu_items.addAll(SignatureItem.fetchSignatures(conn));
-        menu_items.addAll(CustomerCreation.fetchCustomerCreations(conn));
+        try {
+            PreparedStatement fetchMenuItems = conn.prepareStatement("SELECT * FROM menu_item_view");
+            ResultSet rs = fetchItems.executeQuery();
+
+            if (!rs.next()) //no items in db for some reason..
+                return items;
+            do {
+                int id = rs.getInt("id");
+                String name = rs.getString("name");
+                Double price = rs.getDouble("price");
+                items.add(new Item(id,name,price));
+            } while(rs.next());
+
+        } catch (Exception e) {
+            System.out.println("Unable to fetch items. Try again later");
+            return null;
+        }
         return menu_items;
+    }
+
+    /**
+     * Returns price adjusted items for the given location
+     * @param conn the Database connection to use
+     * @param location_id The id of the location to query
+     */
+    public static ArrayList<Item> fetchMenuItems(Connection conn, int location_id) {
+        return fetchMenuItems(conn);
     }
 }
