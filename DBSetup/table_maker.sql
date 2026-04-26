@@ -171,7 +171,7 @@ SELECT items.id, items.name, items.price FROM items
 JOIN signature_items ON items.id = signature_items.id;
 
 CREATE VIEW customer_creations_view AS
-SELECT i.id, i.name, i.price 
+SELECT i.id, i.name, i.price, c.creator
 FROM items i
 JOIN customer_creations c ON i.id = c.id;
 
