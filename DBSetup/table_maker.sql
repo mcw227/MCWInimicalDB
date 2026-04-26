@@ -24,7 +24,7 @@ CREATE TABLE phone_numbers (
     customer_id NUMBER,
     CONSTRAINT cust_phone
         FOREIGN KEY (customer_id)
-        REFERENCES customers(id),
+        REFERENCES customers(id) ON DELETE CASCADE
 );
 
 CREATE TABLE cards (
@@ -38,7 +38,7 @@ CREATE TABLE cards (
     active number(1) DEFAULT 1,
     CONSTRAINT fk_cards
         FOREIGN KEY (customer_id)
-        REFERENCES customers(id),
+        REFERENCES customers(id) ON DELETE CASCADE,
     CONSTRAINT card_active_chk
         CHECK (active BETWEEN 0 AND 1)
 );
@@ -54,14 +54,14 @@ CREATE TABLE customer_creations (
     creator varchar(30),
     CONSTRAINT cc_fk
         FOREIGN KEY (id)
-        REFERENCES items(id)
+        REFERENCES items(id) ON DELETE CASCADE
 );
 
 CREATE TABLE signature_items (
     id NUMBER PRIMARY KEY,
     CONSTRAINT sig_fk
         FOREIGN KEY (id)
-        REFERENCES items(id)
+        REFERENCES items(id) ON DELETE CASCADE
 );
 
 CREATE TABLE recipes (
@@ -70,10 +70,10 @@ CREATE TABLE recipes (
     quantity NUMBER(2),
     CONSTRAINT recipe_target_fk
         FOREIGN KEY (recipe_id)
-        REFERENCES customer_creations(id),
+        REFERENCES customer_creations(id) ON DELETE CASCADE,
     CONSTRAINT recipe_ingredient_fk
         FOREIGN KEY (ingredient_id)
-        REFERENCES items(id),
+        REFERENCES items(id) ON DELETE CASCADE,
     CONSTRAINT recipe_pk
         PRIMARY KEY (recipe_id, ingredient_id)
 );
@@ -88,10 +88,10 @@ CREATE TABLE menu_items (
     item_id NUMBER,
     CONSTRAINT menu_id_fk
         FOREIGN KEY (menu_id)
-        REFERENCES menus(id),
+        REFERENCES menus(id) ON DELETE CASCADE,
     CONSTRAINT item_id_fk
         FOREIGN KEY (item_id)
-        REFERENCES items(id),
+        REFERENCES items(id) ON DELETE CASCADE,
     CONSTRAINT menu_item_pk
         PRIMARY KEY (menu_id, item_id)
 );
@@ -104,13 +104,13 @@ CREATE TABLE orders (
     payment_id NUMBER,
     CONSTRAINT loc_fk
         FOREIGN KEY (location_id)
-        REFERENCES locations(id),
+        REFERENCES locations(id) ON DELETE CASCADE,
     CONSTRAINT customer_fk
         FOREIGN KEY (customer_id)
-        REFERENCES customers(id),
+        REFERENCES customers(id) ON DELETE CASCADE,
     CONSTRAINT pay_fk
         FOREIGN KEY (payment_id)
-        REFERENCES cards(id)
+        REFERENCES cards(id) ON DELETE CASCADE
 );
 
 CREATE TABLE order_items (
@@ -118,10 +118,10 @@ CREATE TABLE order_items (
     item_id NUMBER,
     CONSTRAINT order_id_fk
         FOREIGN KEY (order_id)
-        REFERENCES orders(id),
+        REFERENCES orders(id) ON DELETE CASCADE,
     CONSTRAINT order_item_fk
         FOREIGN KEY (item_id)
-        REFERENCES items(id),
+        REFERENCES items(id) ON DELETE CASCADE,
     CONSTRAINT order_items_pk
         PRIMARY KEY (order_id, item_id)
 );
@@ -132,10 +132,10 @@ CREATE TABLE price_change (
     price number(5,2),
     CONSTRAINT pc_item_fk
         FOREIGN KEY (item_id)
-        REFERENCES items(id),
+        REFERENCES items(id) ON DELETE CASCADE,
     CONSTRAINT pc_location_fk
         FOREIGN KEY (location_id)
-        REFERENCES locations(id),
+        REFERENCES locations(id) ON DELETE CASCADE,
     CONSTRAINT pc_pk
         PRIMARY KEY (item_id, location_id)
 );
@@ -149,7 +149,7 @@ CREATE TABLE employees (
         CHECK (role BETWEEN 1 AND 2), -- only two roles are implemented, location manager and general manager
     CONSTRAINT employee_fk
         FOREIGN KEY (location_id)
-        REFERENCES locations(id)
+        REFERENCES locations(id) ON DELETE CASCADE
 );
 
 -- VIEWS
@@ -180,3 +180,40 @@ SELECT * FROM items
 WHERE NOT EXISTS (
     SELECT sig.id FROM signature_items sig WHERE sig.id = items.id
 );
+
+-- This trigger allows us to update the cost of signature items when ingredients are added or removed from them
+-- Please note that for this specific query, AI sources were consulted in order to understand how to obtain the values of the 
+create or replace TRIGGER upd_item_price
+AFTER INSERT OR DELETE ON recipes
+FOR EACH ROW
+DECLARE 
+    ingredient_price NUMBER;
+    added_cost NUMBER;
+BEGIN
+
+    IF INSERTING THEN
+        SELECT price INTO ingredient_price
+        FROM ingredients
+        WHERE id = :NEW.ingredient_id;
+
+        added_cost := ingredient_price * :NEW.quantity;
+
+    ELSIF DELETING THEN
+        SELECT price INTO ingredient_price
+        FROM ingredients
+        WHERE id = :OLD.ingredient_id;
+
+        added_cost := ingredient_price * :OLD.quantity * -1;
+
+    END IF;
+
+    UPDATE items
+    SET price = nvl(price, 0) + added_cost
+    WHERE items.id = nvl(:NEW.recipe_id, :OLD.recipe_id);
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+    NULL;
+
+END;
+/

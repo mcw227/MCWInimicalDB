@@ -184,10 +184,7 @@ def gen_cc():
     df = pd.DataFrame(columns=["name","price"])
     df["name"] = [gen_cc_name() for _ in range(10)]
 
-    raw_data = np.random.uniform(5.00, 50.00, size=10)
-
-    formatted_numbers = np.round(raw_data, 2)
-    df["price"] = formatted_numbers
+    df["price"] = 0
 
     num_sigs = pd.DataFrame(columns=["id"])
     num_sigs['id'] = np.arange(91, 101)
