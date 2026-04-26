@@ -11,6 +11,8 @@ DROP VIEW customer_creations_view;
 
 DROP VIEW ingredients;
 
+DROP VIEW order_item_view;
+
 -- TABLES
 
 DROP TABLE employees;

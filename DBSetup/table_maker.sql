@@ -191,6 +191,11 @@ WHERE NOT EXISTS (
     SELECT sig.id FROM signature_items sig WHERE sig.id = items.id
 );
 
+CREATE VIEW order_item_view AS
+SELECT oi.order_id, oi.item_id, i.name, oi.quantity, oi.price FROM
+order_items oi
+JOIN items i ON oi.item_id = i.id;
+
 -- This trigger allows us to update the cost of signature items when ingredients are added or removed from them
 -- Please note that for this specific query, AI sources were consulted in order to understand how to obtain the values of the 
 create or replace TRIGGER upd_item_price
