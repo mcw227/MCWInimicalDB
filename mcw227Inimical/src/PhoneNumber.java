@@ -33,7 +33,7 @@ public class PhoneNumber {
     public static boolean addPhone(Connection conn, PhoneNumber pn) throws SQLException {
         PreparedStatement addPhone = conn.prepareStatement("INSERT INTO phone_numbers (customer_id, phone) VALUES (?, ?)");
         addPhone.setInt(1, pn.customer_id);
-        addPhone.setString(3, pn.phone);
+        addPhone.setString(2, pn.phone);
 
         System.out.print("Adding phone number to Database...");
         addPhone.executeUpdate();
@@ -50,11 +50,11 @@ public class PhoneNumber {
     public static boolean removePhone(Customer c, Connection conn, int id) throws SQLException {
         PreparedStatement delPhone;
         if (c.id == -1) {
-            delPhone = conn.prepareStatement("DELETE FROM phoneNumber WHERE id=?");
+            delPhone = conn.prepareStatement("DELETE FROM phone_numbers WHERE id=?");
             delPhone.setInt(1,id);
         }
         else {
-            delPhone = conn.prepareStatement("DELETE FROM phoneNumber WHERE id=? AND customer_id=?");
+            delPhone = conn.prepareStatement("DELETE FROM phone_numbers WHERE id=? AND customer_id=?");
             delPhone.setInt(1, id); //card entry id
             delPhone.setInt(2, c.id); //customer id
         }
