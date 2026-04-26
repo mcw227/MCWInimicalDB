@@ -28,21 +28,33 @@ public class CustomerCreation extends Item {
         return String.format("CUSTOMER CREATION! %s\t| CREATOR:%s",super.toString(), this.creator);
     }
 
+    /**
+     * Deletes a customer creation with the given id
+     * @param conn The database connection to use
+     * @param id The id of the customer creation to delete
+     */
     public static boolean delCustomerCreation(Connection conn, int id) {
-        return super.delItem(conn, id);
+        try {
+            return Item.delItem(conn, id);
+        } catch (Exception e) {
+            System.out.printf("Could not delete customer creation with id: %d\n", id);
+            return false;
+        }
+        
     }
 
     /**
      * Fetches customer creations
      * @param conn The database connection to use
      */
-    public static fetchCustomerCreations(Connection conn) {
+    public static ArrayList<CustomerCreation> fetchCustomerCreations(Connection conn) {
+        ArrayList<CustomerCreation> menu_items = new ArrayList<>();
         try {
             PreparedStatement fetchCustomerCreations = conn.prepareStatement("SELECT * FROM customer_creations_view");
-            ResultSet rs = fetchSignatures.executeQuery();
+            ResultSet rs = fetchCustomerCreations.executeQuery();
 
             if (!rs.next())
-                continue;
+                return menu_items;
             else {
                 do {
                     int id = rs.getInt("id");
@@ -50,7 +62,7 @@ public class CustomerCreation extends Item {
                     double price = rs.getDouble("price");
                     String creator = rs.getString("creator");
                     menu_items.add(new CustomerCreation(id, name, price, creator));
-                } (while rs.next());
+                } while (rs.next());
             }
 
             return menu_items;

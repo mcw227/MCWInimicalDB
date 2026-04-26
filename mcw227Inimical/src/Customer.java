@@ -41,7 +41,7 @@ public class Customer {
      */
     public boolean deactivateMembership(Connection conn) {
         if (this.id < 0)
-            return;
+            return false;
         try {
                 PreparedStatement cancelMembership = conn.prepareStatement("UPDATE customers SET membership=0 WHERE id=?");
                 cancelMembership.setInt(1,this.id);
@@ -83,8 +83,8 @@ public class Customer {
      */
     public static boolean deactivateMembership(Connection conn, int id) {
         if (id < 0)
-            return;
-        try {
+            return false;
+        try { 
                 PreparedStatement cancelMembership = conn.prepareStatement("UPDATE customers SET membership=0 WHERE id=?");
                 cancelMembership.setInt(1,id);
 
@@ -125,7 +125,7 @@ public class Customer {
      */
     public boolean activateMembership(Connection conn) {
         if (this.id < 0)
-            return;
+            return false;
         try {
             PreparedStatement enrollMembership = conn.prepareStatement("UPDATE customers SET membership=1 WHERE id=?");
             enrollMembership.setInt(1, this.id);
@@ -147,7 +147,7 @@ public class Customer {
      */
     public static boolean activateMembership(Connection conn, int id) {
         if (id < 0)
-            return;
+            return false;
         try {
             PreparedStatement enrollMembership = conn.prepareStatement("UPDATE customers SET membership=1 WHERE id=?");
             enrollMembership.setInt(1, id);
@@ -169,7 +169,7 @@ public class Customer {
      */
     public boolean emailChange(Connection conn, String newEmail) {
         if (this.id < 0)
-            return;
+            return false;
         try {
             PreparedStatement emailChange = conn.prepareStatement("UPDATE customers SET email=? WHERE id=?");
             System.out.printf("\nChanging email to %s... ", newEmail);
@@ -193,7 +193,7 @@ public class Customer {
      */
     public static boolean emailChange(Connection conn, int id, String newEmail) {
         if (id < 0)
-            return;
+            return false;
         try {
             PreparedStatement emailChange = conn.prepareStatement("UPDATE customers SET email=? WHERE id=?");
             System.out.printf("\nChanging email to %s... ", newEmail);
@@ -212,9 +212,9 @@ public class Customer {
     /**
      * Changes the 
      */
-    public boolean nameChange(String newName) {
+    public boolean nameChange(Connection conn, String newName) {
         if (this.id < 0)
-            return;
+            return false;
         try {
             PreparedStatement nameChange = conn.prepareStatement("UPDATE customers SET name=? WHERE id=?");
             System.out.printf("\nChanging name to %s... ", newName);
@@ -237,7 +237,7 @@ public class Customer {
      */
     public static boolean nameChange(Connection conn, int id, String newName) {
         if (id < 0)
-            return;
+            return false;
         try {
             PreparedStatement nameChange = conn.prepareStatement("UPDATE customers SET name=? WHERE id=?");
             System.out.printf("\nChanging name to %s... ", newName);
@@ -259,7 +259,7 @@ public class Customer {
      */
     public boolean addCard(Connection conn, Card card) {
         if (id < 0) 
-            return;
+            return false;
         try {
             card.customer_id = this.id;
             return Card.addCard(conn, card);
@@ -277,7 +277,7 @@ public class Customer {
      */
     public static boolean addCard(Connection conn, int id, Card card) {
         if (id < 0)
-            return;
+            return false;
         try {
             card.customer_id = id;
             return Card.addCard(conn, card);
@@ -294,7 +294,7 @@ public class Customer {
      */
     public boolean addPhone(Connection conn, PhoneNumber pn) {
         if (id < 0)
-            return;
+            return false;
         try {
             pn.customer_id = this.id;
             return PhoneNumber.addPhone(conn, pn);
@@ -311,7 +311,7 @@ public class Customer {
      */
     public static boolean addPhone(Connection conn, PhoneNumber pn, int id) {
         if (id < 0)
-            return;
+            return false;
             
         try {
             pn.customer_id = id;
@@ -328,7 +328,7 @@ public class Customer {
      */
     public boolean removeCard(Connection conn, int id) {
         if (id < 0)
-            return;
+            return false;
         try {
             return Card.removeCard(this, conn, id);
         } catch (Exception e) {
@@ -345,7 +345,7 @@ public class Customer {
      */
     public static boolean removeCard(Connection conn, int c_id, int id) {
         if (id < 0)
-            return;
+            return false;
         try {
             return Card.removeCard(new Customer(c_id, null, null, 0, 0), conn, id);
         } catch (Exception e) {
@@ -360,7 +360,7 @@ public class Customer {
      */
     public boolean removePhone(Connection conn, int id) {
         if (id < 0)
-            return;
+            return false;
         try {
             return PhoneNumber.removePhone(this, conn, id);
         } catch (Exception e) {
@@ -376,7 +376,7 @@ public class Customer {
      */
     public static boolean removePhone(Connection conn, int c_id, int id) {
         if (id < 0)
-            return;
+            return false;
         try {
             return PhoneNumber.removePhone(new Customer(c_id, null, null, 0, 0), conn, id);
         } catch (Exception e) {

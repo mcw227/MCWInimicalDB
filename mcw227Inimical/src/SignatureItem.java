@@ -1,4 +1,6 @@
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.Scanner;
 
 /** Public class signature item models a signature item entity in the db */
 public class SignatureItem extends Item {
@@ -63,28 +65,33 @@ public class SignatureItem extends Item {
      * @param id The id of the signature item to delete
      */
     public static boolean delSig(Connection conn, int id) {
-       return super.delItem(conn, id);
+        try {
+            return Item.delItem(conn, id);
+        } catch (Exception e) {
+            System.out.printf("Could not delete signature item with id %d. Try again later.\n", id);
+            return false;
+        }
     }
 
     /**
      * Obtains all signature items currently in the database.
      * @param conn The database connection to use
      */
-    public static ArrayList<SignatureItem> fetchSigs(Connection conn) {
+    public static ArrayList<SignatureItem> fetchSignatures(Connection conn) {
         ArrayList<SignatureItem> signature_items = new ArrayList<>();
         try {
-            PreparedStatement fetchCustomerCreations = conn.prepareStatement("SELECT * FROM customer_creations_view");
+            PreparedStatement fetchSignatures = conn.prepareStatement("SELECT * FROM signature_item_view");
                 ResultSet rs = fetchSignatures.executeQuery();
 
                 if (!rs.next())
-                    continue;
+                    return signature_items;
                 else {
                     do {
                         int id = rs.getInt("id");
                         String name = rs.getString("name");
                         double price = rs.getDouble("price");
                         signature_items.add(new SignatureItem(id, name, price));
-                    } (while rs.next());
+                    } while (rs.next());
                 }
 
             return signature_items;

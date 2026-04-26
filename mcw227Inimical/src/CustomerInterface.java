@@ -96,7 +96,7 @@ public final class CustomerInterface {
                         cMemberChange(c, conn, scn);
                         break;
                     case 4:
-                        cMakeOrder(c, conn, scn);
+                        cOrders(c, conn, scn);
                         break;
                     case 5:
                         cCheckCreditCards(c, conn, scn);
@@ -132,7 +132,7 @@ public final class CustomerInterface {
         if (choice == -2) { return; }
         System.out.println("What would you like your new name to be?");
         String newName = Helper.nextSafeString(scn, 30); //Names can be up to 30 characters long
-        c.changeName(conn, newName);
+        c.nameChange(conn, newName);
     }
 
     /**
