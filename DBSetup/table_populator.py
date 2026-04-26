@@ -267,7 +267,7 @@ def gen_orders():
     df["location_id"] = np.random.randint(1,101,15)
     df["customer_id"] = np.random.randint(1,101,15)
     df["payment_id"] = np.random.randint(1,101,15)
-    df["price"] = 0
+    df["total"] = 0
     df["status"] = 4
  
     try:
