@@ -8,8 +8,6 @@ public class Menu {
     public String name;
     public ArrayList<Item> items;
 
-    final static int[] MASTER_MENU_IDS = {1,2,3}; //these menus are the defaults if a restaurant has no menus.
-
     public Menu(int id, String name, ArrayList<Item> items) {
         this.id = id;
         this.name = name;
@@ -24,6 +22,10 @@ public class Menu {
 
     public Menu(int id, Connection conn) {
         this.getPopulatedMenu(conn, id);
+    }
+
+    public String toString() {
+        return String.format("ID: %-3d\t| NAME: %-20s", this.id, this.name);
     }
     
     /**
@@ -61,7 +63,7 @@ public class Menu {
     public static Menu getPopulatedMenu(Connection conn, int id) {
         Menu rm;
         try {
-            PreparedStatement getMenu = conn.prepareStatement("SELECT * FROM menu WHERE id=?");
+            PreparedStatement getMenu = conn.prepareStatement("SELECT * FROM menus WHERE id=?");
             getMenu.setInt(1, id);
 
             ResultSet rs_gm = getMenu.executeQuery();
@@ -79,7 +81,9 @@ public class Menu {
     }
 
     /**
-     * Populates current menu with items and name
+     * Populates current menu with items and names
+     * @param conn The database connection to use
+     * @param
      */
     private void getPopulatedMenu(Connection conn) {
        this.items = getPopulatedMenu(conn, this.id).items;

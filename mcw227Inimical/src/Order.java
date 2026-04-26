@@ -5,24 +5,25 @@ import java.util.Scanner;
 /** Public class order models  */
 public class Order {
 
-    private static String[] order_status_strings = {"CANCELLED", "RECIEVED", "IN-PROGRESS", "READY FOR PICKUP", "COMPLETED"};
+    private static final String[] order_status_strings = {"CANCELLED", "RECIEVED", "IN-PROGRESS", "READY FOR PICKUP", "COMPLETED"};
+    private static final int ITEM_MENU_PAGE_SIZE = 10;
     public int id;
     public int payment_id;
     public int customer_id;
     public String created_at;
-    public int location_id;
+    public Location location;
     public ArrayList<OrderItem> bag;
     public int status;
     public double total;
 
 
     /** Standard constructor */
-    public Order(int id, int payment_id, int customer_id, String created_at, int location_id, int status, ArrayList<OrderItem> bag, double total) {
+    public Order(int id, int payment_id, int customer_id, String created_at, Location Location, int status, ArrayList<OrderItem> bag, double total) {
         this.id = id;
         this.payment_id = payment_id;
         this.customer_id = customer_id;
         this.created_at = created_at;
-        this.location_id = location_id;
+        this.location = location;
         this.status = status;
         this.bag = bag;
         this.total = total;
@@ -34,7 +35,7 @@ public class Order {
         this.payment_id = -1;
         this.customer_id = c.id;
         this.created_at = null;
-        this.location_id = -1;
+        this.location = null;
         this.status = 1;
         this.bag = new ArrayList<OrderItem>();
         this.total = 0;
@@ -54,7 +55,7 @@ public class Order {
      */
     public void addItemToBag(OrderItem item) {
         this.bag.add(item);
-        this.total += item.price * item.quantity;
+        this.total += item.price * item.quantity * location.sales_tax;
     }
 
     /**
@@ -64,7 +65,7 @@ public class Order {
     public void removeItemFromBag(int item_id) {
         for (int i = 0; i < this.bag.size(); i++) {
             if (this.bag.get(i).id == item_id) {
-                this.total -= this.bag.get(i).price * this.bag.get(i).quantity;
+                this.total -= this.bag.get(i).price * this.bag.get(i).quantity * location.sales_tax;
                 this.bag.remove(i);
             }
         }
@@ -78,7 +79,7 @@ public class Order {
         try {
             conn.setAutoCommit(false);
             PreparedStatement addOrder = conn.prepareStatement("INSERT INTO orders (location_id, customer_id, payment_id, status, total) VALUES (?, ?, ?, ?, ?)");
-            addOrder.setInt(1, this.location_id); addOrder.setInt(2, this.customer_id);
+            addOrder.setInt(1, this.location.id); addOrder.setInt(2, this.customer_id);
             addOrder.setInt(3, this.payment_id); addOrder.setInt(4, this.status);
             addOrder.setDouble(5, this.total);
             addOrder.executeUpdate();
@@ -169,51 +170,64 @@ public class Order {
 
     public static void newOrderScreen(Customer c, Connection conn, Scanner scn) {
         Order customer_order = new Order(c);
-        System.out.println("Rah!");
-        int loc_id = Location.locationSelectScreen(conn, scn); //User must first select a location
-        if (loc_id == -2)
+        Location loc = Location.locationSelectScreen(conn, scn); //User must first select a location
+        loc.getLocalMenus(conn);
+        if (loc == null)
             return;
-        customer_order.location_id = loc_id;
-
-        ArrayList<Item> items = Location.fetchLocalMenu(conn, -1);
+        customer_order.location = loc;
+        LocalMenu lm = loc.pickMenu(scn);
+        if (lm == null)
+            return;
+        ArrayList<Item> items = lm.items;
         Pager<Item> menu = new Pager(items, 5); //turn menu into pager
+        Helper.clearConsole();
 
         while (true) {
             menu.printCurrentPage();
-            System.out.println("Type (n)ext to go to next page, or (p)revious to go to previous page.");
+            System.out.println("Type (n)ext to go to next page, or (p)revious to go to previous page. Type (m)enus to change menus.");
             System.out.println("Type (a)dd to add an item to your bag, (c)heck to check out an item's details, (b)ag to check bag");
             System.out.println("Type (ch)eckout to checkout or (q)uit to quit [Deletes order progress!]");
             int resp = Helper.nextACQNPB(scn);
             if (resp == -2)
                 return;
 
-            switch (resp) {
-                case (1):
-                    customer_order.addItemScreen(scn, items);
-                    Helper.clearConsole();
-                    break;
-                case (2):
-                    Helper.clearConsole();
-                    Item.checkItemScreen(conn, scn, items);
-                    break;
-                case (3):
-                    Helper.clearConsole();
-                    menu.nextPage();
-                    break;
-                case(4):
-                    Helper.clearConsole();
-                    menu.previousPage();
-                    break;
-                case(5):
-                    Helper.clearConsole();
-                    customer_order.checkBagScreen(scn);
-                    break;
-                case(6):
-                    Helper.clearConsole();
-                    if (customer_order.checkout(c, conn, scn))
-                        return;
-                break;
+            if (resp == 8) {
+                LocalMenu m = loc.pickMenu(scn);
+                if (m == null)
+                    return;
+                menu = new Pager<Item>(m.items, ITEM_MENU_PAGE_SIZE);
+                Helper.clearConsole();
+            } else {
+                switch (resp) {
+                    case (1):
+                        customer_order.addItemScreen(scn, items);
+                        Helper.clearConsole();
+                        break;
+                    case (2):
+                        Helper.clearConsole();
+                        Item.checkItemScreen(conn, scn, items);
+                        break;
+                    case (3):
+                        Helper.clearConsole();
+                        menu.nextPage();
+                        break;
+                    case(4):
+                        Helper.clearConsole();
+                        menu.previousPage();
+                        break;
+                    case(5):
+                        Helper.clearConsole();
+                        customer_order.checkBagScreen(scn);
+                        break;
+                    case(6):
+                        Helper.clearConsole();
+                        if (customer_order.checkout(c, conn, scn))
+                            return;
+                        break;
+                }
             }
+
+            
             //Helper.clearConsole();
         }
     }
@@ -342,13 +356,14 @@ public class Order {
      */
     public String getOrderSummary() {
         String ret = "";
+        ret += "ITEMS:\n";
         if (this.bag.size() == 0) {
             return "Bag is empty!";
         }
         for (Item item : this.bag) {
             ret += "\t" + item.toString() + "\n";
         }
-        ret += String.format("TOTAL: %.2f\n AT LOCATION:%d", this.total, this.location_id);
+        ret += String.format("TOTAL AFTER TAX: %.2f\nAT LOCATION: %d WITH SALES TAX: %.2f%%\n", this.total, this.location.id, this.location.sales_tax*100);
         return ret;
     }
 

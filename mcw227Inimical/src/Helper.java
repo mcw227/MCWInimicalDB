@@ -114,6 +114,34 @@ public final class Helper {
     }
 
     /**
+     * This function handles previous/next/quit input from user while also allowing them to .
+     * @param scn The scanner to grab input from
+     * @return -3 if user types previous, -4 if user types next, -2 if user quits. Retries until a valid input is reached.
+     */
+    public static int nextPNQID(Scanner scn) {
+        while (true) {
+            String resp = scn.nextLine();
+            try {
+                int id = Integer.parseInt(resp);
+                if (id <= 0) {
+                    System.out.println("ID must be greater than 0.");
+                } else {
+                    return id;
+                }
+            } catch (NumberFormatException e) {
+                if (resp.equalsIgnoreCase("q") || resp.equalsIgnoreCase("quit"))
+                    return -2;
+                else if (resp.equalsIgnoreCase("p") || resp.equalsIgnoreCase("previous"))
+                    return -3;
+                else if (resp.equalsIgnoreCase("n") || resp.equalsIgnoreCase("next"))
+                    return -4;
+                System.out.println("Please type either (n)ext, (p)revious, or (q)uit");
+            }
+           
+        }
+    }
+
+    /**
      * Handles user new/check/quit input
      * @param scn The scanner to grab input from
      * @return 1 if user wants new, 2 if user checks, -2 if user quits
@@ -196,7 +224,7 @@ public final class Helper {
     /**
      * Handles add/check quit input (intended for use with orders/signature items, but may be used elsewhere)
      * @param scn The scanner to grab input from
-     * @return 1 if user inputs add, 2 if user inputs check, 3 if user inputs next, 4 if user inputs previous, 5 if user inputs bag, 6 if user inputs (ch)eckout, -2 if quit
+     * @return 1 if user inputs add, 2 if user inputs check, 3 if user inputs next, 4 if user inputs previous, 5 if user inputs bag, 6 if user inputs (ch)eckout, 7 if user inputs (cr)eate, 8 if user inputs (m)enus -2 if quit
      */
     public static int nextACQNPB(Scanner scn) {
         while (true) {
@@ -213,9 +241,13 @@ public final class Helper {
                 return 5;
             else if (resp.equalsIgnoreCase("checkout") || resp.equalsIgnoreCase("ch"))
                 return 6;
+            else if (resp.equalsIgnoreCase("create") || resp.equalsIgnoreCase("cr"))
+                return 7;
+            else if (resp.equalsIgnoreCase("menus") || resp.equalsIgnoreCase("m"))
+                return 8;
             else if (resp.equalsIgnoreCase("quit") || resp.equalsIgnoreCase("q"))
                 return -2;
-            System.out.println("Please type either  (a)dd, (c)heck, or (q)uit");
+            System.out.println("Please type either (a)dd, (c)heck, (n)ext, (p)revious, (b)ag, (ch)eckout, (cr)eate or (q)uit");
         }
     }
 

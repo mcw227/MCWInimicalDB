@@ -37,7 +37,7 @@ public class Pager<T> {
             return;
         }
 
-        System.out.printf("--- PAGE %d OF %d ---\n", currentPage+1, (int)Math.ceil((double)list.size()/pageSize)+1);
+        System.out.printf("--- PAGE %d OF %d ---\n", currentPage+1, (int)Math.ceil((double)list.size()/pageSize));
         int end_index = ((current_start_index + pageSize) < list.size()) ? (current_start_index + pageSize) : list.size();
         //System.out.println(end_index); //debug
         
