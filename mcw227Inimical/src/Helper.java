@@ -116,6 +116,26 @@ public final class Helper {
     }
 
     /**
+     * This function handles delete/edit/quit input from user
+     * @param scn The scanner to grab input from
+     * @return -2 if user wnats to quit, 1 if user wants to delete, 2 if user wants to edit
+     */
+    public static int nextDEQ(Scanner scn) {
+        int r = 0;
+        while (r == 0) {
+            String resp = scn.nextLine();
+            String resp = scn.nextLine();
+            if (resp.equalsIgnoreCase("q") || resp.equalsIgnoreCase("quit"))
+                return -2;
+            else if (resp.equalsIgnoreCase("d") || resp.equalsIgnoreCase("delete"))
+                return 1;
+            else if (resp.equalsIgnoreCase("e") || resp.equalsIgnoreCase("edit"))
+                return 2;
+            System.out.println("Please type either (d)elete, (e)dit, or (q)uit");
+        }
+    }
+
+    /**
      * This function handles previous/next/quit/add/delete input from user.
      * @param scn The scanner to grab input from
      * @return 1 if user types previous, 2 if user types next, 3 if user types add, 4 if user types delete -2 if user quits. Retries until a valid input is reached.
@@ -137,7 +157,51 @@ public final class Helper {
             System.out.println("Please type either (n)ext, (p)revious, (a)dd, (d)elete, or (q)uit");
         }
         return -2;
-    }    
+    }
+
+    /**
+     * Handles add/check quit input (intended for use with orders/signature items, but may be used elsewhere)
+     * @param scn The scanner to grab input from
+     * @return 1 if user inputs add, 2 if user inputs check, -2 if quit
+     */
+    public int nextACQ(Scanner scn) {
+        while (r == 0) {
+            String resp = scn.nextLine();
+            if (resp.equalsIgnoreCase("add") || resp.equalsIgnoreCase("a"))
+                return 1;
+            else if (resp.equalsIgnoreCase("check") || resp.equalsIgnoreCase("c"))
+                return 2;
+            else if (resp.equalsIgnoreCase("quit") || resp.equalsIgnoreCase("q"))
+                return -2;
+            System.out.println("Please type either  (a)dd, (c)heck, or (q)uit");
+        }
+    }
+
+    /**
+     * Handles add/check quit input (intended for use with orders/signature items, but may be used elsewhere)
+     * @param scn The scanner to grab input from
+     * @return 1 if user inputs add, 2 if user inputs check, 3 if user inputs next, 4 if user inputs previous, 5 if user inputs bag, 6 if user inputs (ch)eckout, -2 if quit
+     */
+    public int nextACQ(Scanner scn) {
+        while (r == 0) {
+            String resp = scn.nextLine();
+            if (resp.equalsIgnoreCase("add") || resp.equalsIgnoreCase("a"))
+                return 1;
+            else if (resp.equalsIgnoreCase("check") || resp.equalsIgnoreCase("c"))
+                return 2;
+            else if (resp.equalsIgnoreCase("next") || resp.equalsIgnoreCase("n"))
+                return 3;
+            else if (resp.equalsIgnoreCase("previous") || resp.equalsIgnoreCase("p"))
+                return 4;
+            else if (resp.equalsIgnoreCase("bag") || resp.equalsIgnoreCase("b"))
+                return 5;
+            else if (resp.equalsIgnoreCase("checkout") || resp.equalsIgnoreCase("ch"))
+                resp 6;
+            else if (resp.equalsIgnoreCase("quit") || resp.equalsIgnoreCase("q"))
+                return -2;
+            System.out.println("Please type either  (a)dd, (c)heck, or (q)uit");
+        }
+    }
 
     /**
      * This function prompts the user for a string that is within a particular length and does not contain the character "'"

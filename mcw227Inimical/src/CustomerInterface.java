@@ -127,6 +127,7 @@ public final class CustomerInterface {
      * @param scn The scanner to grab input from
      */
     static void cNameChange(Customer c, Connection conn, Scanner scn) {
+        Helper.clearConsole();
         System.out.printf("Your current name is: %s, would you like to change it? ([y]es/[n]o)\n", c.name);
         int choice = Helper.nextYN(scn);
         if (choice == -2) { return; }
@@ -142,6 +143,7 @@ public final class CustomerInterface {
      * @param scn The scanner to grab input from
      */
     static void cEmailChange(Customer c, Connection conn, Scanner scn) {
+        Helper.clearConsole();
         System.out.printf("Your current email is: %s, would you like to change it? ([y]es/[n]o)\n", c.email);
         int choice = Helper.nextYN(scn);
         if (choice == -2) { return; }
@@ -158,6 +160,7 @@ public final class CustomerInterface {
      * @param scn Scanner to grab input from
      */
     static void cMemberChange(Customer c, Connection conn, Scanner scn) {
+        Helper.clearConsole();
         if (c.membership) {
             System.out.println("You are currently a member! Yay!");
             System.out.printf("You have %d points. That equates to about %.2f dollars!\nWould you like to cancel your membership? (You will lose your points...) [y]es/[n]o/[q]uit\n", c.points, (float)(c.points)/100);
@@ -184,45 +187,8 @@ public final class CustomerInterface {
      * @param scn Scanner to grab input from
      */
     static void cCheckCreditCards(Customer c, Connection conn, Scanner scn) {
-        Pager<Card> cards = new Pager(Card.fetchCards(c.id, conn), 5);
-        boolean update = false;
-        while (true) {
-            if (update) //update, restart list
-                cards = new Pager(Card.fetchCards(c.id, conn), 5);
-            cards.printCurrentPage();
-            if (!cards.list.isEmpty()) {
-                System.out.println("Press n to go to next page, p to go to previous, q to quit.");
-                System.out.println("You may type a to add or d to delete");
-                int resp = Helper.nextPNQAD(scn);
-                switch (resp) {
-                    case -2:
-                        return;
-                    case 1:
-                        Helper.clearConsole();
-                        cards.previousPage();
-                        break;
-                    case 2:
-                        Helper.clearConsole();
-                        cards.nextPage();
-                        break;
-                    case 3:
-                        update = Card.addCardScreen(c, conn, scn);
-                        break;
-                    case 4:
-                        update = Card.removeCardScreen(c, conn, scn);
-                        break;
-                }
-            }
-            else {
-                System.out.println("You have no cards saved to your account. Would you like to add one? (y)es/(n)o");
-                int resp = Helper.nextYN(scn);
-                if (resp == -2)
-                    return;
-                else {
-                    update = Card.addCardScreen(c, conn, scn);
-                }
-            }
-        }
+        Helper.clearConsole();
+        c.cardScreen();
     }
 
     /**
@@ -232,6 +198,7 @@ public final class CustomerInterface {
      * @param scn Scanner to grab input from
      */
     static void cCheckPhoneNumbers(Customer c, Connection conn, Scanner scn) {
+        Helper.clearConsole();
         Pager<PhoneNumber> phones = new Pager(PhoneNumber.fetchPhones(c.id, conn), 5);
         boolean update = false;
         while (true) {
@@ -274,7 +241,24 @@ public final class CustomerInterface {
     }
 
     static void cOrders(Customer c, Connection conn, Scanner scn) {
-        
+        Helper.clearConsole();
+        while (true) {
+            System.out.println("Would you like to make a new order or check order history/status? (n)ew/(c)heck/(q)uit");
+            int r = nextACQ(scn);
+            if (r == -2)
+                return;
+            
+            switch (r) {
+                case 1:
+                    Order.newOrderScreen(c, conn, scn);
+                    break;
+                case 2:
+                    Order.checkOrderScreen(conn, scn);
+                    break;
+                default:
+                    return;
+            }
+        }
     }
 
     /**
