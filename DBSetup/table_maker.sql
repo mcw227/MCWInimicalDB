@@ -196,6 +196,11 @@ SELECT oi.order_id, oi.item_id, i.name, oi.quantity, oi.price FROM
 order_items oi
 JOIN items i ON oi.item_id = i.id;
 
+CREATE VIEW order_customer_view AS
+SELECT o.id, o.created_at, o.location_id, o.customer_id, c.name, o.payment_id, o.status, o.total
+FROM orders o
+JOIN customers c ON o.customer_id = c.id;
+
 -- This trigger allows us to update the cost of signature items when ingredients are added or removed from them
 -- Please note that for this specific query, AI sources were consulted in order to understand how to obtain the values of the 
 create or replace TRIGGER upd_item_price

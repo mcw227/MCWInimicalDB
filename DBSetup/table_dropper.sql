@@ -13,6 +13,8 @@ DROP VIEW ingredients;
 
 DROP VIEW order_item_view;
 
+DROP VIEW order_customer_view;
+
 -- TABLES
 
 DROP TABLE employees;
