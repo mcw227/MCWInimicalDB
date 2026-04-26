@@ -251,28 +251,38 @@ EXCEPTION
 END;
 /
 
--- Updates an order's total based on the price of it's items
+-- Updates an order's total based on the price of it's items and its local sales tax
 create or replace TRIGGER upd_order_price
 AFTER INSERT OR DELETE ON order_items
 FOR EACH ROW
 DECLARE 
     item_price NUMBER;
     added_cost NUMBER;
+    upd_loc_id NUMBER;
+    local_sales_tax NUMBER;
 BEGIN
+
+    SELECT location_id INTO upd_loc_id
+    FROM orders
+    WHERE orders.id = nvl(:NEW.order_id, :OLD.order_id);
+
+    SELECT sales_tax INTO local_sales_tax
+    FROM locations
+    WHERE id = upd_loc_id;
 
     IF INSERTING THEN
         SELECT price INTO item_price
         FROM items
         WHERE id = :NEW.item_id;
 
-        added_cost := :NEW.price * :NEW.quantity;
+        added_cost := :NEW.price * :NEW.quantity * local_sales_tax;
 
     ELSIF DELETING THEN
         SELECT price INTO item_price
         FROM items
         WHERE id = :OLD.item_id;
 
-        added_cost := :OLD.price * :OLD.quantity * -1;
+        added_cost := :OLD.price * :OLD.quantity * -1 * local_sales_tax;
     END IF;
 
     UPDATE orders
