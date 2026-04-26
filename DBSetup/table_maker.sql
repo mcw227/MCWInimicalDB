@@ -201,6 +201,15 @@ SELECT o.id, o.created_at, o.location_id, o.customer_id, c.name, o.payment_id, o
 FROM orders o
 JOIN customers c ON o.customer_id = c.id;
 
+CREATE VIEW menu_item_view AS
+SELECT i.id, i.name, i.price FROM items i
+WHERE EXISTS (
+    SELECT s.id FROM signature_items s WHERE i.id = s.id
+) OR
+EXISTS (
+    SELECT cc.id FROM customer_creations cc WHERE i.id = cc.id
+);
+
 -- This trigger allows us to update the cost of signature items when ingredients are added or removed from them
 -- Please note that for this specific query, AI sources were consulted in order to understand how to obtain the values of the 
 create or replace TRIGGER upd_item_price
