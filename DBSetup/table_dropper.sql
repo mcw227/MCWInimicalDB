@@ -17,6 +17,8 @@ DROP VIEW order_customer_view;
 
 DROP VIEW menu_item_view;
 
+DROP VIEW local_menu_view;
+
 -- TABLES
 
 DROP TABLE employees;

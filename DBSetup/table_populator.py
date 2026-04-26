@@ -111,14 +111,19 @@ def gen_cards():
 def gen_menus():
 
     df = pd.DataFrame(columns=["name"])
-    df["name"] = ["Lunch","Dinner", "Dessert"]
+    df["name"] = ["Lunch","Dinner", "Dessert", "Dummy_Location_Menu"]
+
+    localdf = pd.DataFrame(columns=["menu_id","location_id"])
+    localdf["menu_id"] = [4]
+    localdf["location_id"] = [1]
 
     try:
         engine = create_engine(connection_url)
 
         with engine.begin() as connection:
             df.to_sql('menus', con = connection, if_exists='append', index=False)
-            print(f"Success! Data uploaded to Oracle table: menus")
+            localdf.to_sql('local_menus', con = connection, if_exists='append', index=False)
+            print(f"Success! Data uploaded to Oracle table: menus & local_menus")
         print("Connection closed automatically!")
     
     except Exception as e:
@@ -220,7 +225,7 @@ def gen_unique_pairs(x,y,n):
     return np.column_stack((col1, col2))
 
 def gen_menu_items():
-    df = pd.DataFrame(gen_unique_pairs(4,101,10), columns=["menu_id", "item_id"])
+    df = pd.DataFrame(gen_unique_pairs(5,101,10), columns=["menu_id", "item_id"])
 
     try:
         engine = create_engine(connection_url)
