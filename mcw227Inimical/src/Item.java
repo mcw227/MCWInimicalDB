@@ -18,7 +18,7 @@ public class Item {
 
     /** Standard toString method */
     public String toString() {
-        return String.format("%-3d\t| %-50%s\t| %.2f", id, name, price);
+        return String.format("ID: %-3d\t| NAME:%-50%s\t| PRICE:%.2f", id, name, price);
     }
 
     /**

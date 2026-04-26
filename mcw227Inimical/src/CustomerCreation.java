@@ -17,6 +17,12 @@ public class CustomerCreation extends Item {
         this.quantities = quantities;
     }
 
+    public CustomerCreation(int id, String name, double price, String creator) {
+        super(id, name, price);
+        this.creator = creator;
+        this.populateRecipe();
+    }
+
     /** Standard toString function */
     public String toString() {
         return String.format("CUSTOMER CREATION! %s\t| CREATOR:%s",super.toString(), this.creator);
@@ -57,5 +63,9 @@ public class CustomerCreation extends Item {
     public String getPrintableRecipe() {
         String ret = "";
         return ret;
+    }
+
+    private void populateRecipe() {
+        return;
     }
 }

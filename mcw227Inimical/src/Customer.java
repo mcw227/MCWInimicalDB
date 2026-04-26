@@ -40,6 +40,8 @@ public class Customer {
      * @return true if membership was deactivated, false if not
      */
     public boolean deactivateMembership(Connection conn) {
+        if (this.id < 0)
+            return;
         try {
                 PreparedStatement cancelMembership = conn.prepareStatement("UPDATE customers SET membership=0 WHERE id=?");
                 cancelMembership.setInt(1,this.id);
@@ -80,6 +82,8 @@ public class Customer {
      * @param id The id of the customer whose membership you want to deactivate
      */
     public static boolean deactivateMembership(Connection conn, int id) {
+        if (id < 0)
+            return;
         try {
                 PreparedStatement cancelMembership = conn.prepareStatement("UPDATE customers SET membership=0 WHERE id=?");
                 cancelMembership.setInt(1,id);
@@ -120,6 +124,8 @@ public class Customer {
      * @return true if the membership was updated, false if not
      */
     public boolean activateMembership(Connection conn) {
+        if (this.id < 0)
+            return;
         try {
             PreparedStatement enrollMembership = conn.prepareStatement("UPDATE customers SET membership=1 WHERE id=?");
             enrollMembership.setInt(1, this.id);
@@ -140,6 +146,8 @@ public class Customer {
      * @return True if membership was updated, false if not
      */
     public static boolean activateMembership(Connection conn, int id) {
+        if (id < 0)
+            return;
         try {
             PreparedStatement enrollMembership = conn.prepareStatement("UPDATE customers SET membership=1 WHERE id=?");
             enrollMembership.setInt(1, id);
@@ -160,6 +168,8 @@ public class Customer {
      * @return True if email was updated, false if not
      */
     public boolean emailChange(Connection conn, String newEmail) {
+        if (this.id < 0)
+            return;
         try {
             PreparedStatement emailChange = conn.prepareStatement("UPDATE customers SET email=? WHERE id=?");
             System.out.printf("\nChanging email to %s... ", newEmail);
@@ -182,6 +192,8 @@ public class Customer {
      * @return True if email was updated, false if not
      */
     public static boolean emailChange(Connection conn, int id, String newEmail) {
+        if (id < 0)
+            return;
         try {
             PreparedStatement emailChange = conn.prepareStatement("UPDATE customers SET email=? WHERE id=?");
             System.out.printf("\nChanging email to %s... ", newEmail);
@@ -198,11 +210,56 @@ public class Customer {
     } 
 
     /**
+     * Changes the 
+     */
+    public boolean nameChange(String newName) {
+        if (this.id < 0)
+            return;
+        try {
+            PreparedStatement nameChange = conn.prepareStatement("UPDATE customers SET name=? WHERE id=?");
+            System.out.printf("\nChanging name to %s... ", newName);
+            nameChange.setString(1, newName);
+            nameChange.setInt(2, this.id);
+            nameChange.executeUpdate();
+            System.out.println("Name updated.");
+            return true;
+        } catch (Exception e) {
+            System.out.println("Could not update customer name. Try again later.");
+            return false;
+        }
+    }
+
+    /** 
+     * Changes the name of a customer based on the given ID and string
+     * @param conn The database connection to be used
+     * @param id The id of the customer whose name is being changed
+     * @param newName the new name to apply to the customer
+     */
+    public static boolean nameChange(Connection conn, int id, String newName) {
+        if (id < 0)
+            return;
+        try {
+            PreparedStatement nameChange = conn.prepareStatement("UPDATE customers SET name=? WHERE id=?");
+            System.out.printf("\nChanging name to %s... ", newName);
+            nameChange.setString(1, newName);
+            nameChange.setInt(2, id);
+            nameChange.executeUpdate();
+            System.out.println("Name updated.");
+            return true;
+        } catch (Exception e) {
+            System.out.println("Could not update customer name. Try again later.");
+            return false;
+        }
+    }
+
+    /**
      * Adds card to the current customer
      * @param card Card to add
      * @return True if added, false if failed
      */
     public boolean addCard(Connection conn, Card card) {
+        if (id < 0) 
+            return;
         try {
             card.customer_id = this.id;
             return Card.addCard(conn, card);
@@ -219,6 +276,8 @@ public class Customer {
      * @return true if the card was added, false if not
      */
     public static boolean addCard(Connection conn, int id, Card card) {
+        if (id < 0)
+            return;
         try {
             card.customer_id = id;
             return Card.addCard(conn, card);
@@ -234,6 +293,8 @@ public class Customer {
      * @return True if added, false if failed
      */
     public boolean addPhone(Connection conn, PhoneNumber pn) {
+        if (id < 0)
+            return;
         try {
             pn.customer_id = this.id;
             return PhoneNumber.addPhone(conn, pn);
@@ -249,6 +310,9 @@ public class Customer {
      * @return True if added, false if failed
      */
     public static boolean addPhone(Connection conn, PhoneNumber pn, int id) {
+        if (id < 0)
+            return;
+            
         try {
             pn.customer_id = id;
             return PhoneNumber.addPhone(conn, pn);
@@ -263,6 +327,8 @@ public class Customer {
      * @param id The id of the card to remove
      */
     public boolean removeCard(Connection conn, int id) {
+        if (id < 0)
+            return;
         try {
             return Card.removeCard(this, conn, id);
         } catch (Exception e) {
@@ -278,6 +344,8 @@ public class Customer {
      * @return true if the card was added, false if not
      */
     public static boolean removeCard(Connection conn, int c_id, int id) {
+        if (id < 0)
+            return;
         try {
             return Card.removeCard(new Customer(c_id, null, null, 0, 0), conn, id);
         } catch (Exception e) {
@@ -291,6 +359,8 @@ public class Customer {
      * @param id The id of the phone number to remove
      */
     public boolean removePhone(Connection conn, int id) {
+        if (id < 0)
+            return;
         try {
             return PhoneNumber.removePhone(this, conn, id);
         } catch (Exception e) {
@@ -305,6 +375,8 @@ public class Customer {
      * @return true if the phone number was removed, false if not
      */
     public static boolean removePhone(Connection conn, int c_id, int id) {
+        if (id < 0)
+            return;
         try {
             return PhoneNumber.removePhone(new Customer(c_id, null, null, 0, 0), conn, id);
         } catch (Exception e) {
@@ -320,7 +392,7 @@ public class Customer {
      */
     static void updateCustomerInfo(Customer c, Connection conn) {
         // admin account short circuit
-        if (c.id == -1) {
+        if (c.id < 0) {
             return;
         }
         try {
