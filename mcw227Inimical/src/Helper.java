@@ -101,8 +101,7 @@ public final class Helper {
      * @return 1 if user types previous, 2 if user types next, -2 if user quits. Retries until a valid input is reached.
      */
     public static int nextPNQ(Scanner scn) {
-        int r = 0;
-        while (r == 0) {
+        while (true) {
             String resp = scn.nextLine();
             if (resp.equalsIgnoreCase("q") || resp.equalsIgnoreCase("quit"))
                 return -2;
@@ -112,7 +111,24 @@ public final class Helper {
                 return 2;
             System.out.println("Please type either (n)ext, (p)revious, or (q)uit");
         }
-        return -2;
+    }
+
+    /**
+     * Handles user new/check/quit input
+     * @param scn The scanner to grab input from
+     * @return 1 if user wants new, 2 if user checks, -2 if user quits
+     */
+    public static int nextNCQ(Scanner scn) {
+        while (true) {
+            String resp = scn.nextLine();
+            if (resp.equalsIgnoreCase("q") || resp.equalsIgnoreCase("quit"))
+                return -2;
+            else if (resp.equalsIgnoreCase("c") || resp.equalsIgnoreCase("check"))
+                return 2;
+            else if (resp.equalsIgnoreCase("n") || resp.equalsIgnoreCase("new"))
+                return 1;
+            System.out.println("Please type either (n)ew, (c)heck, or (q)uit");
+        }
     }
 
     /**
@@ -124,7 +140,6 @@ public final class Helper {
         int r = 0;
         while (r == 0) {
             String resp = scn.nextLine();
-            String resp = scn.nextLine();
             if (resp.equalsIgnoreCase("q") || resp.equalsIgnoreCase("quit"))
                 return -2;
             else if (resp.equalsIgnoreCase("d") || resp.equalsIgnoreCase("delete"))
@@ -133,6 +148,7 @@ public final class Helper {
                 return 2;
             System.out.println("Please type either (d)elete, (e)dit, or (q)uit");
         }
+        return -2;
     }
 
     /**
@@ -165,7 +181,7 @@ public final class Helper {
      * @return 1 if user inputs add, 2 if user inputs check, -2 if quit
      */
     public int nextACQ(Scanner scn) {
-        while (r == 0) {
+        while (true) {
             String resp = scn.nextLine();
             if (resp.equalsIgnoreCase("add") || resp.equalsIgnoreCase("a"))
                 return 1;
@@ -182,8 +198,8 @@ public final class Helper {
      * @param scn The scanner to grab input from
      * @return 1 if user inputs add, 2 if user inputs check, 3 if user inputs next, 4 if user inputs previous, 5 if user inputs bag, 6 if user inputs (ch)eckout, -2 if quit
      */
-    public int nextACQ(Scanner scn) {
-        while (r == 0) {
+    public static int nextACQNPB(Scanner scn) {
+        while (true) {
             String resp = scn.nextLine();
             if (resp.equalsIgnoreCase("add") || resp.equalsIgnoreCase("a"))
                 return 1;
@@ -196,7 +212,7 @@ public final class Helper {
             else if (resp.equalsIgnoreCase("bag") || resp.equalsIgnoreCase("b"))
                 return 5;
             else if (resp.equalsIgnoreCase("checkout") || resp.equalsIgnoreCase("ch"))
-                resp 6;
+                return 6;
             else if (resp.equalsIgnoreCase("quit") || resp.equalsIgnoreCase("q"))
                 return -2;
             System.out.println("Please type either  (a)dd, (c)heck, or (q)uit");

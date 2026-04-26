@@ -1,3 +1,5 @@
+import java.util.Scanner;
+import java.util.ArrayList;
 import java.sql.*;
 /**
  * Public class customer to model an entry in the customer table
@@ -439,7 +441,7 @@ public class Customer {
         return Card.fetchCards(this.id, conn);
     }
 
-    public cardScreen(Connection conn, Scanner scn) {
+    public void cardScreen(Connection conn, Scanner scn) {
         Helper.clearConsole();
         Pager<Card> cards = new Pager(Card.fetchCards(this.id, conn), 5);
         boolean update = false;
@@ -463,10 +465,10 @@ public class Customer {
                         cards.nextPage();
                         break;
                     case 3:
-                        update = Card.addCardScreen(c, conn, scn);
+                        update = Card.addCardScreen(this, conn, scn);
                         break;
                     case 4:
-                        update = Card.removeCardScreen(c, conn, scn);
+                        update = Card.removeCardScreen(this, conn, scn);
                         break;
                 }
             }
@@ -507,17 +509,17 @@ public class Customer {
                         cards.nextPage();
                         break;
                     case 3:
-                        update = Card.addCardScreen(c, conn, scn);
+                        update = Card.addCardScreen(this, conn, scn);
                         break;
                     case 4:
-                        update = Card.removeCardScreen(c, conn, scn);
+                        update = Card.removeCardScreen(this, conn, scn);
                         break;
                     case 5:
                         System.out.println("What card would you like to select? (!q)uit to return");
                         while (id == 0) {
                             int id = Helper.nextId(scn);
                             if (id == -2)
-                                return;
+                                return -2;
                             if (cards.list.stream().anyMatch(card -> card.id == id))
                                 return id;
                             else {
