@@ -175,18 +175,6 @@ CREATE TABLE employees (
 
 -- VIEWS
 
-CREATE VIEW dinner_menu_view AS
-SELECT * FROM items
-JOIN menu_items ON items.id = menu_items.item_id AND menu_items.menu_id = 2;
-
-CREATE VIEW lunch_menu_view AS
-SELECT * FROM items
-JOIN menu_items ON items.id = menu_items.item_id AND menu_items.menu_id = 1;
-
-CREATE VIEW dessert_menu_view AS
-SELECT * FROM items
-JOIN menu_items ON items.id = menu_items.item_id AND menu_items.menu_id = 3;
-
 CREATE VIEW signature_item_view AS
 SELECT items.id, items.name, items.price FROM items
 JOIN signature_items ON items.id = signature_items.id;
@@ -220,6 +208,11 @@ WHERE EXISTS (
 EXISTS (
     SELECT cc.id FROM customer_creations cc WHERE i.id = cc.id
 );
+
+CREATE VIEW local_menu_view AS
+SELECT m.id, m.name, lm.location_id
+FROM menus m
+JOIN local_menus lm ON m.id=lm.menu_id;
 
 -- This trigger allows us to update the cost of signature items when ingredients are added or removed from them
 -- Please note that for this specific query, AI sources were consulted in order to understand how to obtain the values of the 
