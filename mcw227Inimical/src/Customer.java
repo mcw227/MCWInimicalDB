@@ -312,4 +312,37 @@ public class Customer {
             return false;
         }
     }
+
+    /**
+     * Fetches new customer data.
+     * @param c The customer object to update. Uses its id to find the customer in the db.
+     * @param conn The database connection to use
+     */
+    static void updateCustomerInfo(Customer c, Connection conn) {
+        // admin account short circuit
+        if (c.id == -1) {
+            return;
+        }
+        try {
+            PreparedStatement findCustomer = conn.prepareStatement("SELECT * FROM customers WHERE id = ?");
+            findCustomer.setInt(1, c.id);
+            ResultSet rs = findCustomer.executeQuery();
+            if (rs == null) {//critical error
+                System.err.println("Customer not found in database. Please restart software.\n");
+                System.exit(-1);
+            }
+            else {
+                rs.next();
+                if (rs.getInt("active") == 0) //someone cancelled the account while the person was logged in
+                    c = Customer.InactiveCustomer();
+                c.id = rs.getInt("id");
+                c.name = rs.getString("name");
+                c.email = rs.getString("email");
+                c.membership = (rs.getInt("membership") == 1) ? true : false;
+                c.points = rs.getInt("points");
+            }
+        } catch (Exception e) {
+            System.out.println("Could not update customer info.\n");
+        }
+    }
 }

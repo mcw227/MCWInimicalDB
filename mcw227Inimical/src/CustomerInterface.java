@@ -111,7 +111,7 @@ public final class CustomerInterface {
                         break;
                 }
             }
-            Helper.updateCustomerInfo(c, conn);
+            Customer.updateCustomerInfo(c, conn);
             if (c.id == -2) { //acount was marked as inactive while another user was logged in!
                 System.out.println("Customer is now marked inactive. Please contact management if you think this is an error.");
                 return;
@@ -196,11 +196,11 @@ public final class CustomerInterface {
      * @param scn Scanner to grab input from
      */
     static void cCheckCreditCards(Customer c, Connection conn, Scanner scn) {
-        Pager<Card> cards = new Pager(Helper.fetchCards(c.id, conn), 5);
+        Pager<Card> cards = new Pager(Card.fetchCards(c.id, conn), 5);
         boolean update = false;
         while (true) {
             if (update) //update, restart list
-                cards = new Pager(Helper.fetchCards(c.id, conn), 5);
+                cards = new Pager(Card.fetchCards(c.id, conn), 5);
             cards.printCurrentPage();
             if (!cards.list.isEmpty()) {
                 System.out.println("Press n to go to next page, p to go to previous, q to quit.");
@@ -218,10 +218,10 @@ public final class CustomerInterface {
                         cards.nextPage();
                         break;
                     case 3:
-                        update = Helper.addCardScreen(c, conn, scn);
+                        update = Card.addCardScreen(c, conn, scn);
                         break;
                     case 4:
-                        update = Helper.removeCardScreen(c, conn, scn);
+                        update = Card.removeCardScreen(c, conn, scn);
                         break;
                 }
             }
@@ -231,7 +231,7 @@ public final class CustomerInterface {
                 if (resp == -2)
                     return;
                 else {
-                    update = Helper.addCardScreen(c, conn, scn);
+                    update = Card.addCardScreen(c, conn, scn);
                 }
             }
         }
@@ -244,11 +244,11 @@ public final class CustomerInterface {
      * @param scn Scanner to grab input from
      */
     static void cCheckPhoneNumbers(Customer c, Connection conn, Scanner scn) {
-        Pager<PhoneNumber> phones = new Pager(Helper.fetchPhones(c.id, conn), 5);
+        Pager<PhoneNumber> phones = new Pager(PhoneNumber.fetchPhones(c.id, conn), 5);
         boolean update = false;
         while (true) {
             if (update) //update, restart list
-                phones = new Pager(Helper.fetchPhones(c.id, conn), 5);
+                phones = new Pager(PhoneNumber.fetchPhones(c.id, conn), 5);
             phones.printCurrentPage();
             if (!phones.list.isEmpty()) {
                 System.out.println("Press n to go to next page, p to go to previous, q to quit.");
@@ -266,10 +266,10 @@ public final class CustomerInterface {
                         phones.nextPage();
                         break;
                     case 3:
-                        update = Helper.addPhoneScreen(c, conn, scn);
+                        update = PhoneNumber.addPhoneScreen(c, conn, scn);
                         break;
                     case 4:
-                        update = Helper.removePhoneScreen(c, conn, scn);
+                        update = PhoneNumber.removePhoneScreen(c, conn, scn);
                         break;
                 }
             }
@@ -279,7 +279,7 @@ public final class CustomerInterface {
                 if (resp == -2)
                     return;
                 else {
-                    update = Helper.addPhoneScreen(c, conn, scn);
+                    update = PhoneNumber.addPhoneScreen(c, conn, scn);
                 }
             }
         }
