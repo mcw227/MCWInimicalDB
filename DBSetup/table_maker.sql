@@ -85,6 +85,17 @@ CREATE TABLE menus (
     name varchar(20)
 );
 
+CREATE TABLE local_menus (
+    menu_id NUMBER,
+    location_id NUMBER,
+    CONSTRAINT lm_menu_fk
+        FOREIGN KEY (menu_id) REFERENCES menus(id) ON DELETE CASCADE,
+    CONSTRAINT lm_loc_fk
+        FOREIGN KEY (location_id) REFERENCES locations(id) ON DELETE CASCADE,
+    CONSTRAINT lm_pk
+        PRIMARY KEY (menu_id, location_id)
+);
+
 CREATE TABLE menu_items (
     menu_id NUMBER,
     item_id NUMBER,

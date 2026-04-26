@@ -23,6 +23,8 @@ DROP TABLE employees;
 
 DROP TABLE menu_items;
 
+DROP TABLE local_menus;
+
 DROP TABLE menus;
 
 DROP TABLE order_items;
