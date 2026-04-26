@@ -68,7 +68,7 @@ public class Item {
                 String name = rs.getString("name");
                 Double price = rs.getDouble("price");
                 items.add(new Item(id,name,price));
-            } while(rs.next())
+            } while(rs.next());
 
         } catch (Exception e) {
             System.out.println("Unable to fetch items. Try again later");
