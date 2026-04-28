@@ -55,6 +55,85 @@ public class Menu {
     }
 
     /**
+     * Add an item to the current menu
+     * @param conn The database connection to use
+     * @param i The item to add to the menu
+     */
+    public boolean addItem(Connection conn, Item i) {
+        try {
+            PreparedStatement addItem = conn.prepareStatement("INSERT INTO menu_items (menu_id, item_id) VALUES (?,?)");
+            addItem.setInt(1, this.id);
+            addItem.setInt(2, i.id);
+
+            addItem.executeQuery();
+            return true;
+        } catch (Exception e) {
+            System.out.printf("Unable to add item with ID: %d to menu with ID: %d. Try again later.\n", i.id, this.id);
+            return false;
+        }
+    }
+
+    /**
+     * Add an item to the current menu
+     * @param conn The database connection to use
+     * @param i The item to add to the menu
+     */
+    public boolean delItem(Connection conn, Item i) {
+        try {
+            PreparedStatement delItem = conn.prepareStatement("DELETE FROM menu_items WHERE menu_id = ? AND item_id = ?");
+            delItem.setInt(1, this.id);
+            delItem.setInt(2, i.id);
+
+            delItem.executeQuery();
+            return true;
+        } catch (Exception e) {
+            System.out.printf("Unable to delete item with ID: %d from menu with ID: %d. Try again later.\n", i.id, this.id);
+            return false;
+        }
+    }
+
+    /**
+     * Add an item to the current menu
+     * @param conn The database connection to use
+     * @param i The item to add to the menu
+     * @param m The menu to add the item to
+     */
+    public static boolean addItem(Connection conn, Item i, Menu m) {
+        try {
+            PreparedStatement addItem = conn.prepareStatement("INSERT INTO menu_items (menu_id, item_id) VALUES (?,?)");
+            addItem.setInt(1, m.id);
+            addItem.setInt(2, i.id);
+
+            addItem.executeQuery();
+            return true;
+        } catch (Exception e) {
+            System.out.printf("Unable to add item with ID: %d to menu with ID: %d. Try again later.\n", i.id, m.id);
+            return false;
+        }
+    }
+
+    /**
+     * Add an item to the current menu
+     * @param conn The database connection to use
+     * @param i The item to add to the menu
+     * @param m The menu to add the item to
+     */
+    public boolean delItem(Connection conn, Item i, Menu m) {
+        try {
+            PreparedStatement delItem = conn.prepareStatement("DELETE FROM menu_items WHERE menu_id = ? AND item_id = ?");
+            delItem.setInt(1, this.id);
+            delItem.setInt(2, i.id);
+
+            delItem.executeQuery();
+            return true;
+        } catch (Exception e) {
+            System.out.printf("Unable to delete item with ID: %d from menu with ID: %d. Try again later.\n", i.id, m.id);
+            return false;
+        }
+    }
+    
+
+    /**
      * Fetches the menu with id from the database and populates it with items
      * @param conn The database connection to use
      * @param id The id to query

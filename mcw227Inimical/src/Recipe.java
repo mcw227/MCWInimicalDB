@@ -19,6 +19,43 @@ public class Recipe {
     }
 
     /**
+     * A helpful constructor that automatically populates the ingredients' details when possible
+     */
+    public Recipe(int r_id, int i_id, int quantity, Connection conn) {
+        this.recipe_id = r_id;
+        this.ingredient_id = i_id;
+        this.quantity = quantity;
+        getIngredientDetails(conn);
+    }
+
+    /** Standard to string */
+    public String toString() {
+        return String.format("RECIPE ID:%-3d\t| INGREDIENT ID: %-3d\t| QUANTITY %-3d", this.recipe_id, this.ingredient_id, this.quantity);
+    }
+
+    /** Summarizes the recipe better for the user */
+    public String recipeItemSummary() {
+        return String.format("INGREDIENT_ID: %-3d\t| NAME: %-30s\t| INGREDIENT_PRICE: %5.2f\t| QUANTITY: %-3d", this.ingredient_id, this.ingredient.name, this.ingredient.price, this.quantity);
+    }
+
+    /**
+     * Parses a recipe from a result set, fills its item information
+     * @param rs The result set to parse
+     * @param conn The database connection to fill item information from
+     * @return A recipe if the RS is valid, or null if not
+     */
+    public static Recipe parseRecipeFromRS(ResultSet rs, Connection conn) {
+        try {
+            int r_id = rs.getInt("recipe_id");
+            int i_id = rs.getInt("ingredient_id");
+            int quantity = rs.getInt("quantity");
+            return new Recipe(r_id, i_id, quantity, conn);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
      * Populates the ingredient field using the ingredient id
      * @param conn The database connection to use.
      */

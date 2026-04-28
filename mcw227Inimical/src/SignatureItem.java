@@ -101,5 +101,46 @@ public class SignatureItem extends Item {
         }
     }
 
+    /**
+     * Obtains all signature items currently in the database.
+     * @param conn The database connection to use
+     */
+    public static ArrayList<SignatureItem> fetchSignatures(Connection conn, Menu m) {
+        ArrayList<SignatureItem> signature_items = new ArrayList<>();
+        try {
+            PreparedStatement fetchSignatures = conn.prepareStatement("SELECT * FROM menu_items m JOIN signature_item_view sig ON m.item_id = sig.id WHERE m.menu_id = ?");
+                ResultSet rs = fetchSignatures.executeQuery();
+
+                if (!rs.next())
+                    return signature_items;
+                else {
+                    do {
+                        int id = rs.getInt("id");
+                        String name = rs.getString("name");
+                        double price = rs.getDouble("price");
+                        signature_items.add(new SignatureItem(id, name, price));
+                    } while (rs.next());
+                }
+
+            return signature_items;
+        } catch (Exception e) {
+            System.out.println("Unable to fetch signature items. Try again later.");
+            return null;
+        }
+    }
+
+    /**
+     * Grabs signature items from a list
+     * @param items The item list to add
+     */
+    public static ArrayList<SignatureItem> fetchSigsFromList(ArrayList<Item> items) {
+        ArrayList<SignatureItem> sigs = new ArrayList<>();
+        for (Item i : items) {
+            if (SignatureItem.class.isInstance(i))
+                sigs.add((SignatureItem)i);
+        }
+        return sigs;
+    }
+
 
 }

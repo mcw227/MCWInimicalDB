@@ -58,16 +58,23 @@ public class Item {
     public static ArrayList<Item> fetchItems(Connection conn) {
         ArrayList<Item> items = new ArrayList<>();
         try {
-            PreparedStatement fetchItems = conn.prepareStatement("SELECT * FROM items");
+            PreparedStatement fetchItems = conn.prepareStatement("SELECT * FROM all_items_class_view");
             ResultSet rs = fetchItems.executeQuery();
 
             if (!rs.next()) //no items in db for some reason..
                 return items;
             do {
                 int id = rs.getInt("id");
-                String name = rs.getString("name");
-                Double price = rs.getDouble("price");
-                items.add(new Item(id,name,price));
+                String n = rs.getString("name");
+                double p = rs.getDouble("price");
+
+                 if (rs.getString("item_type").equalsIgnoreCase("SIGNATURE"))
+                    items.add(new SignatureItem(id, n, p));
+                else if (rs.getString("item_type").equalsIgnoreCase("CUSTOMER_CREATION")) {
+                    items.add(new CustomerCreation(id, n, p, rs.getString("specific_attribute"), conn));
+                } else {
+                    items.add(new Item(id, n, p));
+                }
             } while(rs.next());
 
         } catch (Exception e) {
@@ -78,58 +85,114 @@ public class Item {
     }
 
     /**
-     * Fetches all items which could be on the menu. Customer creations and signature items. Not ingredients
+     * Fetches all possible ingredients
      * @param conn The database connection to use
+     * @return An arraylist of ingredients
      */
-    public static ArrayList<Item> fetchMenuItems(Connection conn) {
-        ArrayList<Item> menu_items = new ArrayList<>();
+    public static ArrayList<Item> fetchIngredients(Connection conn) {
+        ArrayList<Item> ingredients = new ArrayList<>();
         try {
-            PreparedStatement fetchMenuItems = conn.prepareStatement("SELECT * FROM menu_item_view");
-            ResultSet rs = fetchMenuItems.executeQuery();
+            PreparedStatement getIngredients = conn.prepareStatement("SELECT * FROM ingredients");
+            ResultSet rs = getIngredients.executeQuery();
 
-            if (!rs.next()) //no items in db for some reason..
-                return menu_items;
+            if (!rs.next())
+                return ingredients;
             do {
-                int id = rs.getInt("id");
-                String name = rs.getString("name");
-                Double price = rs.getDouble("price");
-                menu_items.add(new Item(id,name,price));
-            } while(rs.next());
-
+                ingredients.add(Item.parseItemFromRS(rs));
+            } while (rs.next());
+            return ingredients;
         } catch (Exception e) {
-            System.out.println("Unable to fetch items. Try again later");
+            System.out.println("Unable to fetch ingredients. Try again later.");
             return null;
         }
-        return menu_items;
     }
 
     /**
-     * Returns price adjusted items for the given location
-     * @param conn the Database connection to use
-     * @param location_id The id of the location to query
+     * Fetches all possible ingredients from a menu
+     * @param conn The database connection to use
+     * @param m The menu to grab ingredients from
+     * @return An arraylist of ingredients
      */
-    public static ArrayList<Item> fetchMenuItems(Connection conn, int location_id) {
-        return fetchMenuItems(conn);
+    public static ArrayList<Item> fetchIngredients(Connection conn, Menu m) {
+        ArrayList<Item> ingredients = new ArrayList<>();
+        try {
+            PreparedStatement getIngredients = conn.prepareStatement("SELECT * FROM menu_items m JOIN ingredients i ON m.item_id = i.id WHERE m.menu_id = ?");
+            getIngredients.setInt(1,m.id);
+            ResultSet rs = getIngredients.executeQuery();
+
+            if (!rs.next())
+                return ingredients;
+            do {
+                ingredients.add(Item.parseItemFromRS(rs));
+            } while (rs.next());
+            return ingredients;
+        } catch (Exception e) {
+            System.out.println("Unable to fetch ingredients. Try again later.");
+            return null;
+        }
+    }
+
+    /**
+     * Grabs ingredient items from an arraylist
+     * @param items The list of items
+     */
+    public static ArrayList<Item> fetchIngredientsFromList(ArrayList<Item> items) {
+        ArrayList<Item> ingredients = new ArrayList<>();
+        for (Item i : items) {
+            if (!SignatureItem.class.isInstance(i))
+                ingredients.add(i);
+        }
+        return ingredient;
+    }
+
+    /**
+     * Parses an item from a result set
+     * @param rs The result set to parse
+     * @return The item from the result set, or null if it is an invalid result set
+     */
+    public static Item parseItemFromRS(ResultSet rs) {
+        try {
+            int id = rs.getInt("id");
+            String name = rs.getString("name");
+            Double price = rs.getDouble("price");
+            return new Item(id,name,price);
+        } catch (Exception e) {
+            return null;
+        }
+     
     }
 
     /**
      * Creates an item object by querying the databse for an item with the given id
      * @param conn The database connection to use
      * @param query_id The item id to query
-     * @return The item found in the database, or null if it did not exist
+     * @return The item found in the database, or null if it did not exist. Although cast as an item, it may be subclass Sig or CustomerCreation
      */
     public static Item createItemFromID(Connection conn, int query_id) {
         try {
-            PreparedStatement getItem = conn.prepareStatement("SELECT * FROM items WHERE id = ?");
+            Item r_item = null;
+            PreparedStatement getItem = conn.prepareStatement("SELECT * FROM all_items_class_view WHERE id = ?");
             getItem.setInt(1, query_id);
-            ResultSet rs = getItem.executeQuery();
-            if (!rs.next()) { //item not found
+            ResultSet rs_gi = getItem.executeQuery();
+
+            if (!rs_gi.next()) { //item not found
                 System.out.printf("Unable to create item from ID: %d, not found in database!\n", query_id);
                 return null;
             }
-            String n = rs.getString("name");
-            double p = rs.getDouble("price");
-            return new Item(query_id, n, p);
+
+            String n = rs_gi.getString("name");
+            double p = rs_gi.getDouble("price");
+
+            //Handle the many item types
+            if (rs_gi.getString("item_type").equalsIgnoreCase("SIGNATURE"))
+                r_item = new SignatureItem(query_id, n, p);
+            else if (rs_gi.getString("item_type").equalsIgnoreCase("CUSTOMER_CREATION")) {
+                r_item = new CustomerCreation(query_id, n, p, rs_gi.getString("specific_attribute"), conn);
+            } else {
+                r_item = new Item(query_id, n, p);
+            }
+
+            return r_item;
         } catch (Exception e) {
             System.out.printf("Unable to create item from ID: %d\n", query_id);
             return null;
@@ -141,21 +204,31 @@ public class Item {
      * @param conn The database connection to use
      * @param query_id The item id to query
      * @param loc_id The location the item is sold at (in case of location specific price updates)
-     * @return The item found in the database, or null if it did not exist
-     * @override
+     * @return The item found in the database, or null if it did not exist. Can be sig or customer creation
      */
     public static Item createItemFromID(Connection conn, int query_id, int loc_id) {
         try {
-            PreparedStatement getItem = conn.prepareStatement("SELECT * FROM items WHERE id = ?");
+            Item r_item = null;
+            PreparedStatement getItem = conn.prepareStatement("SELECT * FROM all_items_class_view WHERE id = ?");
             getItem.setInt(1, query_id);
             ResultSet rs_gi = getItem.executeQuery();
+
             if (!rs_gi.next()) { //item not found
                 System.out.printf("Unable to create item from ID: %d, not found in database!\n", query_id);
                 return null;
             }
             String n = rs_gi.getString("name");
             double p;
-            
+
+            //Handle the many item types
+            if (rs_gi.getString("item_type").equalsIgnoreCase("SIGNATURE"))
+                r_item = new SignatureItem(query_id, n, 0);
+            else if (rs_gi.getString("item_type").equalsIgnoreCase("CUSTOMER_CREATION")) {
+                r_item = new CustomerCreation(query_id, n, 0, rs_gi.getString("specific_attribute"), conn);
+            } else {
+                r_item = new Item(query_id, n, 0);
+            }
+
             //See whether there is a price change for this item
             PreparedStatement getItemPriceUpdate = conn.prepareStatement("SELECT * FROM price_change WHERE item_id = ? AND location_id = ?");
             getItemPriceUpdate.setInt(1, query_id);
@@ -178,14 +251,51 @@ public class Item {
             else
                 p = rs_gipu.getDouble("price") * sales_tax;
 
-            return new Item(query_id, n, p);
+            r_item.price = p;
+            return r_item;
         } catch (Exception e) {
             System.out.printf("Unable to create item from ID: %d\n", query_id);
             return null;
         }
     }
 
+    /**
+     * Allows users to check out an item that they know the id of
+     * @param conn The connection to the database
+     * @param scn The scanner to grab input from
+     * @param items The items to query
+     */
     public static void checkItemScreen(Connection conn, Scanner scn, ArrayList<Item> items) {
-        return;
+        System.out.println("What is the id of the item you'd like to check?");
+
+        Item i;
+        while (true) {
+            int r = Helper.nextId(scn);
+            if (r == -2)
+                return;
+            i = items.stream().filter(is -> is.id == r).findFirst().orElse(null);
+            if (i != null) {
+                Helper.clearConsole();
+                System.out.println(Item.getSummary(i, conn));
+                System.out.println("Type anything to return to main screen.");
+                Helper.nextOK(scn);
+                Helper.clearConsole();
+                return;
+            }
+        }
+    }
+
+    /**
+     * Summarizes an item. Prints the recipe if it is a customer creation
+     * @param i The item to summarize
+     * @return A string summarizing the item's details
+     */
+    public static String getSummary(Item i, Connection conn) {
+        if (CustomerCreation.class.isInstance(i)) {
+            return ((CustomerCreation)i).getPrintableRecipeSummary(conn);
+        }
+        else {
+            return i.toString();
+        }
     }
 }

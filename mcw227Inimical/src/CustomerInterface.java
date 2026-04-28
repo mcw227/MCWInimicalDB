@@ -79,6 +79,7 @@ public final class CustomerInterface {
      */
     static void cMenu(Customer c, Connection conn, Scanner scn) {
         int resp = 0;
+        Helper.clearConsole();
         while (resp != -2) {
             printCMenu(c);
             resp = Helper.nextId(scn);
@@ -258,6 +259,7 @@ public final class CustomerInterface {
                 default:
                     return;
             }
+            Customer.updateCustomerInfo(c, conn);
         }
     }
 

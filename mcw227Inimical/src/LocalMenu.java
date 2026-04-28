@@ -4,9 +4,10 @@ import java.util.Scanner;
 
 /** Public class LocalMenu models an entry in the local menu table in the database */
 public class LocalMenu extends Menu {
-    private static final int MASTER_LUNCH_MENU_ID = 1;
-    private static final int MASTER_DINNER_MENU_ID = 2;
-    private static final int MASTER_DESSERT_MENU_ID = 3;
+    private static final int MASTER_MENU_ID = 1;
+    private static final int MASTER_LUNCH_MENU_ID = 2;
+    private static final int MASTER_DINNER_MENU_ID = 3;
+    private static final int MASTER_DESSERT_MENU_ID = 4;
 
     public int location_id;
 
@@ -89,6 +90,7 @@ public class LocalMenu extends Menu {
      */
     public static ArrayList<LocalMenu> getMasterMenus(Connection conn, int location_id) {
         ArrayList<LocalMenu> r = new ArrayList<>();
+        r.add(LocalMenu.getPopulatedMenu(conn, MASTER_MENU_ID, location_id));
         r.add(LocalMenu.getPopulatedMenu(conn, MASTER_LUNCH_MENU_ID, location_id));
         r.add(LocalMenu.getPopulatedMenu(conn, MASTER_DINNER_MENU_ID, location_id));
         r.add(LocalMenu.getPopulatedMenu(conn, MASTER_DESSERT_MENU_ID, location_id));

@@ -285,28 +285,40 @@ public class Order {
         if (loc == null)
             return;
         loc.getLocalMenus(conn);
+        Helper.clearConsole();
+
         customer_order.location = loc;
         LocalMenu lm = loc.pickMenu(scn);
+
+        Helper.clearConsole();
         if (lm == null)
             return;
         ArrayList<Item> items = lm.items;
-        Pager<Item> menu = new Pager(items, 5); //turn menu into pager
-        Helper.clearConsole();
+        Pager<Item> menu = new Pager(items, ITEM_MENU_PAGE_SIZE); //turn menu into pager
+
+        boolean upd = false;
 
         while (true) {
             menu.printCurrentPage();
             System.out.println("Type (n)ext to go to next page, or (p)revious to go to previous page. Type (m)enus to change menus.");
-            System.out.println("Type (a)dd to add an item to your bag, (c)heck to check out an item's details, (b)ag to check bag");
-            System.out.println("Type (ch)eckout to checkout or (q)uit to quit [Deletes order progress!]");
+            System.out.println("Type (a)dd to add an item to your bag\n(c)heck to view an item's details\n(cr)eate to create an item\n(b)ag to check bag");
+            System.out.println("Type (ch)eckout to checkout\n(q)uit to quit [Deletes order progress!]");
             int resp = Helper.nextACQNPB(scn);
             if (resp == -2)
                 return;
+            if (upd) {
+                lm.fillItems(conn);
+                items = lm.items;
+                menu = new Pager(items, ITEM_MENU_PAGE_SIZE);
+            }
 
             if (resp == 8) {
-                LocalMenu m = loc.pickMenu(scn);
-                if (m == null)
+                Helper.clearConsole();
+                lm = loc.pickMenu(scn);
+                if (lm == null)
                     return;
-                menu = new Pager<Item>(m.items, ITEM_MENU_PAGE_SIZE);
+                menu = new Pager<Item>(items, ITEM_MENU_PAGE_SIZE);
+                items = lm.items;
                 Helper.clearConsole();
             } else {
                 switch (resp) {
@@ -315,7 +327,6 @@ public class Order {
                         Helper.clearConsole();
                         break;
                     case (2):
-                        Helper.clearConsole();
                         Item.checkItemScreen(conn, scn, items);
                         break;
                     case (3):
@@ -334,6 +345,12 @@ public class Order {
                         Helper.clearConsole();
                         if (customer_order.checkout(c, conn, scn))
                             return;
+                        break;
+                    case(7):
+                        Helper.clearConsole();
+                        upd = CustomerCreation.createItemScreen(conn, scn, c, lm);
+                        break;
+                    default:
                         break;
                 }
             }
@@ -493,7 +510,7 @@ public class Order {
             return false;
         else {
             this.payment_id = card_id;
-            System.out.println("Would you like to place your order?");
+            System.out.println("Would you like to place your order? ((y)es/(n)o)");
             int r = Helper.nextYN(scn);
             if (r == -2)
                 return false;

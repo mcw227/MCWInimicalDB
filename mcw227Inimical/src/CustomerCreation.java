@@ -4,28 +4,26 @@ import java.util.Scanner;
 
 /** Customer creation object  */
 public class CustomerCreation extends Item {
-    public ArrayList<Item> ingredients;
-    public ArrayList<Integer> quantities;
-
+    public ArrayList<Recipe> ingredients;
     public String creator;
 
     /** Standard constructor */
-    public CustomerCreation(int id, String name, double price, String creator, ArrayList<Item> ingredients, ArrayList<Integer> quantities) {
+    public CustomerCreation(int id, String name, double price, String creator, ArrayList<Recipe> ingredients) {
         super(id, name, price);
         this.creator = creator;
         this.ingredients = ingredients;
-        this.quantities = quantities;
     }
 
-    public CustomerCreation(int id, String name, double price, String creator) {
+    public CustomerCreation(int id, String name, double price, String creator, Connection conn) {
         super(id, name, price);
         this.creator = creator;
-        this.populateRecipe();
+        this.ingredients = new ArrayList<Recipe>();
+        this.populateRecipe(conn);
     }
 
     /** Standard toString function */
     public String toString() {
-        return String.format("CUSTOMER CREATION! %s\t| CREATOR:%s",super.toString(), this.creator);
+        return String.format("%-30s\t| CREATOR:%s",super.toString(), this.creator);
     }
 
     /**
@@ -61,7 +59,7 @@ public class CustomerCreation extends Item {
                     String name = rs.getString("name");
                     double price = rs.getDouble("price");
                     String creator = rs.getString("creator");
-                    menu_items.add(new CustomerCreation(id, name, price, creator));
+                    menu_items.add(new CustomerCreation(id, name, price, creator, conn));
                 } while (rs.next());
             }
 
@@ -72,12 +70,52 @@ public class CustomerCreation extends Item {
         }
     }
 
-    public String getPrintableRecipe() {
-        String ret = "";
-        return ret;
+    public static boolean addItem(Connection conn, Scanner scn, Customer c, Menu lm) {
+        return false;
     }
 
-    private void populateRecipe() {
-        return;
+    public static boolean createItemScreen(Connection conn, Scanner scn, Customer c, LocalMenu lm) {
+        ArrayList<Item> ingredients = Item.fetchIngredientsFromList(lm.items);
+        ArrayList<SignatureItem> signatures = SignatureItem.fetchSigsFromList(lm.items);
+        return false;
+    }
+
+    /**
+     * Prints a recipe summary of the customer creation object
+     * @param conn The database connection to use in the case that a recipe is not populated yet
+     */
+    public String getPrintableRecipeSummary(Connection conn) {
+        String r = "";
+        r += String.format("ID:%-3d\tNAME:%-50s\n", this.id, this.name);
+        if (ingredients == null) {
+            this.populateRecipe(conn);
+        }
+        for (Recipe rec : ingredients) {
+            r += "\t" + rec.recipeItemSummary() + "\n";
+        }
+        r+= String.format("PRICE: %.2f\n", this.price);
+        return r;
+    }
+
+    /**
+     * Populates a customer creations' item list
+     */
+    public void populateRecipe(Connection conn) {
+        try {
+            PreparedStatement getRecipes = conn.prepareStatement("SELECT * FROM recipes WHERE recipe_id=?");
+            getRecipes.setInt(1,this.id);
+            ResultSet rs = getRecipes.executeQuery();
+            if (!rs.next())
+                return;
+            do {
+                this.ingredients.add(Recipe.parseRecipeFromRS(rs, conn));
+            } while (rs.next());
+            return;
+
+        } catch (Exception e) {
+            System.out.println("Unable to update populate recipe. Try again later.");
+            e.printStackTrace();
+            return;
+        }
     }
 }
