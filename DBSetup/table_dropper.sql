@@ -15,7 +15,7 @@ DROP VIEW order_item_view;
 
 DROP VIEW order_customer_view;
 
-DROP VIEW menu_item_view;
+DROP VIEW all_items_class_view;
 
 DROP VIEW local_menu_view;
 
