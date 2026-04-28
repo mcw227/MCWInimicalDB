@@ -301,13 +301,20 @@ AFTER INSERT OR DELETE ON orders
 FOR EACH ROW
 DECLARE 
     added_points NUMBER;
+    customer_membership NUMBER;
 BEGIN
 
     added_points := floor(:NEW.total / 2);
     
-    UPDATE customers
-    SET points = nvl(points, 0) + added_points
+    SELECT membership INTO customer_membership
+    FROM customers
     WHERE id = :NEW.customer_id;
+    
+    IF membership = 1 THEN --only track points for members.
+        UPDATE customers
+        SET points = nvl(points, 0) + added_points
+        WHERE id = :NEW.customer_id;
+    END IF;
 
 EXCEPTION
     WHEN NO_DATA_FOUND THEN
