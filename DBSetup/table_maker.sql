@@ -295,3 +295,23 @@ EXCEPTION
 
 END;
 /
+
+create or replace TRIGGER upd_customer_points
+AFTER INSERT OR DELETE ON orders
+FOR EACH ROW
+DECLARE 
+    added_points NUMBER;
+BEGIN
+
+    added_points := floor(:NEW.total / 2);
+    
+    UPDATE customers
+    SET points = nvl(points, 0) + added_points
+    WHERE id = :NEW.customer_id;
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+    NULL;
+
+END;
+/
