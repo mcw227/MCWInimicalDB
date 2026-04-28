@@ -179,6 +179,11 @@ public final class Helper {
         return -2;
     }
 
+    public static void nextOK(Scanner scn) {
+        scn.nextLine();
+        return;
+    }
+
     /**
      * This function handles previous/next/quit/add/delete input from user.
      * @param scn The scanner to grab input from
@@ -199,6 +204,33 @@ public final class Helper {
             else if (resp.equalsIgnoreCase("d") || resp.equalsIgnoreCase("delete"))
                 return 4;
             System.out.println("Please type either (n)ext, (p)revious, (a)dd, (d)elete, or (q)uit");
+        }
+        return -2;
+    }
+
+    /**
+     * This function handles previous/next/quit/add/delete/select input from user.
+     * @param scn The scanner to grab input from
+     * @return 1 if user types previous, 2 if user types next, 3 if user types add, 4 if user types delete 5 if user types select, -2 if user quits. Retries until a valid input is reached.
+     */
+    public static int nextPNQADS(Scanner scn) {
+        int r = 0;
+        while (r == 0) {
+            String resp = scn.nextLine();
+            if (resp.equalsIgnoreCase("q") || resp.equalsIgnoreCase("quit"))
+                return -2;
+            else if (resp.equalsIgnoreCase("p") || resp.equalsIgnoreCase("previous"))
+                return 1;
+            else if (resp.equalsIgnoreCase("n") || resp.equalsIgnoreCase("next"))
+                return 2;
+            else if (resp.equalsIgnoreCase("a") || resp.equalsIgnoreCase("add"))
+                return 3;
+            else if (resp.equalsIgnoreCase("d") || resp.equalsIgnoreCase("delete"))
+                return 4;
+            else if (resp.equalsIgnoreCase("s") || resp.equalsIgnoreCase("select"))
+                return 5;
+            System.out.println("Please type either (n)ext, (p)revious, (a)dd, (d)elete, or (q)uit");
+
         }
         return -2;
     }

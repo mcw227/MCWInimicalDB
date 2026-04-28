@@ -496,7 +496,7 @@ public class Customer {
                 System.out.println("Press n to go to next page, p to go to previous, q to quit");
                 System.out.println("You may type a to add or d to delete");
                 System.out.println("Press s to select a card");
-                int resp = Helper.nextPNQAD(scn);
+                int resp = Helper.nextPNQADS(scn);
                 switch (resp) {
                     case -2:
                         return -2;
@@ -516,17 +516,16 @@ public class Customer {
                         break;
                     case 5:
                         System.out.println("What card would you like to select? (!q)uit to return");
-                        while (id == 0) {
-                            int id = Helper.nextId(scn);
-                            if (id == -2)
-                                return -2;
-                            if (cards.list.stream().anyMatch(card -> card.id == id))
-                                return id;
+                        while (true) {
+                            final int card_id = Helper.nextId(scn);
+                            if (card_id == -2)
+                                break;
+                            if (cards.list.stream().anyMatch(card -> card.id == card_id))
+                                return card_id;
                             else {
                                 System.out.printf("Card with id %d not found!\n", id);
                             }
                         }
-                        break;
                 }
             }
             else {
@@ -537,6 +536,35 @@ public class Customer {
                 else {
                     update = Card.addCardScreen(this, conn, scn);
                 }
+            }
+        }
+    }
+
+    /**
+     * Allows a customer to check the orders listed under their accounts
+     */
+    public void checkOrderScreen(Connection conn, Scanner scn) {
+        ArrayList<Order> orders = Order.fetchOrdersByCustomer(conn, this.id);
+        if (orders == null) {
+            System.out.println("No orders under your account. (Type anything to continue)");
+            Helper.nextYN(scn);
+            return;
+        }
+        Pager<Order> order_pager = new Pager(orders, 10);
+        while (true) {
+            order_pager.printCurrentPage();
+            System.out.println("Press n to go to next page, p to go to previous, q to quit.");
+            int resp = Helper.nextPNQ(scn);
+            switch (resp) {
+                case -2:
+                    return;
+                case 1:
+                    Helper.clearConsole();
+                    order_pager.previousPage();
+                    break;
+                case 2:
+                    Helper.clearConsole();
+                    order_pager.nextPage();
             }
         }
     }

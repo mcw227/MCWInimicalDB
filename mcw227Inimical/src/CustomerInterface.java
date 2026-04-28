@@ -253,7 +253,7 @@ public final class CustomerInterface {
                     Order.newOrderScreen(c, conn, scn);
                     break;
                 case 2:
-                    Order.checkOrderScreen(conn, scn);
+                    c.checkOrderScreen(conn, scn);
                     break;
                 default:
                     return;

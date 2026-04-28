@@ -29,6 +29,18 @@ public class Order {
         this.total = total;
     }
 
+    public Order(int id, int payment_id, int customer_id, String created_at, int location_id, int status, double total, Connection conn) {
+        this.id = id;
+        this.payment_id = payment_id;
+        this.customer_id = customer_id;
+        this.created_at = created_at;
+        this.status = status;
+        this.total = total;
+
+        this.bag = OrderItem.fetchOrderItems(conn, this.id);
+        this.location = Location.fetchLocation(conn, location_id);
+    }
+
     /** Creates a new, unplaced order for the customer */
     public Order(Customer c) {
         this.id = -1;
@@ -39,6 +51,13 @@ public class Order {
         this.status = 1;
         this.bag = new ArrayList<OrderItem>();
         this.total = 0;
+    }
+
+    /**
+     * Basic to-string method
+     */
+    public String toString() {
+        return String.format("\tID:%-3d\t| PAYMENT_ID: %-3d\t| CUSTOMER_ID: %-3d\t| CREATED AT: %s\n\tADDRESS: %-50s\n\tSTATUS: %s\n\n\t\t---TOTAL: %.2f---\n", this.id, this.payment_id, this.customer_id, this.created_at, this.location.address, order_status_strings[this.status], this.total);
     }
 
     /** 
@@ -55,7 +74,7 @@ public class Order {
      */
     public void addItemToBag(OrderItem item) {
         this.bag.add(item);
-        this.total += item.price * item.quantity * location.sales_tax;
+        this.total += item.price * item.quantity;
     }
 
     /**
@@ -65,9 +84,102 @@ public class Order {
     public void removeItemFromBag(int item_id) {
         for (int i = 0; i < this.bag.size(); i++) {
             if (this.bag.get(i).id == item_id) {
-                this.total -= this.bag.get(i).price * this.bag.get(i).quantity * location.sales_tax;
+                this.total -= this.bag.get(i).price * this.bag.get(i).quantity;
                 this.bag.remove(i);
             }
+        }
+    }
+
+
+    /**
+     * Fetches all orders in the database
+     * @param conn The database connection to use
+     * @return An array list of orders
+     */
+    public static ArrayList<Order> fetchOrders(Connection conn) {
+        ArrayList<Order> orders = new ArrayList<>();
+        try {
+            PreparedStatement getOrders = conn.prepareStatement("SELECT * FROM orders");
+            ResultSet rs = getOrders.executeQuery();
+            if (!rs.next())
+                return orders;
+
+            do {
+                orders.add(parseOrderFromRS(rs, conn));
+            } while (rs.next());
+            return orders;
+        } catch (Exception e) {
+            System.out.println("Unable to fetch orders. Please try again later.");
+            return null;
+        }
+    }
+
+    /**
+     * Gets all orders based on customer id
+     * @param conn The database connection to use
+     * @param c_id The customer id to use
+     * @return An array list of orders
+     */
+    public static ArrayList<Order> fetchOrdersByCustomer(Connection conn, int c_id) {
+        ArrayList<Order> orders = new ArrayList<>();
+        try {
+            PreparedStatement getOrders = conn.prepareStatement("SELECT * FROM orders WHERE customer_id = ?");
+            getOrders.setInt(1, c_id);
+            ResultSet rs = getOrders.executeQuery();
+            if (!rs.next())
+                return orders;
+
+            do {
+                orders.add(parseOrderFromRS(rs, conn));
+            } while (rs.next());
+            return orders;
+        } catch (Exception e) {
+            System.out.println("Unable to fetch orders. Please try again later.");
+            return null;
+        }
+    }
+
+    /**
+     * Gets all orders based on customer id
+     * @param conn The database connection to use
+     * @param c_id The customer id to use
+     * @return An array list of orders
+     */
+    public static ArrayList<Order> fetchOrdersByLocation(Connection conn, int l_id) {
+        ArrayList<Order> orders = new ArrayList<>();
+        try {
+            PreparedStatement getOrders = conn.prepareStatement("SELECT * FROM orders WHERE location_id = ?");
+            getOrders.setInt(1, l_id);
+            ResultSet rs = getOrders.executeQuery();
+            if (!rs.next())
+                return orders;
+
+            do {
+                orders.add(parseOrderFromRS(rs, conn));
+            } while (rs.next());
+            return orders;
+        } catch (Exception e) {
+            System.out.println("Unable to fetch orders. Please try again later.");
+            return null;
+        }
+    }
+
+    /**
+     * Parses an order from a resultSet
+     * @param rs The resultset to parse
+     */
+    public static Order parseOrderFromRS(ResultSet rs, Connection conn) {
+        try {
+            int id = rs.getInt("id");
+            String created_at = rs.getString("created_at");
+            int location_id = rs.getInt("location_id");
+            int customer_id = rs.getInt("customer_id");
+            int payment_id = rs.getInt("payment_id");
+            int status = rs.getInt("status");
+            double total = rs.getDouble("total");
+            return new Order(id, payment_id, customer_id, created_at, location_id, status, total, conn);
+        } catch (Exception e) {
+            return null;
         }
     }
 
@@ -82,7 +194,6 @@ public class Order {
             addOrder.setInt(1, this.location.id); addOrder.setInt(2, this.customer_id);
             addOrder.setInt(3, this.payment_id); addOrder.setInt(4, this.status);
             addOrder.setDouble(5, this.total);
-            addOrder.executeUpdate();
 
             int upd_rows = addOrder.executeUpdate();
             if (upd_rows > 0) {
@@ -171,9 +282,9 @@ public class Order {
     public static void newOrderScreen(Customer c, Connection conn, Scanner scn) {
         Order customer_order = new Order(c);
         Location loc = Location.locationSelectScreen(conn, scn); //User must first select a location
-        loc.getLocalMenus(conn);
         if (loc == null)
             return;
+        loc.getLocalMenus(conn);
         customer_order.location = loc;
         LocalMenu lm = loc.pickMenu(scn);
         if (lm == null)
@@ -263,7 +374,7 @@ public class Order {
             if (item != null) {
                 System.out.printf("How many servings of %s would you like?\n", item.name);
                 int quantity = Helper.nextId(scn);
-                if (quantity == -2 || quantity == 0)
+                if (quantity <= 0)
                     return;
                 OrderItem existingItem = getBagItem(item_id);
                 if (existingItem != null) { //if the user is trying to add more of the same item, just add it to the existing quantity
@@ -319,7 +430,11 @@ public class Order {
                 if (quantity == 0) {
                     this.removeItemFromBag(id);
                 }
-                getBagItem(id).quantity = quantity;
+
+                OrderItem oi = getBagItem(id);
+                this.removeItemFromBag(id);
+                oi.quantity = quantity;
+                this.addItemToBag(oi);
                 System.out.printf("Changed quantity to %d\n", quantity);
                 return;
             }
@@ -367,21 +482,30 @@ public class Order {
         return ret;
     }
 
-    public static void checkOrderScreen(Connection conn, Scanner scn) {
-        return;
-    }
-
     /**
      * Allows a user to checkout
      */
     public boolean checkout(Customer c, Connection conn, Scanner scn) {
+        System.out.println(getOrderSummary());
         System.out.println("What card would you like to pay with?");
         int card_id = c.selectCardScreen(conn, scn);
         if (card_id == -2)
             return false;
         else {
             this.payment_id = card_id;
+            System.out.println("Would you like to place your order?");
+            int r = Helper.nextYN(scn);
+            if (r == -2)
+                return false;
+            boolean orderSuccess = this.addOrder(conn);
+            if (orderSuccess) {
+                System.out.println("Done! See you soon! (Enter anything to continue)");
+                Helper.nextOK(scn);
+                return true;
+            } else {
+                System.out.println("Could not send order. Please try again later.");
+                return false;
+            }
         }
-        return false;
     }
 }

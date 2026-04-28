@@ -161,11 +161,22 @@ public class Item {
             getItemPriceUpdate.setInt(1, query_id);
             getItemPriceUpdate.setInt(2, loc_id);
 
+            PreparedStatement getLocationSalesTax = conn.prepareStatement("SELECT sales_tax FROM locations WHERE id = ?");
+            getLocationSalesTax.setInt(1,loc_id);
+
             ResultSet rs_gipu = getItemPriceUpdate.executeQuery();
+            ResultSet rs_glst = getLocationSalesTax.executeQuery();
+
+            double sales_tax = 1;
+
+            /** This allows us to include tax in the order */
+            if (rs_glst.next())
+                sales_tax = rs_glst.getDouble("sales_tax");
+
             if (!rs_gipu.next())
-                p = rs_gi.getDouble("price");
+                p = rs_gi.getDouble("price") * sales_tax;
             else
-                p = rs_gipu.getDouble("price");
+                p = rs_gipu.getDouble("price") * sales_tax;
 
             return new Item(query_id, n, p);
         } catch (Exception e) {

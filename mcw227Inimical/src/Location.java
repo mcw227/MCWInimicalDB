@@ -108,12 +108,7 @@ public class Location {
             }
 
             do {
-                int id = rs.getInt("id");
-                String address = rs.getString("address");
-                String phone_number = rs.getString("phone");
-                double sales_tax = rs.getDouble("sales_tax");
-
-                locations.add(new Location(id, address, phone_number, sales_tax));
+                locations.add(parseLocationFromRS(rs));
             } while (rs.next()); //since we checked rs.next() above we have to use a do while loop instead, otherwise we skip the first one :(
 
         } catch (Exception e) {
@@ -122,6 +117,51 @@ public class Location {
             return null;
         }
         return locations;
+    }
+
+    /**
+     * Attempts to fetch a location by its id, or returns null if it is not found
+     * @param conn The database connection to use
+     * @param id The id to search for
+     */
+    public static Location fetchLocation(Connection conn, int id) {
+        Location location = null;
+
+        try {
+            PreparedStatement getLocations = conn.prepareStatement("SELECT * FROM locations WHERE id = ?");
+            getLocations.setInt(1, id);
+            ResultSet rs = getLocations.executeQuery();
+            
+            if (!rs.next()) { //No cards, return empty arraylist
+                return location;
+            }
+
+            return parseLocationFromRS(rs);
+
+        } catch (Exception e) {
+            System.out.println("Could not query Database for locations. Please try again later.");
+            e.printStackTrace(); //debug
+            return null;
+        }
+    }
+
+    /**
+     * Parses a location from a result set
+     * @param rs the Result set to parse
+     * @return The location corresponding to the row given by the result set or null if it is invalid
+     */
+    public static Location parseLocationFromRS(ResultSet rs) {
+        try {
+            int id = rs.getInt("id");
+            String address = rs.getString("address");
+            String phone_number = rs.getString("phone");
+            double sales_tax = rs.getDouble("sales_tax");
+
+            return new Location(id, address, phone_number, sales_tax);
+        } catch (Exception e) {
+            return null;
+        }
+       
     }
 
     /**
