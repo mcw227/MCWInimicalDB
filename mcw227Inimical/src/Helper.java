@@ -14,19 +14,18 @@ public final class Helper {
     /** Attempts to clear console */
     /** Shamelessly sourced from Copilot, but I understand how it works. */
     public static void clearConsole() {
-        return;
-        // try {
-        //     String os = System.getProperty("os.name");
-        //     if (os.contains("Windows")) { //windwos needs special handling bc its so special...
-        //         new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
-        //     } else { //unix-like systems
-        //         new ProcessBuilder("clear").inheritIO().start().waitFor();
-        //     }
-        //     return;
-        // } catch (Exception e) {
-        //     System.out.println("Cannot clear console."); //debug
-        //     return;
-        // }
+        try {
+            String os = System.getProperty("os.name");
+            if (os.contains("Windows")) { //windwos needs special handling bc its so special...
+                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+            } else { //unix-like systems
+                new ProcessBuilder("clear").inheritIO().start().waitFor();
+            }
+            return;
+        } catch (Exception e) {
+            System.out.println("Cannot clear console."); //debug
+            return;
+        }
         
     }
     /**
@@ -95,6 +94,27 @@ public final class Helper {
         }
         return -2;
     }
+
+    /**
+     * This function handles yes/no input from user. Also handles quit for interface cohesiveness. Note that no and quit DO NOT have the same return value in this function
+     * @param scn The scanner to grab input from
+     * @return 1 if user types yes, 2 if user types no, -2 if user wants to quit. Retries until a valid input is reached.
+     */
+    public static int nextYNQ(Scanner scn) {
+        int r = 0;
+        while (r == 0) {
+            String resp = scn.nextLine();
+            if (resp.equalsIgnoreCase("q") || resp.equalsIgnoreCase("quit"))
+                return -2;
+            else if (resp.equalsIgnoreCase("y") || resp.equalsIgnoreCase("yes"))
+                return 1;
+            else if (resp.equalsIgnoreCase("n") || resp.equalsIgnoreCase("no"))
+                return 2;
+            System.out.println("Please type either (y)es, (n)o or (q)uit");
+        }
+        return -2;
+    }
+
 
     /**
      * This function handles previous/next/quit input from user.

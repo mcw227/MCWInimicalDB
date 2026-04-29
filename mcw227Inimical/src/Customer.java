@@ -75,8 +75,49 @@ public class Customer {
             return true;
         } catch (Exception e) {
             System.out.println("Could not add customer to database. Try again later");
+            e.printStackTrace();
             return false;
         }
+    }
+
+    public static boolean addCustomerScreen(Connection conn, Scanner scn) {
+        Helper.clearConsole();
+        System.out.println("Type (!q) to quit at any time!");
+
+        System.out.println("What is the customer's name?");
+        String n = Helper.safeCheckQuit(scn, 30);
+        if (n == null)
+            return false;
+        
+        System.out.println("What is the customer's email?");
+        String e = Helper.nextEmail(scn);
+        if (e == null)
+            return false;
+        
+        System.out.println("Is the customer a member?");
+        int r = Helper.nextYNQ(scn);
+
+        int m;
+
+        if (r == -2) {return false;}
+        else if (r == 1) {m = 1;}
+        else {m = 0;}
+
+        int pts = 0;
+        if (m == 1) {
+            System.out.println("How many points does the customer have to start with?");
+            pts = Helper.nextId(scn);
+            if (pts == -2)
+                return false;
+
+            while (pts > 9999999) {
+                System.out.println("Points must be less than 9,999,999");
+                pts = Helper.nextId(scn);
+            }
+        }
+
+        return Customer.addCustomer(conn, new Customer(n, e, m, pts));
+
     }
 
     /**

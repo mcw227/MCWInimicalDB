@@ -55,9 +55,7 @@ public class DatabaseCLI {
                 }
 
                 else if (resp.equalsIgnoreCase("T") || resp.equalsIgnoreCase("TESTING")) {
-                    Customer c = new Customer( "joel mc joel face", "joel@joel.com", 0, 0);
-                    Customer.addCustomer(conn, c);
-                    System.out.println(c);
+                    System.out.println(Customer.addCustomerScreen(conn, scn));
                     Helper.nextOK(scn);
                 }
 
