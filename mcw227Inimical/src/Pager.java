@@ -1,5 +1,14 @@
 import java.util.List;
 
+/**
+ * Public class pager to simulate a "paged" list
+ * 
+ * AI USE DISCLOSURE:
+ * This class was generated partially with AI. The only functions in which code was directly "copy-pasted" are the nextPage and previousPage functions
+ * This was done because, while I had initially written the class myself, I could not get it to work properly
+ * "flipping" pages often skipped items depending on whether the list size was odd or even, or would fail to change the page numbers correctly..
+ * If you are really curious about my struggles, you can look at the git commit history...
+ */
 public class Pager<T> {
 
     public List<? extends T> list;

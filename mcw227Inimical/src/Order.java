@@ -57,7 +57,7 @@ public class Order {
      * Basic to-string method
      */
     public String toString() {
-        return String.format("\tID:%-3d\t| PAYMENT_ID: %-3d\t| CUSTOMER_ID: %-3d\t| CREATED AT: %s\n\tADDRESS: %-50s\n\tSTATUS: %s\n\n\t\t---TOTAL: %.2f---\n", this.id, this.payment_id, this.customer_id, this.created_at, this.location.address, order_status_strings[this.status], this.total);
+        return String.format("ID:%-3d\n\tPAYMENT_ID: %-3d\t| CUSTOMER_ID: %-3d\t| CREATED AT: %s\n\tADDRESS: %-50s\n\tSTATUS: %s\n\n\t\t---TOTAL: %.2f---\n\n", this.id, this.payment_id, this.customer_id, this.created_at, this.location.address, order_status_strings[this.status], this.total);
     }
 
     /** 
@@ -299,6 +299,7 @@ public class Order {
         boolean upd = false;
 
         while (true) {
+            Helper.clearConsole();
             if (upd) {
                 lm.fillItems(conn);
                 items = lm.items;
@@ -517,7 +518,7 @@ public class Order {
                 return false;
             boolean orderSuccess = this.addOrder(conn);
             if (orderSuccess) {
-                System.out.println("Done! See you soon! (Enter anything to continue)");
+                System.out.println("Done! See you soon! Your order should be done in about 20 minutes. (Enter anything to continue)");
                 Helper.nextOK(scn);
                 return true;
             } else {

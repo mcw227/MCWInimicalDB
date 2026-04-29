@@ -72,6 +72,36 @@ public class CustomerCreation extends Item {
     }
 
     /**
+     * Fetches customer creations
+     * @param conn The database connection to use
+     */
+    public static ArrayList<CustomerCreation> fetchCustomerCreations(Connection conn, Customer c) {
+        ArrayList<CustomerCreation> menu_items = new ArrayList<>();
+        try {
+            PreparedStatement getCustomerCreations = conn.prepareStatement("SELECT * FROM customer_creations_view WHERE creator=?");
+            getCustomerCreations.setString(1, c.name);
+            ResultSet rs = getCustomerCreations.executeQuery();
+
+            if (!rs.next())
+                return menu_items;
+            else {
+                do {
+                    int id = rs.getInt("id");
+                    String name = rs.getString("name");
+                    double price = rs.getDouble("price");
+                    String creator = rs.getString("creator");
+                    menu_items.add(new CustomerCreation(id, name, price, creator, conn));
+                } while (rs.next());
+            }
+
+            return menu_items;
+        } catch (Exception e) {
+            System.out.println("Unable to fetch customer creations. Try again later.");
+            return null;
+        }
+    }
+
+    /**
      * Attempts to add a customer creation to the database
      * @param conn The database connection to use
      * @param cc The customer creation to add
@@ -142,6 +172,12 @@ public class CustomerCreation extends Item {
         return CustomerCreation.addItem(conn, this, lm);
     }
 
+    /**
+     * Makes a "create item" screen that the customer can use to create a new creation
+     * @param conn The database connection to use
+     * @param scn The scanner to grab input from
+     * @param c The customer 
+     */
     public static boolean createItemScreen(Connection conn, Scanner scn, Customer c, LocalMenu lm) {
         ArrayList<Item> ingredients = Item.fetchIngredientsFromList(lm.items);
         ArrayList<SignatureItem> signatures = SignatureItem.fetchSigsFromList(lm.items);
