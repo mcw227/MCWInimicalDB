@@ -94,7 +94,7 @@ public class Customer {
         if (e == null)
             return false;
         
-        System.out.println("Is the customer a member?");
+        System.out.println("Is the customer a member? (yes/no)");
         int r = Helper.nextYNQ(scn);
 
         int m;
