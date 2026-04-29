@@ -210,6 +210,10 @@ CREATE OR REPLACE VIEW all_items_class_view AS (
     SELECT i.id, i.name, i.price, 'SIGNATURE' as item_type, NULL as "specific_attribute"
     FROM items i
     JOIN signature_items s ON s.id = i.id
+
+    UNION ALL
+    SELECT i.id, i.name, i.price, 'INGREDIENT' as item_type, NULL as "specific_attribute"
+    FROM ingredients i
 );
 
 CREATE VIEW local_menu_view AS
