@@ -38,6 +38,10 @@ public class Customer {
         this.points = points;
     }
 
+    public static Customer InactiveCustomer() {
+        return new Customer(-2, "INACTIVE CUSTOMER", "n/a", 0, 0);
+    }
+
     /**
      * Standard toString function
      */

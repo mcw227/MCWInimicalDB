@@ -40,7 +40,7 @@ public class DatabaseCLI {
         System.out.println("Welcome!");
         try (Scanner scn = new Scanner(System.in)) {
             while (!resp.equals("q") && !resp.equalsIgnoreCase("quit")) {
-                System.out.println("Would you like to login to the customer (c), general management (gm) or location management (lm) interface? You may also quit (q)");
+                System.out.println("Would you like to login to the customer (c), general management (gm), location management (lm) or testing (t) interface? You may also quit (q)");
                 resp = scn.nextLine();
                 if (resp.equalsIgnoreCase("C") || resp.equalsIgnoreCase("customer")) {
                     CustomerInterface.start(conn, scn);
@@ -55,7 +55,10 @@ public class DatabaseCLI {
                 }
 
                 else if (resp.equalsIgnoreCase("T") || resp.equalsIgnoreCase("TESTING")) {
-                    Customer.addCustomer(conn, new Customer(-1, "joel mc joel face", "joel@joel.com", 0, 0));
+                    Customer c = new Customer( "joel mc joel face", "joel@joel.com", 0, 0);
+                    Customer.addCustomer(conn, c);
+                    System.out.println(c);
+                    Helper.nextOK(scn);
                 }
 
                 else if (!resp.equals("q") && !resp.equalsIgnoreCase("quit")) {
