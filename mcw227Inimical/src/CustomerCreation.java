@@ -246,6 +246,7 @@ public class CustomerCreation extends Item {
                     System.out.println("Type anything to return to main screen.");
                     Helper.nextOK(scn);
                     Helper.clearConsole();
+                    break;
                 case 6:
                     return true;
                 default:
