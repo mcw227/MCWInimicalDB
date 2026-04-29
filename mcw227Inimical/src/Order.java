@@ -503,6 +503,7 @@ public class Order {
 
     /**
      * Allows a user to checkout
+     * @param c 
      */
     public boolean checkout(Customer c, Connection conn, Scanner scn) {
         System.out.println(getOrderSummary());

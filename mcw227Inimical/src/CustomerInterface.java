@@ -343,7 +343,7 @@ public final class CustomerInterface {
             System.out.printf("\n\nHello, esteemed %s! You have %d points!", c.name, c.points);
         else
             System.out.printf("\n\nHello, %s!", c.name);
-        System.out.printf("\nWhat would you like to do today?\n\t1. Change Name\n\t2. Change Email\n\t3. View Membership Details or Enroll \n\t4. Make/View Status Of Orders\n\t5. Check And Adjust Credit Cards\n\t6. Check and Adjust Phone Numbers\n\t7. Check Customer Creations\n\t8. Deactivate Account\nEnter a 1-6 to select an option or enter quit (q) to quit!\n", c.name);
+        System.out.printf("\nWhat would you like to do today?\n\t1. Change Name\n\t2. Change Email\n\t3. View Membership Details or Enroll \n\t4. Make/View Status Of Orders\n\t5. Check And Adjust Credit Cards\n\t6. Check and Adjust Phone Numbers\n\t7. Check Customer Creations\n\t8. Deactivate Account\nEnter a 1-8 to select an option or enter quit (q) to quit!\n", c.name);
     }
 
 }
