@@ -42,7 +42,7 @@ public class Recipe {
 
     /** Summarizes the recipe better for the user */
     public String recipeItemSummary() {
-        return String.format("INGREDIENT_ID: %-3d\t| NAME: %-30s\t| INGREDIENT_PRICE: %5.2f\t| QUANTITY: %-3d", this.ingredient_id, this.ingredient.name, this.ingredient.price, this.quantity);
+        return String.format("INGREDIENT_ID: %-3d\t| NAME: %-40s\t| INGREDIENT_PRICE: %5.2f\t| QUANTITY: %-3d", this.ingredient_id, this.ingredient.name, this.ingredient.price, this.quantity);
     }
 
     /**

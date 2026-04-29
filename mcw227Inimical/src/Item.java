@@ -18,7 +18,7 @@ public class Item {
 
     /** Standard toString method */
     public String toString() {
-        return String.format("ID: %-3d\t| NAME: %-50s\t| PRICE: $%.2f", id, name, price);
+        return String.format("ID: %-3d\t| NAME: %-50s\t| PRICE: $%-15.2f", id, name, price);
     }
 
     /**
@@ -168,8 +168,10 @@ public class Item {
                 String type = rs.getString("item_type");
                 if (type.equalsIgnoreCase("SIGNATURE"))
                     return new SignatureItem(id, name, price);
-                else if (type.equalsIgnoreCase("CUSTOMER_CREATION"))
-                    return new CustomerCreation(id, name, price, rs.getString("creator"), new ArrayList<Recipe>());
+                else if (type.equalsIgnoreCase("CUSTOMER_CREATION")) {
+                    CustomerCreation cc = new CustomerCreation(id, name, price, rs.getString("specific_attribute"), new ArrayList<Recipe>());
+                    return cc;
+                }
                 else
                     return new Item(id, name, price);
             } catch (Exception e) {
@@ -285,7 +287,7 @@ public class Item {
      * @param scn The scanner to grab input from
      * @param items The items to query
      */
-    public static void checkItemScreen(Connection conn, Scanner scn, ArrayList<Item> items) {
+    public static void checkItemScreen(Connection conn, Scanner scn, ArrayList<? extends Item> items) {
         System.out.println("What is the id of the item you'd like to check?");
 
         Item i;
@@ -296,7 +298,7 @@ public class Item {
             i = items.stream().filter(is -> is.id == r).findFirst().orElse(null);
             if (i != null) {
                 Helper.clearConsole();
-                System.out.println(Item.getSummary(i, conn));
+                System.out.println(i.getSummary(conn));
                 System.out.println("Type anything to return to main screen.");
                 Helper.nextOK(scn);
                 Helper.clearConsole();
@@ -310,12 +312,7 @@ public class Item {
      * @param i The item to summarize
      * @return A string summarizing the item's details
      */
-    public static String getSummary(Item i, Connection conn) {
-        if (CustomerCreation.class.isInstance(i)) {
-            return ((CustomerCreation)i).getPrintableRecipeSummary(conn);
-        }
-        else {
-            return i.toString();
-        }
+    public String getSummary(Connection conn) {
+        return toString();
     }
 }

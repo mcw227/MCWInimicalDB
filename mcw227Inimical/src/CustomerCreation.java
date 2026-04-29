@@ -11,20 +11,22 @@ public class CustomerCreation extends Item {
     /** Standard constructor */
     public CustomerCreation(int id, String name, double price, String creator, ArrayList<Recipe> ingredients) {
         super(id, name, price);
-        this.creator = creator;
+        if (creator == null) { this.creator = "Anonymous"; }
+        else { this.creator = creator; }
         this.ingredients = ingredients;
     }
 
     public CustomerCreation(int id, String name, double price, String creator, Connection conn) {
         super(id, name, price);
-        this.creator = creator;
+        if (creator == null) { this.creator = "Anonymous"; }
+        else { this.creator = creator; }
         this.ingredients = new ArrayList<Recipe>();
         this.populateRecipe(conn);
     }
 
     /** Standard toString function */
     public String toString() {
-        return String.format("%-30s\t| CREATOR:%s",super.toString(), this.creator);
+        return String.format("%-40s\t| CREATOR:%s",super.toString(), this.creator);
     }
 
     /**
@@ -97,6 +99,7 @@ public class CustomerCreation extends Item {
             return menu_items;
         } catch (Exception e) {
             System.out.println("Unable to fetch customer creations. Try again later.");
+            e.printStackTrace();
             return null;
         }
     }
@@ -144,7 +147,7 @@ public class CustomerCreation extends Item {
                 }
             } catch (Exception e) {
                 System.out.println("Could not add customer creation to database.");
-                //e.printStackTrace();
+                e.printStackTrace();
                 try {
                     conn.rollback();
                     return false;
@@ -177,8 +180,9 @@ public class CustomerCreation extends Item {
      * @param conn The database connection to use
      * @param scn The scanner to grab input from
      * @param c The customer 
+     * @param lm The menu to generate prices from, and to add the item to in the end.
      */
-    public static boolean createItemScreen(Connection conn, Scanner scn, Customer c, LocalMenu lm) {
+    public static CustomerCreation createItemScreen(Connection conn, Scanner scn, Customer c, LocalMenu lm) {
         ArrayList<Item> ingredients = Item.fetchIngredientsFromList(lm.items);
         ArrayList<SignatureItem> signatures = SignatureItem.fetchSigsFromList(lm.items);
 
@@ -186,7 +190,7 @@ public class CustomerCreation extends Item {
             CustomerCreation newCC = new CustomerCreation(-1, "Unnamed Creation", 0, c.name, new ArrayList<Recipe>());
             boolean base = newCC.selectSignatureBase(scn, signatures);
             if (base == false)
-                return false;
+                return null;
             
             boolean addons = newCC.selectAddons(conn, scn, ingredients);
             if (addons == false)
@@ -198,7 +202,10 @@ public class CustomerCreation extends Item {
                 continue;
             
             newCC.name = cc_name;
-            return newCC.addItem(conn, lm);
+            if (newCC.addItem(conn, lm)) {
+                return newCC;
+            }
+            return null;
         }
     }
 
@@ -267,18 +274,25 @@ public class CustomerCreation extends Item {
                     Item item = Item.chooseItem(scn,items);
                     if (item == null)
                         break;
-                    System.out.println("How many would you like to add?");
-                    int quantity = Helper.nextId(scn);
-                    if (quantity == 0 || quantity == -2)
-                        break;
-                    this.addIngredient(item, quantity);
-                    Helper.clearConsole();
+                    System.out.println("How many would you like to add? (must be less than 99)");
+                    while (true) {
+                        int quantity = Helper.nextId(scn);
+                        if (quantity == 0 || quantity == -2)
+                            break;
+                        if (quantity <= 99) {
+                            this.addIngredient(item, quantity);
+                            Helper.clearConsole();
+                            break;
+                        }
+                        System.out.println("Must be less than 99!");
+                    }
                     break;
+                    
                 case 4:
                     Item.checkItemScreen(conn, scn, items);
                     break;
                 case 5:
-                    System.out.println(Item.getSummary(this, conn));
+                    System.out.println(this.getSummary(conn));
                     System.out.println("Type anything to return to main screen.");
                     Helper.nextOK(scn);
                     Helper.clearConsole();
@@ -309,7 +323,7 @@ public class CustomerCreation extends Item {
     public String getPrintableRecipeSummary(Connection conn) {
         String r = "";
         r += String.format("ID:%-3d\tNAME:%-50s\n", this.id, this.name);
-        if (ingredients == null) {
+        if (ingredients == null || ingredients.size() == 0) {
             this.populateRecipe(conn);
         }
         for (Recipe rec : ingredients) {
@@ -339,5 +353,10 @@ public class CustomerCreation extends Item {
             e.printStackTrace();
             return;
         }
+    }
+
+    @Override
+    public String getSummary(Connection conn) {
+        return getPrintableRecipeSummary(conn);
     }
 }

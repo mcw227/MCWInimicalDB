@@ -14,18 +14,19 @@ public final class Helper {
     /** Attempts to clear console */
     /** Shamelessly sourced from Copilot, but I understand how it works. */
     public static void clearConsole() {
-        try {
-            String os = System.getProperty("os.name");
-            if (os.contains("Windows")) { //windwos needs special handling bc its so special...
-                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
-            } else { //unix-like systems
-                new ProcessBuilder("clear").inheritIO().start().waitFor();
-            }
-            return;
-        } catch (Exception e) {
-            System.out.println("Cannot clear console."); //debug
-            return;
-        }
+        return;
+        // try {
+        //     String os = System.getProperty("os.name");
+        //     if (os.contains("Windows")) { //windwos needs special handling bc its so special...
+        //         new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+        //     } else { //unix-like systems
+        //         new ProcessBuilder("clear").inheritIO().start().waitFor();
+        //     }
+        //     return;
+        // } catch (Exception e) {
+        //     System.out.println("Cannot clear console."); //debug
+        //     return;
+        // }
         
     }
     /**
