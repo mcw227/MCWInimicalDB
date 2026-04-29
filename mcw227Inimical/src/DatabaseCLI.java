@@ -54,6 +54,10 @@ public class DatabaseCLI {
                     gmInterface(conn, scn);
                 }
 
+                else if (resp.equalsIgnoreCase("T") || resp.equalsIgnoreCase("TESTING")) {
+                    Customer.addCustomer(conn, new Customer(-1, "joel mc joel face", "joel@joel.com", 0, 0));
+                }
+
                 else if (!resp.equals("q") && !resp.equalsIgnoreCase("quit")) {
                     System.out.println("Please pick a valid interface!");
                 }

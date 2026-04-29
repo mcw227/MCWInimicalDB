@@ -25,9 +25,17 @@ public class Customer {
         this.points = points;
     }
 
-    /** Inactive account object */
-    public static Customer InactiveCustomer() {
-        return new Customer(-2, "Inactive Customer", null, 0, 0);
+     /** Standard unofficial (not in database yet) account creator. */
+    public Customer(String name, String email, int member, int points) {
+        this.id = -1;
+        this.name = name;
+        this.email = email;
+        if (member == 0) {
+            this.membership = false;
+        } else {
+            this.membership = true;
+        }
+        this.points = points;
     }
 
     /**
@@ -35,6 +43,36 @@ public class Customer {
      */
     public String toString() {
         return String.format("ID: %-8d| NAME: %-30s| EMAIL: %-40s| MEMBERSHIP:%b\t| POINTS: %-8d",id,name,email, membership, points);
+    }
+
+    /**
+     * Adds a customer to the database
+     * @param conn The database connection to use
+     * @param c The customer to add
+     * @return True if customer was added, false if not
+     */
+    public static boolean addCustomer(Connection conn, Customer c) {
+        try {
+            PreparedStatement addCustomer = conn.prepareStatement("INSERT INTO customers (name, email, membership, points, active) VALUES (?,?,?,?,1)", new String[] {"ID"});
+            addCustomer.setString(1, c.name);
+            addCustomer.setString(2, c.email);
+            int membership = c.membership ? 1 : 0;
+            addCustomer.setInt(3, membership);
+            addCustomer.setInt(4, c.points);
+
+            if (addCustomer.executeUpdate() != 0) {
+                ResultSet rs = addCustomer.getGeneratedKeys();
+                rs.next();
+                int newId = (int)rs.getLong(1);
+                c.id = newId;
+            }
+ 
+
+            return true;
+        } catch (Exception e) {
+            System.out.println("Could not add customer to database. Try again later");
+            return false;
+        }
     }
 
     /**
