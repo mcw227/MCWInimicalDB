@@ -81,6 +81,7 @@ public final class CustomerInterface {
         int resp = 0;
         Helper.clearConsole();
         while (resp != -2) {
+            Helper.clearConsole();
             printCMenu(c);
             resp = Helper.nextId(scn);
             if (resp == 0 || resp > 7 || resp == -1) {

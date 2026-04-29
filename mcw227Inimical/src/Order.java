@@ -299,6 +299,12 @@ public class Order {
         boolean upd = false;
 
         while (true) {
+            if (upd) {
+                lm.fillItems(conn);
+                items = lm.items;
+                menu = new Pager(items, ITEM_MENU_PAGE_SIZE);
+                upd=false;
+            }
             menu.printCurrentPage();
             System.out.println("Type (n)ext to go to next page, or (p)revious to go to previous page. Type (m)enus to change menus.");
             System.out.println("Type (a)dd to add an item to your bag\n(c)heck to view an item's details\n(cr)eate to create an item\n(b)ag to check bag");
@@ -306,11 +312,6 @@ public class Order {
             int resp = Helper.nextACQNPB(scn);
             if (resp == -2)
                 return;
-            if (upd) {
-                lm.fillItems(conn);
-                items = lm.items;
-                menu = new Pager(items, ITEM_MENU_PAGE_SIZE);
-            }
 
             if (resp == 8) {
                 Helper.clearConsole();
@@ -356,7 +357,7 @@ public class Order {
             }
 
             
-            //Helper.clearConsole();
+            Helper.clearConsole();
         }
     }
 

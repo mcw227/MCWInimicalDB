@@ -28,6 +28,13 @@ public class Recipe {
         getIngredientDetails(conn);
     }
 
+    public Recipe(int r_id, int i_id, int quantity, Item item) {
+        this.recipe_id = r_id;
+        this.ingredient_id = i_id;
+        this.quantity = quantity;
+        this.ingredient = item;
+    }
+
     /** Standard to string */
     public String toString() {
         return String.format("RECIPE ID:%-3d\t| INGREDIENT ID: %-3d\t| QUANTITY %-3d", this.recipe_id, this.ingredient_id, this.quantity);
@@ -67,16 +74,11 @@ public class Recipe {
      * Attempts to add the recipe to the database.
      * @param conn The database connection to use
      */
-    public boolean addRecipe(Connection conn) {
-        try {
-            PreparedStatement addRecipe = conn.prepareStatement("INSERT INTO recipes (recipe_id, ingredient_id, quantity) VALUES (?,?,?)");
-            addRecipe.setInt(1, this.recipe_id); addRecipe.setInt(2, this.ingredient_id);
-            addRecipe.setInt(3, this.quantity);
-            addRecipe.executeUpdate();
-            return true;
-        } catch (Exception e) {
-            System.out.println("Could not add recipe to database. Try again later");
-            return false;
-        }
+    public boolean addRecipe(Connection conn) throws SQLException {
+        PreparedStatement addRecipe = conn.prepareStatement("INSERT INTO recipes (recipe_id, ingredient_id, quantity) VALUES (?,?,?)");
+        addRecipe.setInt(1, this.recipe_id); addRecipe.setInt(2, this.ingredient_id);
+        addRecipe.setInt(3, this.quantity);
+        addRecipe.executeUpdate();
+        return true;
     }
 }

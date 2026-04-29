@@ -10,20 +10,24 @@ public class LocalMenu extends Menu {
     private static final int MASTER_DESSERT_MENU_ID = 4;
 
     public int location_id;
+    public Location location;
 
     public LocalMenu(int id, String name, ArrayList<Item> items, int location_id) {
         super(id, name, items);
         this.location_id = location_id;
+        this.location = null;
     }
 
     public LocalMenu(Menu menu, int location_id) {
         super(menu.id, menu.name, menu.items);
         this.location_id = location_id;
+        this.location = null;
     }
 
     public LocalMenu(int id, String name, int location_id) {
         super(id, name, new ArrayList<Item>());
         this.location_id = location_id;
+        this.location = null;
     }
 
     public String toString() {
@@ -35,8 +39,16 @@ public class LocalMenu extends Menu {
      * @param conn The database connection to use
      */
     public void fillItems(Connection conn) {
+        this.items = new ArrayList<Item>();
+
+        if (this.location == null)
+            location = Location.fetchLocation(conn, this.location_id);
+        if (this.location == null || this.location.price_changes == null) {
+            System.out.println("Could not fetch location to fill items for local menu.");
+            return;
+        }
         try {
-            PreparedStatement getMenuItems = conn.prepareStatement("SELECT * FROM menu_items WHERE menu_id = ?");
+            PreparedStatement getMenuItems = conn.prepareStatement("SELECT * FROM menu_items m JOIN all_items_class_view i ON m.item_id = i.id WHERE m.menu_id = ? ORDER BY i.id DESC");
             getMenuItems.setInt(1, this.id);
 
             ResultSet rs = getMenuItems.executeQuery();
@@ -45,14 +57,18 @@ public class LocalMenu extends Menu {
             }
             else {
                 do {
-                    int item_id = rs.getInt("item_id");
-                    Item newItem = Item.createItemFromID(conn, item_id, this.location_id);
+                    Item newItem = Item.parseItemFromRS(rs);
+                    PriceChange pr = this.location.fetchPriceChange(newItem.id);
+                    if (pr != null)
+                        newItem.price = pr.price;
+                    newItem.price *= this.location.sales_tax;
                     this.items.add(newItem);
                 } while (rs.next());
             }
         } catch (Exception e) {
             System.out.println("Unable to populate menu. Try again later.");
-            e.printStackTrace(); //debug
+            this.items = null;
+            //e.printStackTrace(); //debug
         }
     }
 
@@ -73,11 +89,12 @@ public class LocalMenu extends Menu {
                 return null;
             String n = rs_gm.getString("name");
             rm = new LocalMenu(id, n, new ArrayList<Item>(), location_id);
+            rm.location = Location.fetchLocation(conn, location_id);
             rm.fillItems(conn);
             return rm;
         } catch (Exception e) {
             System.out.printf("Could not get a populated menu with ID: %d\n", id);
-            e.printStackTrace(); //debug
+            //e.printStackTrace(); //debug
         }
         return null;
     }
