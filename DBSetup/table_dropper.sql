@@ -1,9 +1,4 @@
 -- VIEWS
-DROP VIEW dinner_menu_view;
-
-DROP VIEW lunch_menu_view;
-
-DROP VIEW dessert_menu_view;
 
 DROP VIEW signature_item_view;
 
