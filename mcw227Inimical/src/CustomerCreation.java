@@ -4,6 +4,7 @@ import java.util.Scanner;
 
 /** Customer creation object  */
 public class CustomerCreation extends Item {
+    private final int ITEM_PAGE_SIZE = 10;
     public ArrayList<Recipe> ingredients;
     public String creator;
 
@@ -70,14 +71,235 @@ public class CustomerCreation extends Item {
         }
     }
 
-    public static boolean addItem(Connection conn, Scanner scn, Customer c, Menu lm) {
+    /**
+     * Fetches customer creations
+     * @param conn The database connection to use
+     */
+    public static ArrayList<CustomerCreation> fetchCustomerCreations(Connection conn, Customer c) {
+        ArrayList<CustomerCreation> menu_items = new ArrayList<>();
+        try {
+            PreparedStatement getCustomerCreations = conn.prepareStatement("SELECT * FROM customer_creations_view WHERE creator=?");
+            getCustomerCreations.setString(1, c.name);
+            ResultSet rs = getCustomerCreations.executeQuery();
+
+            if (!rs.next())
+                return menu_items;
+            else {
+                do {
+                    int id = rs.getInt("id");
+                    String name = rs.getString("name");
+                    double price = rs.getDouble("price");
+                    String creator = rs.getString("creator");
+                    menu_items.add(new CustomerCreation(id, name, price, creator, conn));
+                } while (rs.next());
+            }
+
+            return menu_items;
+        } catch (Exception e) {
+            System.out.println("Unable to fetch customer creations. Try again later.");
+            return null;
+        }
+    }
+
+    /**
+     * Attempts to add a customer creation to the database
+     * @param conn The database connection to use
+     * @param cc The customer creation to add
+     * @param c The customer who made the creation
+     * @param lm The menu to add it to
+     */
+    public static boolean addItem(Connection conn, CustomerCreation cc, Menu lm) {
+        try {
+            PreparedStatement addCC = conn.prepareStatement("INSERT INTO items (name, price) VALUES (?, ?)", new String[]{"ID"});
+            PreparedStatement addCCtoCCList = conn.prepareStatement("INSERT INTO customer_creations (id, creator) VALUES (?,?)");
+            PreparedStatement addToMenu = conn.prepareStatement("INSERT INTO menu_items (menu_id, item_id) VALUES (?,?)");
+            conn.setAutoCommit(false);
+            addCC.setString(1, cc.name);
+            addCC.setDouble(2, cc.price);
+            addCCtoCCList.setString(2, cc.creator);
+            addToMenu.setInt(1, lm.id);
+            
+            int upd_rows = addCC.executeUpdate();
+            if (upd_rows > 0) {
+                try (ResultSet rs = addCC.getGeneratedKeys()) { //This obtains the identity key that was generated when the item was inserted
+                    if (rs.next()) {
+                        int newId = (int)rs.getLong(1);
+                        addCCtoCCList.setInt(1, newId);
+                        addCCtoCCList.executeUpdate();
+
+                        if (lm.id != 1) {
+                            addToMenu.setInt(2, newId);
+                            addToMenu.executeUpdate();
+                        }
+                        for (Recipe r : cc.ingredients) {
+                            r.recipe_id = newId;
+                            r.addRecipe(conn);
+                        }
+                        return true;
+                    }
+                }
+            } else {
+                    System.out.println("Could not add item to database! Try again later.");
+                    throw new Exception("Row not added!");
+                }
+            } catch (Exception e) {
+                System.out.println("Could not add customer creation to database.");
+                //e.printStackTrace();
+                try {
+                    conn.rollback();
+                    return false;
+                } catch (Exception f) {
+                    System.err.println("Critical database error. Please restart application.");
+                    System.exit(-1);
+                }
+            } finally {
+                try {
+                    conn.setAutoCommit(true);
+                } catch (Exception e) {
+                    System.err.println("Critical database error. Please restart application.");
+                    System.exit(-1);
+                }
+        }
         return false;
     }
 
+    /**
+     * Adds a customer creation to the database
+     * @param conn The connection to the database
+     * @param lm The menu to add the item to
+     */
+    public boolean addItem(Connection conn, Menu lm) {
+        return CustomerCreation.addItem(conn, this, lm);
+    }
+
+    /**
+     * Makes a "create item" screen that the customer can use to create a new creation
+     * @param conn The database connection to use
+     * @param scn The scanner to grab input from
+     * @param c The customer 
+     */
     public static boolean createItemScreen(Connection conn, Scanner scn, Customer c, LocalMenu lm) {
         ArrayList<Item> ingredients = Item.fetchIngredientsFromList(lm.items);
         ArrayList<SignatureItem> signatures = SignatureItem.fetchSigsFromList(lm.items);
-        return false;
+
+        while(true) {
+            CustomerCreation newCC = new CustomerCreation(-1, "Unnamed Creation", 0, c.name, new ArrayList<Recipe>());
+            boolean base = newCC.selectSignatureBase(scn, signatures);
+            if (base == false)
+                return false;
+            
+            boolean addons = newCC.selectAddons(conn, scn, ingredients);
+            if (addons == false)
+                continue;
+            
+            System.out.println("What would you like to name your item?");
+            String cc_name = Helper.safeCheckQuit(scn, 50);
+            if (cc_name == null)
+                continue;
+            
+            newCC.name = cc_name;
+            return newCC.addItem(conn, lm);
+        }
+    }
+
+    /**
+     * Allows a user to pick a single signature item from a list
+     * @param scn The scanner to grab input from
+     * @param sigs The signature items the user can choose from
+     */
+    public boolean selectSignatureBase(Scanner scn, ArrayList<SignatureItem> sigs) {
+        Pager<SignatureItem> sig_pager = new Pager<>(sigs, ITEM_PAGE_SIZE);
+
+        while (true) {
+            sig_pager.printCurrentPage();
+            System.out.println("Type (n)ext, (p)revious, (s)elect an item or (q)uit.");
+            System.out.println("Pick a signature item to be the base of your custom creation.");
+            int r = Helper.nextPNQS(scn);
+            if (r == -2)
+                return false;
+
+            switch (r) {
+                case 1:
+                    sig_pager.previousPage();
+                    Helper.clearConsole();
+                    break;
+                case 2:
+                    sig_pager.nextPage();
+                    Helper.clearConsole();
+                    break;
+                case 3:
+                    SignatureItem sig = SignatureItem.chooseSignatureItem(scn, sigs);
+                    Helper.clearConsole();
+                    if (sig == null)
+                        break;
+                    this.addIngredient(sig, 1);
+                    return true;
+            }
+        }
+    }
+
+    /**
+     * Allows a user to pick some addons from a list
+     * @param scn The scanner to grab input from
+     * @param items The ingredients the user can choose from
+     */
+    public boolean selectAddons(Connection conn, Scanner scn, ArrayList<Item> items) {
+        Pager<Item> ingredient_pager = new Pager<>(items, ITEM_PAGE_SIZE);
+
+        while (true) {
+            ingredient_pager.printCurrentPage();
+            System.out.println("Type (n)ext, (p)revious, (s)elect an item, (c)heck an item, (b)ag to see what you've add, (d)one to finish or (q)uit.");
+            System.out.println("Pick some addons you'd like to include on your creation.");
+            int r = Helper.nextPNQSC(scn);
+            if (r == -2)
+                return false;
+
+            switch (r) {
+                case 1:
+                    ingredient_pager.previousPage();
+                    Helper.clearConsole();
+                    break;
+                case 2:
+                    ingredient_pager.nextPage();
+                    Helper.clearConsole();
+                    break;
+                case 3:
+                    Item item = Item.chooseItem(scn,items);
+                    if (item == null)
+                        break;
+                    System.out.println("How many would you like to add?");
+                    int quantity = Helper.nextId(scn);
+                    if (quantity == 0 || quantity == -2)
+                        break;
+                    this.addIngredient(item, quantity);
+                    Helper.clearConsole();
+                    break;
+                case 4:
+                    Item.checkItemScreen(conn, scn, items);
+                    break;
+                case 5:
+                    System.out.println(Item.getSummary(this, conn));
+                    System.out.println("Type anything to return to main screen.");
+                    Helper.nextOK(scn);
+                    Helper.clearConsole();
+                    break;
+                case 6:
+                    return true;
+                default:
+                    break;
+            }
+        }
+    }
+    
+
+    /**
+     * Adds an ingredient to the customer creation
+     * @param i The item to add
+     * @param q the quantity of the item to add
+     */
+    public void addIngredient(Item i, int quantity) {
+        this.ingredients.add(new Recipe(-1, i.id, quantity, i));
+        this.price += i.price * quantity;
     }
 
     /**

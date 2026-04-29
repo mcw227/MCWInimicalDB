@@ -11,6 +11,7 @@ public class Location {
     public String phone;
     public double sales_tax; 
     public ArrayList<LocalMenu> local_menus;
+    public ArrayList<PriceChange> price_changes;
 
     public Location(int id, String address, String phone, double sales_tax) {
         this.id = id;
@@ -18,6 +19,7 @@ public class Location {
         this.phone = phone;
         this.sales_tax = sales_tax;
         local_menus = new ArrayList<LocalMenu>();
+        price_changes = null;
     }
 
     public String toString() {
@@ -87,7 +89,7 @@ public class Location {
             } while (rs.next());
         } catch (Exception e) {
             System.out.println("Could not get local menus. Try again later.");
-            e.printStackTrace(); //debug
+            //e.printStackTrace(); //debug
         }
     }
 
@@ -113,7 +115,7 @@ public class Location {
 
         } catch (Exception e) {
             System.out.println("Could not query Database for locations. Please try again later.");
-            e.printStackTrace(); //debug
+            //e.printStackTrace(); //debug
             return null;
         }
         return locations;
@@ -136,11 +138,13 @@ public class Location {
                 return location;
             }
 
-            return parseLocationFromRS(rs);
+            Location l = parseLocationFromRS(rs);
+            l.fetchPriceChanges(conn);
+            return l;
 
         } catch (Exception e) {
             System.out.println("Could not query Database for locations. Please try again later.");
-            e.printStackTrace(); //debug
+            //e.printStackTrace(); //debug
             return null;
         }
     }
@@ -175,6 +179,84 @@ public class Location {
         }
         return items;
     }
+
+    /**
+     * Fetches price changes for the location
+     */
+    public void fetchPriceChanges(Connection conn) {
+        ArrayList<PriceChange> pr = new ArrayList<>();
+        try {
+            PreparedStatement getChanges = conn.prepareStatement("SELECT * FROM price_change WHERE location_id = ?");
+            getChanges.setInt(1, this.id);
+            ResultSet rs = getChanges.executeQuery();
+            
+            if (!rs.next()) { // no price changes
+                this.price_changes = pr;
+                return;
+            }
+            do {
+                PriceChange c = PriceChange.parsePriceChangeFromRS(rs);
+                if (c == null)
+                    return;
+                pr.add(c);
+            } while (rs.next());
+
+            this.price_changes = pr;
+            return;
+        } catch (Exception e) {
+            System.out.println("Could not fetch price changes. Please try again later.");
+            return;
+        }
+    }
+
+    /**
+     * Fetches price changes for the location
+     * @param conn The database connection to use
+     * @param l_id the location id to query
+     */
+    public ArrayList<PriceChange> fetchPriceChanges(Connection conn, int l_id) {
+        ArrayList<PriceChange> pr = new ArrayList<>();
+        try {
+            PreparedStatement getChanges = conn.prepareStatement("SELECT * FROM price_change WHERE location_id = ?");
+            getChanges.setInt(1, l_id);
+            ResultSet rs = getChanges.executeQuery();
+            
+            if (!rs.next()) // no price changes
+                return pr;
+            do {
+                PriceChange c = PriceChange.parsePriceChangeFromRS(rs);
+                if (c == null)
+                    return null;
+                pr.add(c);
+                System.out.println(pr);
+            } while (rs.next());
+
+            return pr;
+
+        } catch (Exception e) {
+            System.out.println("Could not fetch price changes. Please try again later.");
+            return null;
+        }
+    }
+
+    /**
+     * Checks whether there is a price change at the location
+     * @param i_id the item you want to query.
+     * @return null if there is no price change, a price change object if there is
+     */
+    public PriceChange fetchPriceChange(int i_id) {
+        return this.price_changes.stream().filter(p -> p.item_id == i_id).findFirst().orElse(null);
+    }
+
+    /**
+     * Checks whether there is a price change at the given location
+     * @param conn The database connection to use
+     * @param l_id the id of the location to query
+     * @param i_id the id of the item whose price you want to investigate
+     */
+    public static PriceChange fetchPriceChange(Connection conn, int l_id, int i_id) {
+        return fetchLocation(conn, l_id).fetchPriceChange(i_id);
+    }
     
     /**
      * Lets users pick from menus available at the given location.
@@ -186,7 +268,7 @@ public class Location {
         System.out.println("Which menu would you like to view? (or type (q)uit to quit.)");
         while(true) {
             int m_id = Helper.nextId(scn);
-            if (m_id == -2)
+            if (m_id < 0)
                 return null;
             LocalMenu m = local_menus.stream().filter(menu -> menu.id == m_id).findFirst().orElse(null);
             if (m == null)

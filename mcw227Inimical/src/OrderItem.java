@@ -22,7 +22,7 @@ public class OrderItem extends Item {
 
     /** Standard toString method */
     public String toString() {
-        return String.format("ID: %-3d\t| ORDER_ID: %-3d\t| NAME: %-20s\t| QUANTITY: %3d\t| PRICE AFTER TAX: %.2f\t | CUMULATIVE TOTAL: %.2f", id, order_id, name, quantity, price, price*quantity);
+        return String.format("ID: %-3d\t| ORDER_ID: %-3d\t| NAME: %-30s\t| QUANTITY: %3d\t| PRICE AFTER TAX: %.2f\t | CUMULATIVE TOTAL: %.2f", id, order_id, name, quantity, price, price*quantity);
     }
 
     /**

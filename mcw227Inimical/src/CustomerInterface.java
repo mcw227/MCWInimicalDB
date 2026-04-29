@@ -81,6 +81,7 @@ public final class CustomerInterface {
         int resp = 0;
         Helper.clearConsole();
         while (resp != -2) {
+            Helper.clearConsole();
             printCMenu(c);
             resp = Helper.nextId(scn);
             if (resp == 0 || resp > 7 || resp == -1) {
@@ -106,6 +107,9 @@ public final class CustomerInterface {
                         cCheckPhoneNumbers(c, conn, scn);
                         break;
                     case 7:
+                        cCheckCustomerCreations(c, conn, scn);
+                        break;
+                    case 8:
                         if (cDeactivateAccount(c, conn, scn) == true) {
                             return;
                         }
@@ -241,9 +245,15 @@ public final class CustomerInterface {
         }
     }
 
+    /**
+     * This allows a user to check or create a new order
+     * @param c The customer who is placing an order
+     * @param conn The connection to the database
+     * @param scn The scanenr to grab input from
+     */
     static void cOrders(Customer c, Connection conn, Scanner scn) {
-        Helper.clearConsole();
         while (true) {
+            Helper.clearConsole();
             System.out.println("Would you like to make a new order or check order history/status? (n)ew/(c)heck/(q)uit");
             int r = Helper.nextNCQ(scn);
             if (r == -2)
@@ -260,6 +270,40 @@ public final class CustomerInterface {
                     return;
             }
             Customer.updateCustomerInfo(c, conn);
+        }
+    }
+
+    /**
+     * Allows a customer to check their customer creations
+     * @param c The customer whose creations you want to get
+     * @param conn The database connection to use
+     * @param scn THe scanner to grab input from
+     */
+    static void cCheckCustomerCreations(Customer c, Connection conn, Scanner scn) {
+        ArrayList<CustomerCreation> cc = CustomerCreation.fetchCustomerCreations(conn, c);
+        if (cc == null || cc.size() == 0) {
+            System.out.println("You haven't made any customer items. (Type anything to continue)");
+            Helper.nextOK(scn);
+        }
+        
+        Pager<CustomerCreation> c_page = new Pager<>(cc, 10);
+        while (true) {
+            Helper.clearConsole();
+            c_page.printCurrentPage();
+            System.out.println("Type (n)ext for next page, (p)revious for previous page, (q)uit to quit.");
+            int r = Helper.nextPNQ(scn);
+            if (r == -2)
+                return;
+            switch (r) {
+                case 1:
+                    c_page.previousPage();
+                    break;
+                case 2:
+                    c_page.nextPage();
+                    break;
+                case 3:
+                    return;
+            }
         }
     }
 
@@ -299,7 +343,7 @@ public final class CustomerInterface {
             System.out.printf("\n\nHello, esteemed %s! You have %d points!", c.name, c.points);
         else
             System.out.printf("\n\nHello, %s!", c.name);
-        System.out.printf("\nWhat would you like to do today?\n\t1. Change Name\n\t2. Change Email\n\t3. View Membership Details or Enroll \n\t4. Make/View Status Of Orders\n\t5. Check And Adjust Credit Cards\n\t6. Check and Adjust Phone Numbers\n\t7. Deactivate Account\nEnter a 1-6 to select an option or enter quit (q) to quit!\n", c.name);
+        System.out.printf("\nWhat would you like to do today?\n\t1. Change Name\n\t2. Change Email\n\t3. View Membership Details or Enroll \n\t4. Make/View Status Of Orders\n\t5. Check And Adjust Credit Cards\n\t6. Check and Adjust Phone Numbers\n\t7. Check Customer Creations\n\t8. Deactivate Account\nEnter a 1-8 to select an option or enter quit (q) to quit!\n", c.name);
     }
 
 }

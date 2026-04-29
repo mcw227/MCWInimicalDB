@@ -35,7 +35,7 @@ public class Menu {
     public void fillItems(Connection conn) {
         ArrayList<Item> filled_items = new ArrayList<>();
         try {
-            PreparedStatement getMenuItems = conn.prepareStatement("SELECT * FROM menu_items WHERE menu_id = ?");
+            PreparedStatement getMenuItems = conn.prepareStatement("SELECT * FROM menu_items m JOIN all_items_class_view i ON m.item_id = i.id WHERE m.menu_id = ? AND i.item_type = 'INGREDIENT';");
             getMenuItems.setInt(1, this.id);
 
             ResultSet rs = getMenuItems.executeQuery();
@@ -44,8 +44,7 @@ public class Menu {
             }
             else {
                 do {
-                    int item_id = rs.getInt("item_id");
-                    filled_items.add(Item.createItemFromID(conn, item_id));
+                    filled_items.add(Item.parseItemFromRS(rs));
                 } while (rs.next());
             }
         } catch (Exception e) {

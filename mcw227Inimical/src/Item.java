@@ -85,6 +85,24 @@ public class Item {
     }
 
     /**
+     * Allows a user to select an item from the list. Returns the id if it is a valid item in the list, or -2 if user quits
+     * @param scn The scanner to grab input from
+     * @param items The list of items to take from
+     */
+    public static Item chooseItem(Scanner scn, ArrayList<Item> items) {
+        while (true) {
+            System.out.println("Which item do you want to choose? (or type (q)uit to quit)");
+            int choice = Helper.nextId(scn);
+            if (choice == -2)
+                return null;
+            Item i = items.stream().filter(it -> it.id == choice).findFirst().orElse(null);
+            if (i != null)
+                return i;
+            System.out.println("Please pick a valid item!");
+        }
+    }
+
+    /**
      * Fetches all possible ingredients
      * @param conn The database connection to use
      * @return An arraylist of ingredients
@@ -114,22 +132,13 @@ public class Item {
      * @return An arraylist of ingredients
      */
     public static ArrayList<Item> fetchIngredients(Connection conn, Menu m) {
-        ArrayList<Item> ingredients = new ArrayList<>();
-        try {
-            PreparedStatement getIngredients = conn.prepareStatement("SELECT * FROM menu_items m JOIN ingredients i ON m.item_id = i.id WHERE m.menu_id = ?");
-            getIngredients.setInt(1,m.id);
-            ResultSet rs = getIngredients.executeQuery();
-
-            if (!rs.next())
-                return ingredients;
-            do {
-                ingredients.add(Item.parseItemFromRS(rs));
-            } while (rs.next());
-            return ingredients;
-        } catch (Exception e) {
-            System.out.println("Unable to fetch ingredients. Try again later.");
-            return null;
+        ArrayList<Item> ingredients = new ArrayList<Item>();
+        for (Item i: ingredients) {
+            if (!SignatureItem.class.isInstance(i)) {
+                ingredients.add(i);
+            }
         }
+        return ingredients;
     }
 
     /**
@@ -142,7 +151,7 @@ public class Item {
             if (!SignatureItem.class.isInstance(i))
                 ingredients.add(i);
         }
-        return ingredient;
+        return ingredients;
     }
 
     /**
@@ -155,7 +164,17 @@ public class Item {
             int id = rs.getInt("id");
             String name = rs.getString("name");
             Double price = rs.getDouble("price");
-            return new Item(id,name,price);
+            try {
+                String type = rs.getString("item_type");
+                if (type.equalsIgnoreCase("SIGNATURE"))
+                    return new SignatureItem(id, name, price);
+                else if (type.equalsIgnoreCase("CUSTOMER_CREATION"))
+                    return new CustomerCreation(id, name, price, rs.getString("creator"), new ArrayList<Recipe>());
+                else
+                    return new Item(id, name, price);
+            } catch (Exception e) {
+                return new Item(id, name, price);
+            }
         } catch (Exception e) {
             return null;
         }
@@ -195,6 +214,7 @@ public class Item {
             return r_item;
         } catch (Exception e) {
             System.out.printf("Unable to create item from ID: %d\n", query_id);
+            e.printStackTrace();
             return null;
         }
     }

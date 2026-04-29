@@ -58,6 +58,24 @@ public class SignatureItem extends Item {
         }
     }
 
+    /**
+     * Allows a user to select a signature item from the list. Returns the id if it is a valid item in the list, or -2 if user quits
+     * @param scn The scanner to grab input from
+     * @param items The list of items to take from
+     */
+    public static SignatureItem chooseSignatureItem(Scanner scn, ArrayList<SignatureItem> items) {
+        while (true) {
+            System.out.println("Which item do you want to choose? (or type (q)uit to quit)");
+            int choice = Helper.nextId(scn);
+            if (choice == -2)
+                return null;
+            SignatureItem s = items.stream().filter(i -> i.id == choice).findFirst().orElse(null);
+            if (s != null)
+                return s;
+            System.out.println("Please pick a valid item!");
+        }
+    }
+
     // There's no real difference since the dependency between signature items table and items table is cascading on deletion
     /**
      * Deletes a signature item

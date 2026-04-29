@@ -1,5 +1,14 @@
 import java.util.List;
 
+/**
+ * Public class pager to simulate a "paged" list
+ * 
+ * AI USE DISCLOSURE:
+ * This class was generated partially with AI. The only functions in which code was directly "copy-pasted" are the nextPage and previousPage functions
+ * This was done because, while I had initially written the class myself, I could not get it to work properly
+ * "flipping" pages often skipped items depending on whether the list size was odd or even, or would fail to change the page numbers correctly..
+ * If you are really curious about my struggles, you can look at the git commit history...
+ */
 public class Pager<T> {
 
     public List<? extends T> list;
@@ -48,61 +57,40 @@ public class Pager<T> {
 
     /** Increments page counter. Loops back to first page*/
     public void nextPage() {
-        if (list.size() == 0) {
+        if (list == null || list.isEmpty()) {
             current_start_index = 0;
+            currentPage = 0;
             return;
         }
 
-        if (current_start_index < list.size()) {
-            int temp = current_start_index;
-            current_start_index = ((current_start_index + pageSize) < list.size()) ? (current_start_index + pageSize) : 0;
+        int totalPages = (int) Math.ceil((double) list.size() / pageSize);
 
-            if (current_start_index == 0) {
-                currentPage = 0;
-            } else {
-                currentPage++;
-            }
-        }
-
-        else {
-            current_start_index = 0;
+        if (currentPage + 1 < totalPages) {
+            currentPage++;
+        } else {
             currentPage = 0;
         }
-    }
+
+        current_start_index = currentPage * pageSize;
+        }
 
     /** Decrements page counter */
     public void previousPage() {
-        if (list.size() == 0) {
+        if (list.isEmpty()) {
             currentPage = 0;
             current_start_index = 0;
             return;
         }
 
-        if (current_start_index < list.size()) {
-            int temp = current_start_index;
+        int totalPages = (int) Math.ceil((double) list.size() / pageSize);
 
-            if (current_start_index == 0) {
-                if (pageSize >= list.size())
-                    current_start_index = 0;
-                else
-                    current_start_index = (list.size() - list.size()%pageSize -1);
-            }
-            else {
-                current_start_index = ((current_start_index - pageSize) < 0) ? (current_start_index - pageSize) : 0;
-            }
-            
-            if (temp < current_start_index) //looped around
-                currentPage = (list.size()/pageSize);
-            else if (current_start_index == 0)
-                currentPage = 0;
-            else
-                currentPage--;
+        if (currentPage == 0) {
+            currentPage = totalPages - 1;
+        } else {
+            currentPage--;
         }
 
-        else {
-            current_start_index = 0;
-            currentPage = 0;
-        }
+        current_start_index = currentPage * pageSize;
     }
 
     //Sets it to the page or to the max page if it is too long

@@ -114,6 +114,52 @@ public final class Helper {
     }
 
     /**
+     * This function handles previous/next/select/quit input from user.
+     * @param scn The scanner to grab input from
+     * @return 1 if user types previous, 2 if user types next, 3 if user types select, -2 if user quits. Retries until a valid input is reached.
+     */
+    public static int nextPNQS(Scanner scn) {
+        while (true) {
+            String resp = scn.nextLine();
+            if (resp.equalsIgnoreCase("q") || resp.equalsIgnoreCase("quit"))
+                return -2;
+            else if (resp.equalsIgnoreCase("p") || resp.equalsIgnoreCase("previous"))
+                return 1;
+            else if (resp.equalsIgnoreCase("n") || resp.equalsIgnoreCase("next"))
+                return 2;
+            else if (resp.equalsIgnoreCase("s") || resp.equalsIgnoreCase("select"))
+                return 3;
+            System.out.println("Please type either (n)ext, (p)revious, (s)elect or (q)uit");
+        }
+    }
+
+    /**
+     * This function handles previous/next/select/check/quit input from user.
+     * @param scn The scanner to grab input from
+     * @return 1 if user types previous, 2 if user types next, 3 if user types select, 4 if user types check, 5 if user types bag, 6 if user types done -2 if user quits. Retries until a valid input is reached.
+     */
+    public static int nextPNQSC(Scanner scn) {
+        while (true) {
+            String resp = scn.nextLine();
+            if (resp.equalsIgnoreCase("q") || resp.equalsIgnoreCase("quit"))
+                return -2;
+            else if (resp.equalsIgnoreCase("p") || resp.equalsIgnoreCase("previous"))
+                return 1;
+            else if (resp.equalsIgnoreCase("n") || resp.equalsIgnoreCase("next"))
+                return 2;
+            else if (resp.equalsIgnoreCase("s") || resp.equalsIgnoreCase("select"))
+                return 3;
+            else if (resp.equalsIgnoreCase("c") || resp.equalsIgnoreCase("check"))
+                return 4;
+            else if (resp.equalsIgnoreCase("b") || resp.equalsIgnoreCase("bag"))
+                return 5;
+            else if (resp.equalsIgnoreCase("d") || resp.equalsIgnoreCase("done"))
+                return 6;
+            System.out.println("Please type either (n)ext, (p)revious, (s)elect, (c)heck, (b)ag, (d)one or (q)uit");
+        }
+    }
+
+    /**
      * This function handles previous/next/quit input from user while also allowing them to .
      * @param scn The scanner to grab input from
      * @return -3 if user types previous, -4 if user types next, -2 if user quits. Retries until a valid input is reached.
@@ -281,7 +327,7 @@ public final class Helper {
                 return 8;
             else if (resp.equalsIgnoreCase("quit") || resp.equalsIgnoreCase("q"))
                 return -2;
-            System.out.println("Please type either (a)dd, (c)heck, (cc) or customer creation, (n)ext, (p)revious, (b)ag, (ch)eckout, (cr)eate or (q)uit");
+            System.out.println("Please type either (a)dd, (c)heck, (n)ext, (p)revious, (b)ag, (ch)eckout, (cr)eate or (q)uit");
         }
     }
 
