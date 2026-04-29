@@ -200,7 +200,7 @@ SELECT o.id, o.created_at, o.location_id, o.customer_id, c.name, o.payment_id, o
 FROM orders o
 JOIN customers c ON o.customer_id = c.id;
 
-CREATE OR REPLACE VIEW all_items_class_view AS (
+CREATE OR REPLACE VIEW all_items_class_view AS ( -- this is the nastiest most inefficient thing ive ever seen.. at least you know it wasn't made by ai...
     SELECT i.id, i.name, i.price, 'CUSTOMER_CREATION' AS item_type, c.creator AS "specific_attribute"
     FROM items i
     JOIN customer_creations c ON c.id=i.id
@@ -214,6 +214,9 @@ CREATE OR REPLACE VIEW all_items_class_view AS (
     UNION ALL
     SELECT i.id, i.name, i.price, 'INGREDIENT' as item_type, NULL as "specific_attribute"
     FROM ingredients i
+    MINUS
+    SELECT i.id, i.name, i.price, 'INGREDIENT' as item_type, NULL as "specific_attribute"
+    FROM customer_creations_view i
 );
 
 CREATE VIEW local_menu_view AS
