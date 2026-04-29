@@ -254,6 +254,16 @@ EXCEPTION
 END;
 /
 
+-- Add a trigger that adds an item to the master menu
+CREATE OR REPLACE TRIGGER master_menu
+AFTER INSERT ON items
+FOR EACH ROW
+BEGIN
+    INSERT INTO menu_items (menu_id, item_id)
+    VALUES (1, :NEW.id);
+END;
+/
+
 -- Updates an order's total based on the price of it's items and its local sales tax
 create or replace TRIGGER upd_order_price
 AFTER INSERT OR DELETE ON order_items
@@ -313,7 +323,7 @@ BEGIN
     FROM customers
     WHERE id = :NEW.customer_id;
     
-    IF membership = 1 THEN --only track points for members.
+    IF customer_membership = 1 THEN --only track points for members.
         UPDATE customers
         SET points = nvl(points, 0) + added_points
         WHERE id = :NEW.customer_id;

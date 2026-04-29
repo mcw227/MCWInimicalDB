@@ -111,7 +111,7 @@ def gen_cards():
 def gen_menus():
 
     df = pd.DataFrame(columns=["name"])
-    df["name"] = ["Lunch","Dinner", "Dessert", "Dummy_Location_Menu"]
+    df["name"] = ["MASTER","Lunch","Dinner", "Dessert", "Dummy_Location_Menu"]
 
     localdf = pd.DataFrame(columns=["menu_id","location_id"])
     localdf["menu_id"] = [4]
@@ -226,6 +226,7 @@ def gen_unique_pairs(x,y,n):
 
 def gen_menu_items():
     df = pd.DataFrame(gen_unique_pairs(5,101,10), columns=["menu_id", "item_id"])
+    df.loc[df["menu_id"] == 1, "menu_id"] = 2
 
     try:
         engine = create_engine(connection_url)
