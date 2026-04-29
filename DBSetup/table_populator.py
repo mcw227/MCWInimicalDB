@@ -312,6 +312,7 @@ def gen_order_items():
         print(f"Oracle Connection Error: {e}")
         return False
 
+## 
 def gen_price_change():
     df = pd.DataFrame(gen_unique_pairs(101, 101, 50), columns=["item_id","location_id"])
     raw_data = np.random.uniform(0.00, 10.00, size=50)
@@ -327,9 +328,11 @@ def gen_price_change():
             print(f"Success! Data uploaded to Oracle table: price_change")
 
         print("Connection closed automatically!")
+        return True
     
     except Exception as e:
         print(f"Oracle Connection Error: {e}")
+        return False
 
 
 # RUNS DB POPULATION! REQUIRES EMPTY TABLES.
@@ -353,7 +356,9 @@ def populate_db():
     done = gen_order_items()
     while (not done):
         done = gen_order_items() #This and the other try until it works statements are a hallmark of how bad this code is! 
-    gen_price_change()
+    done = gen_price_change()
+    while (not done):
+        done = gen_price_change()
 
 populate_db()
 
