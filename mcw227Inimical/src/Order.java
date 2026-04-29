@@ -116,6 +116,32 @@ public class Order {
     }
 
     /**
+     * Fetches all orders in the database
+     * @param conn The database connection to use
+     * @param loc_id The location to query orders on
+     * @return An array list of orders
+     */
+    public static ArrayList<Order> fetchOrders(Connection conn, int loc_id) {
+        ArrayList<Order> orders = new ArrayList<>();
+        try {
+            PreparedStatement getOrders = conn.prepareStatement("SELECT * FROM orders WHERE location_id = ?");
+            getOrders.setInt(1,loc_id);
+            ResultSet rs = getOrders.executeQuery();
+            if (!rs.next())
+                return orders;
+
+            do {
+                orders.add(parseOrderFromRS(rs, conn));
+            } while (rs.next());
+            return orders;
+        } catch (Exception e) {
+            System.out.println("Unable to fetch orders. Please try again later.");
+            return null;
+        }
+    }
+
+
+    /**
      * Gets all orders based on customer id
      * @param conn The database connection to use
      * @param c_id The customer id to use

@@ -96,7 +96,7 @@ public class Customer {
         
         System.out.println("Is the customer a member? (yes/no)");
         int r = Helper.nextYNQ(scn);
-
+        
         int m;
 
         if (r == -2) {return false;}

@@ -325,6 +325,9 @@ DECLARE
 BEGIN
 
     added_points := floor(:NEW.total / 2);
+    IF added_points > 9999999 THEN
+        added_points := 9999999;
+    END IF;
     
     SELECT membership INTO customer_membership
     FROM customers
