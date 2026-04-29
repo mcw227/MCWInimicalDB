@@ -7,6 +7,7 @@ public class Order {
 
     private static final String[] order_status_strings = {"CANCELLED", "RECIEVED", "IN-PROGRESS", "READY FOR PICKUP", "COMPLETED"};
     private static final int ITEM_MENU_PAGE_SIZE = 10;
+    public static final double MAX_ORDER_COST = 99999999.99;
     public int id;
     public int payment_id;
     public int customer_id;
@@ -350,8 +351,23 @@ public class Order {
                         break;
                     case(7):
                         Helper.clearConsole();
-                        upd = CustomerCreation.createItemScreen(conn, scn, c, lm);
-                        break;
+                        CustomerCreation cr = CustomerCreation.createItemScreen(conn, scn, c, lm);
+                        if (cr == null) {
+                            upd = false;
+                            break;
+                        }
+                        upd = true;
+                        while (true) {
+                            System.out.printf("How many servings of '%s' would you like to add? (Must be less than 99)\n", cr.name);
+                            int quantity = Helper.nextId(scn);
+                            if (quantity > 99)
+                                continue;
+                            if (quantity == 0)
+                                break;
+                            customer_order.addItemToBag(new OrderItem(cr, -1, quantity));
+                            break;
+                        }
+                        
                     default:
                         break;
                 }
@@ -391,15 +407,22 @@ public class Order {
             Item item = items.stream().filter(i -> i.id == item_id).findFirst().orElse(null); //grabs the first item from the list, feels like javascript style :)
 
             if (item != null) {
-                System.out.printf("How many servings of %s would you like?\n", item.name);
-                int quantity = Helper.nextId(scn);
-                if (quantity <= 0)
-                    return;
-                OrderItem existingItem = getBagItem(item_id);
-                if (existingItem != null) { //if the user is trying to add more of the same item, just add it to the existing quantity
-                    existingItem.quantity += quantity;
-                    return;
+                int quantity;
+                while (true) {
+                    System.out.printf("How many servings of %s would you like? (Must be less than 99)\n", item.name);
+                    quantity = Helper.nextId(scn);
+                    if (quantity <= 0)
+                        return;
+                    OrderItem existingItem = getBagItem(item_id);
+                    if (existingItem != null) { //if the user is trying to add more of the same item, just add it to the existing quantity
+                        existingItem.quantity += quantity;
+                        return;
+                    }
+                    if (quantity <= 99)
+                        break;
+                    System.out.println("Must be less than 99!");
                 }
+                
                 this.addItemToBag(new OrderItem(item, this.id, quantity)); //otherwise they are adding new item
                 return;
             }
@@ -442,20 +465,22 @@ public class Order {
                 System.out.printf("Item with id: %d not found in bag!", id);
                 return;
             } else {
-                System.out.println("What would you like to set the new quantity to?");
+                System.out.println("What would you like to set the new quantity to? (Must be less than 99)");
                 int quantity = Helper.nextId(scn);
                 if (quantity == -2)
                     return;
                 if (quantity == 0) {
                     this.removeItemFromBag(id);
                 }
-
-                OrderItem oi = getBagItem(id);
-                this.removeItemFromBag(id);
-                oi.quantity = quantity;
-                this.addItemToBag(oi);
-                System.out.printf("Changed quantity to %d\n", quantity);
-                return;
+                if (quantity <= 99) {
+                    OrderItem oi = getBagItem(id);
+                    this.removeItemFromBag(id);
+                    oi.quantity = quantity;
+                    this.addItemToBag(oi);
+                    System.out.printf("Changed quantity to %d\n", quantity);
+                    return;
+                }
+                System.out.println("Must be less than 99!");
             }
         }
     }
@@ -506,6 +531,11 @@ public class Order {
      * @param c 
      */
     public boolean checkout(Customer c, Connection conn, Scanner scn) {
+        if (this.total > MAX_ORDER_COST) {
+            System.out.println("Order is too expensive! Please remove some items. (Type anything to continue.)");
+            Helper.nextOK(scn);
+            return false;
+        }
         System.out.println(getOrderSummary());
         System.out.println("What card would you like to pay with?");
         int card_id = c.selectCardScreen(conn, scn);
