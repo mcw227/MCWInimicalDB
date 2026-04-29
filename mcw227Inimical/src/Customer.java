@@ -116,8 +116,13 @@ public class Customer {
             }
         }
 
-        return Customer.addCustomer(conn, new Customer(n, e, m, pts));
-
+        boolean add = Customer.addCustomer(conn, new Customer(n, e, m, pts));
+        if (add) {
+            System.out.println("Added customer! Type anything to continue.");
+            Helper.nextOK(scn);
+            return true;
+        }
+        return false;
     }
 
     /**

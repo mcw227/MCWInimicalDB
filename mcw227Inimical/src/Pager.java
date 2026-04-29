@@ -1,4 +1,5 @@
 import java.util.List;
+import java.util.Scanner;
 
 /**
  * Public class pager to simulate a "paged" list
@@ -110,5 +111,31 @@ public class Pager<T> {
      */
     public boolean isEmpty() {
         return list.isEmpty();
+    }
+
+    /**
+     * Shows a list
+     * @param scn The scanner to grab input from
+     */
+    public void show(Scanner scn) {
+        Helper.clearConsole();
+        while(true) {
+            printCurrentPage();
+            System.out.println("Press (n)ext, (p)revious or (q)uit.");
+            int resp = Helper.nextPNQ(scn);
+            if (resp == -2)
+                return;
+            
+            switch (resp) {
+                case (1):
+                    previousPage();
+                    break;
+                case (2):
+                    nextPage();
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 }

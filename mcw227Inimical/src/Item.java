@@ -64,24 +64,17 @@ public class Item {
             if (!rs.next()) //no items in db for some reason..
                 return items;
             do {
-                int id = rs.getInt("id");
-                String n = rs.getString("name");
-                double p = rs.getDouble("price");
+                Item i = Item.parseItemFromRS(rs);
+                if (i == null)
+                    return new ArrayList<Item>();
+                items.add(i);
 
-                 if (rs.getString("item_type").equalsIgnoreCase("SIGNATURE"))
-                    items.add(new SignatureItem(id, n, p));
-                else if (rs.getString("item_type").equalsIgnoreCase("CUSTOMER_CREATION")) {
-                    items.add(new CustomerCreation(id, n, p, rs.getString("specific_attribute"), conn));
-                } else {
-                    items.add(new Item(id, n, p));
-                }
             } while(rs.next());
-
+            return items;
         } catch (Exception e) {
             System.out.println("Unable to fetch items. Try again later");
             return null;
         }
-        return null;
     }
 
     /**

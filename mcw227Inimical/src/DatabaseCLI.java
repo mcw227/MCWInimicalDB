@@ -40,26 +40,22 @@ public class DatabaseCLI {
         System.out.println("Welcome!");
         try (Scanner scn = new Scanner(System.in)) {
             while (!resp.equals("q") && !resp.equalsIgnoreCase("quit")) {
-                System.out.println("Would you like to login to the customer (c), general management (gm), location management (lm) or testing (t) interface? You may also quit (q)");
+                System.out.println("Would you like to login to the customer (c), management (m), or testing (t) interface? You may also quit (q)");
                 resp = scn.nextLine();
                 if (resp.equalsIgnoreCase("C") || resp.equalsIgnoreCase("customer")) {
                     CustomerInterface.start(conn, scn);
                 }
 
-                else if (resp.equalsIgnoreCase("LM") || resp.equalsIgnoreCase(("Location Management"))) {
-                    lmInterface(conn,scn);
-                }
-
-                else if (resp.equalsIgnoreCase("GM") || resp.equalsIgnoreCase("General Management")) {
-                    gmInterface(conn, scn);
+                else if (resp.equalsIgnoreCase("M") || resp.equalsIgnoreCase(("Management"))) {
+                    ManagerInterface.start(conn,scn);
                 }
 
                 else if (resp.equalsIgnoreCase("T") || resp.equalsIgnoreCase("TESTING")) {
-                    System.out.println(Customer.addCustomerScreen(conn, scn));
+                    System.out.println(Item.fetchItems(conn));
                     Helper.nextOK(scn);
                 }
 
-                else if (!resp.equals("q") && !resp.equalsIgnoreCase("quit")) {
+                else if (!resp.equalsIgnoreCase("q") && !resp.equalsIgnoreCase("quit")) {
                     System.out.println("Please pick a valid interface!");
                 }
             }

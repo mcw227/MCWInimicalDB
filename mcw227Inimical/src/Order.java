@@ -239,7 +239,7 @@ public class Order {
             try {
                 conn.rollback();
                 System.out.println("Could not place order. Try again later.");
-                e.printStackTrace(); //debug
+                //e.printStackTrace(); //debug
                 return false;
             } catch (Exception f) {
                 System.err.println("Critical database error. Please restart software.");
@@ -281,6 +281,27 @@ public class Order {
             return true;
         } catch (Exception e) {
             System.out.println("Could not delete order from database. Try again later.");
+            return false;
+        }
+    }
+
+    /**
+     * Updates the status of an order
+     * @param conn The database connection to use
+     * @param status The status to set the order to
+     * @return True if the status was updated, false if not
+     */
+    public boolean editStatus(Connection conn, int status) {
+        if (status >= 5 || status < 0)
+            return false;
+        try {
+            PreparedStatement updStatus = conn.prepareStatement("UPDATE orders SET status = ? WHERE id = ?");
+            updStatus.setInt(1, status);
+            updStatus.setInt(2, this.id);
+            updStatus.executeUpdate();
+            return true;
+        } catch (Exception e) {
+            System.out.println("Unable to update order status.");
             return false;
         }
     }
@@ -583,5 +604,23 @@ public class Order {
                 return false;
             }
         }
+    }
+
+    /**
+     * Allows someone to edit the status of an order
+     * @param conn The database connection to use
+     * @param scn The scanner to grab input from
+     * @return True if the order was updated, false if not
+     */
+    public boolean editStatusScreen(Connection conn, Scanner scn) {
+        Helper.clearConsole();
+        int resp = -1;
+        while (resp >= 5 || resp < 0) {
+            System.out.println("What would you like to set the order status to?\n\t0 -> Cancelled\n\t1 -> Recieved\n\t2 -> In Progress\n\t3 -> Waiting for pickup\n\t4 -> Complete");
+            resp = Helper.nextId(scn);
+            if (resp == -2)
+                return false;
+        }
+        return this.editStatus(conn, resp);
     }
 }
