@@ -51,6 +51,7 @@ public class Menu {
                     filled_items.add(Item.parseItemFromRS(rs));
                 } while (rs.next());
             }
+            this.items = filled_items;
         } catch (Exception e) {
             System.out.println("Unable to populate menu. Try again later.");
             e.printStackTrace(); //debug
