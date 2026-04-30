@@ -222,6 +222,13 @@ public class Item {
      * @return The item found in the database, or null if it did not exist. Can be sig or customer creation
      */
     public static Item createItemFromID(Connection conn, int query_id, int loc_id) {
+        Location l = fetchLocation(conn, loc_id);
+        if (l == null) {
+            System.out.println("Invalid location.");
+            return null;
+        }
+        l.fetchPriceChanges(conn);
+
         try {
             Item r_item = null;
             PreparedStatement getItem = conn.prepareStatement("SELECT * FROM all_items_class_view WHERE id = ?");
@@ -232,42 +239,21 @@ public class Item {
                 System.out.printf("Unable to create item from ID: %d, not found in database!\n", query_id);
                 return null;
             }
-            String n = rs_gi.getString("name");
-            double p;
+            
+            r_item = parseItemFromRS(rs_gi);
 
-            //Handle the many item types
-            if (rs_gi.getString("item_type").equalsIgnoreCase("SIGNATURE"))
-                r_item = new SignatureItem(query_id, n, 0);
-            else if (rs_gi.getString("item_type").equalsIgnoreCase("CUSTOMER_CREATION")) {
-                r_item = new CustomerCreation(query_id, n, 0, rs_gi.getString("specific_attribute"), conn);
+            if (CustomerCreation.class.isInstance(r_item)) {
+                r_item.populateRecipe(conn, l) 
+                return r_item;
             } else {
-                r_item = new Item(query_id, n, 0);
+                PriceChange pr = l.fetchPriceChange(r_item.id);
+                if (pr == null) {
+                    r_item.price *= l.sales_tax;
+                    return r_item;
+                }
+                r_item.price = pr.price * l.sales_tax;
+                return r_item;
             }
-
-            //See whether there is a price change for this item
-            PreparedStatement getItemPriceUpdate = conn.prepareStatement("SELECT * FROM price_change WHERE item_id = ? AND location_id = ?");
-            getItemPriceUpdate.setInt(1, query_id);
-            getItemPriceUpdate.setInt(2, loc_id);
-
-            PreparedStatement getLocationSalesTax = conn.prepareStatement("SELECT sales_tax FROM locations WHERE id = ?");
-            getLocationSalesTax.setInt(1,loc_id);
-
-            ResultSet rs_gipu = getItemPriceUpdate.executeQuery();
-            ResultSet rs_glst = getLocationSalesTax.executeQuery();
-
-            double sales_tax = 1;
-
-            /** This allows us to include tax in the order */
-            if (rs_glst.next())
-                sales_tax = rs_glst.getDouble("sales_tax");
-
-            if (!rs_gipu.next())
-                p = rs_gi.getDouble("price") * sales_tax;
-            else
-                p = rs_gipu.getDouble("price") * sales_tax;
-
-            r_item.price = p;
-            return r_item;
         } catch (Exception e) {
             System.out.printf("Unable to create item from ID: %d\n", query_id);
             return null;
