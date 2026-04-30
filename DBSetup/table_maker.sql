@@ -225,7 +225,7 @@ FROM menus m
 JOIN local_menus lm ON m.id=lm.menu_id;
 
 -- This trigger allows us to update the cost of signature items when ingredients are added or removed from them
--- Please note that for this specific query, AI sources were consulted in order to understand how to obtain the values of the 
+-- Please note that for this specific query, AI sources were consulted (as one may look at stack overflow...) in order to understand how to obtain the values of the target rows
 create or replace TRIGGER upd_item_price
 AFTER INSERT OR DELETE ON recipes
 FOR EACH ROW

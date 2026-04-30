@@ -156,7 +156,7 @@ public class PhoneNumber {
 
         } catch (Exception e) {
             System.out.println("Could not query Database for phone numbers. Please try again later.");
-            e.printStackTrace(); //debug
+            //e.printStackTrace(); //debug
             return null;
         }
         return phones;

@@ -430,8 +430,7 @@ public class Menu {
                     }
                     break;
             }
-        }
-        
+        } 
     }
 
     /**
@@ -562,7 +561,6 @@ public class Menu {
                     break;
             }
         }
-
     }
 
     /**

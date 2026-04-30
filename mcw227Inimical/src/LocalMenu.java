@@ -60,7 +60,12 @@ public class LocalMenu extends Menu {
             else {
                 do {
                     Item newItem = Item.parseItemFromRS(rs);
-                    PriceChange pr = this.location.fetchPriceChange(newItem.id);
+                    PriceChange pr;
+                    if (CustomerCreation.class.isInstance(newItem)) {
+                        ((CustomerCreation)newItem).populateRecipe(conn, this.location); //this fills the cc with location-matched prices
+                        pr = null;
+                    }
+                    else { pr = this.location.fetchPriceChange(newItem.id); }
                     if (pr != null)
                         newItem.price = pr.price;
                     newItem.price *= this.location.sales_tax;

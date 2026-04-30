@@ -61,7 +61,7 @@ public class DatabaseCLI {
             }
         } catch (Exception e) {
             System.err.println("An unexpected error occured.");
-            e.printStackTrace();
+            //e.printStackTrace();
         }
         System.out.println("Goodbye! :)");
         return;

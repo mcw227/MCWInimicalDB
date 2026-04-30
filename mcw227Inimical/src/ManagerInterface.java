@@ -50,7 +50,7 @@ public class ManagerInterface {
                 }
             } catch (Exception ex) {
                 System.out.println("Could not query database, or found invalid employee, please try again.");
-                ex.printStackTrace();
+                //e.printStackTrace();
             }
             
         }     
@@ -64,6 +64,31 @@ public class ManagerInterface {
      * @param e
      */
     static void mMenu(Connection conn, Scanner scn, Employee e) {
-        return;
+        int resp = 0;
+        Helper.clearConsole();
+        while (resp != -2) {
+            printMMenu(e);
+            resp = Helper.nextId(scn);
+            switch (resp) {
+                case (1):
+                    mViewLocations(conn, scn);
+                    break;
+                case (2):
+                    mViewItems(conn, scn);
+                    break;
+                case (3):
+                    mViewItemDetails(conn, scn);
+                    break;
+                case (4):
+                    mViewLocationDetails(conn, scn);
+                    break;
+                case (5):
+                    mViewEmployees(conn, scn);
+                    break;
+                case (6):
+                    Customer.addCustomerScreen(conn, scn);
+                    break;
+            }
+        }
     }
 }

@@ -65,7 +65,7 @@ public final class CustomerInterface {
                 }
             } catch (Exception e) {
                 System.out.println("Could not query database, or found invalid customer, please try again.");
-                e.printStackTrace();
+                //e.printStackTrace();
             }
             
         }     

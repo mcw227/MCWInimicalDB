@@ -87,7 +87,7 @@ public class PriceChange {
             return true;
         } catch (Exception e) {
             System.out.println("Could not edit the price change in the database. Try again later.");
-            e.printStackTrace();
+            //e.printStackTrace();
             return false;
         }
     }
