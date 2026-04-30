@@ -59,18 +59,24 @@ public class LocalMenu extends Menu {
             }
             else {
                 do {
-                    Item newItem = Item.parseItemFromRS(rs);
-                    PriceChange pr = this.location.fetchPriceChange(newItem.id);
-                    if (pr != null)
-                        newItem.price = pr.price;
-                    newItem.price *= this.location.sales_tax;
-                    this.items.add(newItem);
+                    Item r_item = Item.parseItemFromRS(rs);
+                    if (CustomerCreation.class.isInstance(r_item)) {
+                        ((CustomerCreation)r_item).populateRecipe(conn, this.location);
+                    } else {
+                        System.out.println("Ur mom");
+                        PriceChange pr = this.location.fetchPriceChange(r_item.id);
+                        if (pr == null) {
+                            r_item.price *= this.location.sales_tax;
+                        }
+                        r_item.price = pr.price * this.location.sales_tax;
+                    }
+                    this.items.add(r_item);
                 } while (rs.next());
             }
         } catch (Exception e) {
             System.out.println("Unable to populate menu. Try again later.");
             this.items = null;
-            //e.printStackTrace(); //debug
+            e.printStackTrace(); //debug
         }
     }
 

@@ -395,7 +395,9 @@ public class CustomerCreation extends Item {
             if (!rs.next())
                 return;
             do {
-                this.ingredients.add(Recipe.parseRecipeFromRS(rs, conn, l));
+                Recipe rec = Recipe.parseRecipeFromRS(rs, conn, l);
+                this.ingredients.add(rec);
+                
             } while (rs.next());
             return;
 

@@ -342,7 +342,7 @@ public class Order {
         if (lm == null)
             return;
         ArrayList<Item> items = lm.items;
-        Pager<Item> menu = new Pager(items, ITEM_MENU_PAGE_SIZE); //turn menu into pager
+        Pager<Item> menu = new Pager<>(items, ITEM_MENU_PAGE_SIZE); //turn menu into pager
 
         boolean upd = false;
 
@@ -351,7 +351,7 @@ public class Order {
             if (upd) {
                 lm.fillItems(conn);
                 items = lm.items;
-                menu = new Pager(items, ITEM_MENU_PAGE_SIZE);
+                menu = new Pager<>(items, ITEM_MENU_PAGE_SIZE);
                 upd=false;
             }
             menu.printCurrentPage();
