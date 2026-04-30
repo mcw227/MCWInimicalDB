@@ -343,6 +343,24 @@ public class CustomerCreation extends Item {
         return r;
     }
 
+     /**
+     * Prints a recipe summary of the customer creation object
+     * @param conn The database connection to use in the case that a recipe is not populated yet
+     * @param l The location to obtain prices from
+     */
+    public String getPrintableRecipeSummary(Connection conn, Location l) {
+        String r = "";
+        r += String.format("ID:%-3d\tNAME:%-50s\n", this.id, this.name);
+        if (ingredients == null || ingredients.size() == 0) {
+            this.populateRecipe(conn,l);
+        }
+        for (Recipe rec : ingredients) {
+            r += "\t" + rec.recipeItemSummary() + "\n";
+        }
+        r+= String.format("PRICE: %.2f\n", this.price);
+        return r;
+    }
+
     /**
      * Prints a recipe summary of the customer creation object
      * @param conn The database connection to use in the case that a recipe is not populated yet
@@ -374,6 +392,29 @@ public class CustomerCreation extends Item {
                 return;
             do {
                 this.ingredients.add(Recipe.parseRecipeFromRS(rs, conn));
+            } while (rs.next());
+            return;
+
+        } catch (Exception e) {
+            System.out.println("Unable to update populate recipe. Try again later.");
+            //e.printStackTrace();
+            return;
+        }
+    }
+
+    /**
+     * Populates a customer creations' item list
+     */
+    public void populateRecipe(Connection conn, Location l) {
+        try {
+            this.price = 0;
+            PreparedStatement getRecipes = conn.prepareStatement("SELECT * FROM recipes WHERE recipe_id=?");
+            getRecipes.setInt(1,this.id);
+            ResultSet rs = getRecipes.executeQuery();
+            if (!rs.next())
+                return;
+            do {
+                this.ingredients.add(Recipe.parseRecipeFromRS(rs, conn, l));
             } while (rs.next());
             return;
 

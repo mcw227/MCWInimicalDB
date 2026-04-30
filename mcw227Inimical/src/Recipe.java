@@ -45,6 +45,16 @@ public class Recipe {
         this.ingredient = item;
     }
 
+    /**
+     * A helpful constructor that automatically populates the ingredients' details when possible
+     */
+    public Recipe(int r_id, int i_id, int quantity, Connection conn, Location l) {
+        this.recipe_id = r_id;
+        this.ingredient_id = i_id;
+        this.quantity = quantity;
+        getIngredientDetails(conn, l);
+    }
+
     /** Standard to string */
     public String toString() {
         return String.format("RECIPE ID:%-3d\t| INGREDIENT ID: %-3d\t| QUANTITY %-3d", this.recipe_id, this.ingredient_id, this.quantity);
@@ -116,5 +126,23 @@ public class Recipe {
         addRecipe.setInt(3, this.quantity);
         addRecipe.executeUpdate();
         return true;
+    }
+
+        /**
+     * Parses a recipe from a result set, fills its item information
+     * @param rs The result set to parse
+     * @param conn The database connection to fill item information from
+     * @param l The location to generate local prices from
+     * @return A recipe if the RS is valid, or null if not
+     */
+    public static Recipe parseRecipeFromRS(ResultSet rs, Connection conn, Location l) {
+        try {
+            int r_id = rs.getInt("recipe_id");
+            int i_id = rs.getInt("ingredient_id");
+            int quantity = rs.getInt("quantity");
+            return new Recipe(r_id, i_id, quantity, conn, l);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
