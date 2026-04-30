@@ -63,18 +63,13 @@ public class Menu {
      * @param conn The database connection to use
      * @param i The item to add to the menu
      */
-    public boolean addItem(Connection conn, Item i) {
-        try {
-            PreparedStatement addItem = conn.prepareStatement("INSERT INTO menu_items (menu_id, item_id) VALUES (?,?)");
-            addItem.setInt(1, this.id);
-            addItem.setInt(2, i.id);
-
-            addItem.executeQuery();
-            return true;
-        } catch (Exception e) {
-            System.out.printf("Unable to add item with ID: %d to menu with ID: %d. Try again later.\n", i.id, this.id);
-            return false;
-        }
+    public boolean addItem(Connection conn, Item i) throws SQLException {
+        System.out.printf("MENU ID: %d | ITEM ID: %d\n",this.id, i.id);
+        PreparedStatement addItem = conn.prepareStatement("INSERT INTO menu_items (menu_id, item_id) VALUES (?,?)");
+        addItem.setInt(1, this.id);
+        addItem.setInt(2, i.id);
+        addItem.executeUpdate();
+        return true;
     }
 
     /**
@@ -82,18 +77,13 @@ public class Menu {
      * @param conn The database connection to use
      * @param i The item to add to the menu
      */
-    public boolean delItem(Connection conn, Item i) {
-        try {
-            PreparedStatement delItem = conn.prepareStatement("DELETE FROM menu_items WHERE menu_id = ? AND item_id = ?");
-            delItem.setInt(1, this.id);
-            delItem.setInt(2, i.id);
+    public boolean delItem(Connection conn, Item i) throws SQLException {
+        PreparedStatement delItem = conn.prepareStatement("DELETE FROM menu_items WHERE menu_id = ? AND item_id = ?");
+        delItem.setInt(1, this.id);
+        delItem.setInt(2, i.id);
 
-            delItem.executeQuery();
-            return true;
-        } catch (Exception e) {
-            System.out.printf("Unable to delete item with ID: %d from menu with ID: %d. Try again later.\n", i.id, this.id);
-            return false;
-        }
+        delItem.executeUpdate();
+        return true;
     }
 
     /**
@@ -258,7 +248,7 @@ public class Menu {
             return false;
         try {
             conn.setAutoCommit(false);
-            PreparedStatement getMenu = conn.prepareStatement("SELECT * FROM menu_items.* FROM menu_items JOIN menus WHERE menu_id = ?");
+            PreparedStatement getMenu = conn.prepareStatement("SELECT * FROM menu_items JOIN menus on menus.id = menu_items.menu_id WHERE menu_id = ?");
             getMenu.setInt(1, this.id);
 
             ResultSet rs = getMenu.executeQuery();
@@ -269,12 +259,15 @@ public class Menu {
                 addMenu.setString(1, this.name);
                 if (addMenu.executeUpdate() != 0) {
                     ResultSet newIDRS = addMenu.getGeneratedKeys();
-                    this.id = (int)newIDRS.getLong(1);
+                    if (newIDRS.next())
+                        this.id = (int)newIDRS.getLong(1);
+                    else
+                        throw new Exception("ID was not generated!");
                 }
             }
 
             for (Item i : this.items) {
-                this.addItem(i);
+                this.addItem(conn, i);
             }
 
             if (LocalMenu.class.isInstance(this)) { //If local menu, add it to local menu table
@@ -288,6 +281,7 @@ public class Menu {
             return true;
         } catch (Exception e) {
             System.out.println("Could not add menu to database.");
+            e.printStackTrace();
             try {
                 conn.rollback();
                 return false;
@@ -307,7 +301,7 @@ public class Menu {
     }
 
     public void wipeItems(Connection conn) throws SQLException {
-        PreparedStatement wipeItems = conn.prepareStatement("DELETE * FROM menu_items WHERE menu_id = ?");
+        PreparedStatement wipeItems = conn.prepareStatement("DELETE FROM menu_items WHERE menu_id = ?");
         wipeItems.setInt(1, this.id);
         wipeItems.executeUpdate();
         return;
@@ -406,7 +400,7 @@ public class Menu {
         while(true) {
             Helper.clearConsole();
             m.printCurrentPage();
-            System.out.println("Press (n)ext, (p)revious, an id to check/edit an item, or (q)uit.");
+            System.out.println("Press (n)ext, (p)revious, an id to edit/check a menu, or (q)uit.");
             int resp = Helper.nextPNQID(scn);
             if (resp == -2)
                 return;
@@ -435,6 +429,12 @@ public class Menu {
         
     }
 
+    /**
+     * Allows a user to create a new menu
+     * @param conn The connection to the database
+     * @param scn The scanner to grab input from
+     * @param l The location to add the menu to
+     */
     public static boolean createMenu(Connection conn, Scanner scn, Location l) {
         if (l == null) {
             System.out.println("Location provided is null. Type anything to continue.");
@@ -465,8 +465,17 @@ public class Menu {
                         m = getPopulatedMenu(conn, id);
                         if (m == null)
                             System.out.println("Please pick a valid menu id!");
-                        else
-                            break;
+                        else {
+                            System.out.printf("What would you like to name your new menu (can also type (!q)uit)? (Parent menu's name is %s)\n", m.name);
+                            String n = Helper.safeCheckQuit(scn, MAX_NAME_SIZE);
+                            if (n == null)
+                                m = null;
+                            else {
+                                m.id = -1;
+                                break;
+                            }
+
+                        }
                     }
             }
         }
@@ -532,6 +541,8 @@ public class Menu {
      */
     public void addItem(Item i) {
         if (i == null)
+            return;
+        else if (this.items.stream().anyMatch(it -> it.id == i.id)) //item already exists in list.
             return;
         this.items.add(i);
     }

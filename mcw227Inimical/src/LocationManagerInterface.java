@@ -169,7 +169,7 @@ public class LocationManagerInterface {
     public static void lmMenus(Connection conn, Scanner scn, Employee e) {
         while (true) {
             Helper.clearConsole();
-            System.out.println("What would you like to do?\n\t1. View Menus\n\t2. View Menus For Your Restaurant\n\t3. Create A New Menu\n\t");
+            System.out.println("What would you like to do?\n\t1. View Menus\n\t2. View/Edit Menus For Your Restaurant\n\t3. Create A New Menu\n\t");
             int r = Helper.nextId(scn);
             switch (r) {
                 case (-2):
