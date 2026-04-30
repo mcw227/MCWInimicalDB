@@ -81,6 +81,14 @@ public class Recipe {
     }
 
     /**
+     * Populates the ingredient field using the ingredient id
+     * @param conn The database connection to use.
+     */
+    public void getIngredientDetails(Connection conn, Location l) {
+        this.ingredient = Item.createItemFromID(conn, this.ingredient_id, l.id);
+    }
+
+    /**
      * Attempts to add the recipe to the database.
      * @param conn The database connection to use
      */

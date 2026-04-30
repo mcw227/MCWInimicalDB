@@ -153,7 +153,7 @@ CREATE TABLE price_change (
     price number(5,2),
     CONSTRAINT pc_item_fk
         FOREIGN KEY (item_id)
-        REFERENCES signature_items(id) ON DELETE CASCADE,
+        REFERENCES items(id) ON DELETE CASCADE,
     CONSTRAINT pc_location_fk
         FOREIGN KEY (location_id)
         REFERENCES locations(id) ON DELETE CASCADE,
