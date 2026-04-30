@@ -9,6 +9,8 @@ public class LocalMenu extends Menu {
     private static final int MASTER_DINNER_MENU_ID = 3;
     private static final int MASTER_DESSERT_MENU_ID = 4;
 
+    private static final int MAX_PAGE_SIZE = 10;
+
     public int location_id;
     public Location location;
 
@@ -112,5 +114,56 @@ public class LocalMenu extends Menu {
         r.add(LocalMenu.getPopulatedMenu(conn, MASTER_DINNER_MENU_ID, location_id));
         r.add(LocalMenu.getPopulatedMenu(conn, MASTER_DESSERT_MENU_ID, location_id));
         return r;
+    }
+
+    public static boolean buildLocalMenuScreen(Connection conn, Scanner scn, Menu m, Location l) {
+        if (l == null) {
+            System.out.println("Location given was null.");
+            return false;
+        }
+
+        LocalMenu lm = new LocalMenu(m, l.id);
+
+        if (lm.id != -1)
+            lm.fillItems(conn);
+        
+        LocalMenu master_list = LocalMenu.getPopulatedMenu(conn, MASTER_MENU_ID, l.id);
+
+        ArrayList<Item> items = master_list.items;
+        Pager<Item> i = new Pager<>(items, MAX_PAGE_SIZE);
+        while(true) {
+            Helper.clearConsole();
+            i.printCurrentPage();
+            System.out.println("Type (n)ext, (p)revious, (m)enu to view and edit current items, (d)one to add the menu, or (q)uit to quit (You will lose your progress!).");
+            int r = Helper.nextPNQMDID(scn);
+            
+            if (r == -2)
+                return false;
+
+            switch (r) {
+                case (-3):
+                    i.previousPage();
+                    break;
+                case (-4):
+                    i.nextPage();
+                    break;
+                case (-5):
+                    lm.editMenu(scn);
+                    break;
+                case (-6):
+                    if (lm.addMenu(conn))
+                        return true;
+                    break;
+                default:
+                    Item n_i = items.stream().filter(it -> it.id == r).findFirst().orElse(null);
+                    if (n_i == null) {
+                        System.out.printf("Item with ID: %d not found.");
+                        break;
+                    }
+                    lm.addItem(n_i);
+            }
+
+        }
+            
     }
 }

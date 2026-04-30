@@ -35,7 +35,7 @@ public class Location {
      */
     public static Location locationSelectScreen(Connection conn, Scanner scn) {
         Helper.clearConsole();
-        Pager<Location> locations = new Pager(Location.fetchLocations(conn), LOCATION_PAGE_SIZE);
+        Pager<Location> locations = new Pager<>(Location.fetchLocations(conn), LOCATION_PAGE_SIZE);
         while (true) {
             locations.printCurrentPage();
             if (!locations.list.isEmpty()) {

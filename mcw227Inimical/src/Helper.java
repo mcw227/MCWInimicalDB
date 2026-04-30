@@ -12,21 +12,21 @@ public final class Helper {
     }
     
     /** Attempts to clear console */
-    /** Shamelessly sourced from Copilot, but I understand how it works. */
+    /** This code was found on stack overflow, I'm pretty sure. (BUT! It came up in copilot when i searched online.) */
     public static void clearConsole() {
-        try {
-            String os = System.getProperty("os.name");
-            if (os.contains("Windows")) { //windwos needs special handling bc its so special...
-                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
-            } else { //unix-like systems
-                new ProcessBuilder("clear").inheritIO().start().waitFor();
-            }
-            return;
-        } catch (Exception e) {
-            System.out.println("Cannot clear console."); //debug
-            return;
-        }
-        
+        return;
+        // try {
+        //     String os = System.getProperty("os.name");
+        //     if (os.contains("Windows")) { //windwos needs special handling bc its so special...
+        //         new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+        //     } else { //unix-like systems
+        //         new ProcessBuilder("clear").inheritIO().start().waitFor();
+        //     }
+        //     return;
+        // } catch (Exception e) {
+        //     System.out.println("Cannot clear console."); //debug
+        //     return;
+        // }
     }
     /**
      * This is also used to get non-negative integer input while handling quit case
@@ -203,6 +203,38 @@ public final class Helper {
                 else if (resp.equalsIgnoreCase("n") || resp.equalsIgnoreCase("next"))
                     return -4;
                 System.out.println("Please type either (n)ext, (p)revious, or (q)uit");
+            }
+           
+        }
+    }
+
+    /**
+     * This function handles previous/next/quit/menu/done input from user while also allowing them to .
+     * @param scn The scanner to grab input from
+     * @return -3 if user types previous, -4 if user types next, -5 if user types menu, -6 if user types done, -2 if user quits. Retries until a valid input is reached.
+     */
+    public static int nextPNQMDID(Scanner scn) {
+        while (true) {
+            String resp = scn.nextLine();
+            try {
+                int id = Integer.parseInt(resp);
+                if (id <= 0) {
+                    System.out.println("ID must be greater than 0.");
+                } else {
+                    return id;
+                }
+            } catch (NumberFormatException e) {
+                if (resp.equalsIgnoreCase("q") || resp.equalsIgnoreCase("quit"))
+                    return -2;
+                else if (resp.equalsIgnoreCase("p") || resp.equalsIgnoreCase("previous"))
+                    return -3;
+                else if (resp.equalsIgnoreCase("n") || resp.equalsIgnoreCase("next"))
+                    return -4;
+                else if (resp.equalsIgnoreCase("m") || resp.equalsIgnoreCase("menu"))
+                    return -5;
+                else if (resp.equalsIgnoreCase("d") || resp.equalsIgnoreCase("done"))
+                    return -6;
+                System.out.println("Please type either (n)ext, (p)revious, (m)enu, (d)one or (q)uit");
             }
            
         }

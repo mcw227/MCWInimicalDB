@@ -31,7 +31,11 @@ public class LocationManagerInterface {
                     lmMenus(conn, scn, e);
                     break;
                 case (5):
+                    lmPriceChange(conn, scn, e);
+                    break;
+                case (6):
                     Customer.addCustomerScreen(conn, scn);
+                    break;
             }
         }
     }
@@ -42,8 +46,9 @@ public class LocationManagerInterface {
      */
     public static void printLMMenu(Employee e) {
         System.out.flush();
-        System.out.printf("\n\nHello, %s!", e.name);
-        System.out.printf("\nWhat would you like to do today?\n\t1. View/Update Order Status\n\t2. View All Items\n\t3. View All Locations\n\t4. View/Edit Menus\n\t5. Create Customer Account\n\tEnter a 1-5 to select an option or enter quit (q) to quit!\n", e.name);
+        System.out.printf("\n\nHello, %s! You logged into location: %d\n", e.name, e.location_id);
+        System.out.printf("\tRestaurant Address: %s\n\n", e.location.address);
+        System.out.printf("\nWhat would you like to do today?\n\t1. View/Update Order Status\n\t2. View All Items\n\t3. View All Locations\n\t4. View/Edit Menus\n\t5. Create A Local Price Change\n\t6. Create Customer Account\nEnter a 1-6 to select an option or enter quit (q) to quit!\n", e.name);
     }
 
     /**
@@ -162,8 +167,52 @@ public class LocationManagerInterface {
      * @param e The employee making the changes
      */
     public static void lmMenus(Connection conn, Scanner scn, Employee e) {
+        while (true) {
+            Helper.clearConsole();
+            System.out.println("What would you like to do?\n\t1. View Menus\n\t2. View Menus For Your Restaurant\n\t3. Create A New Menu\n\t");
+            int r = Helper.nextId(scn);
+            switch (r) {
+                case (-2):
+                    return;
+                case (1):
+                    lmViewMenus(conn, scn);
+                    break;
+                case (2):
+                    lmViewMenus(conn, scn, e.location);
+                    break;
+                case (3):
+                    Menu.createMenu(conn, scn, e.location);
+                    break;
+                default:
+                    System.out.println("Please choose a number 1-3.");
+                    break;
+            }
+        }
+    }
+
+    /**
+     * Allows the user to create a price change for the location they work at
+     * @param conn The database connection to use
+     * @param scn The scanner to grab input from
+     * @param e The employee making the change
+     */
+    public static void lmPriceChange(Connection conn, Scanner scn, Employee e) {
+        return;
+    }
+
+    /**
+     * Allows users to look at menus and view their items
+     * @param conn
+     * @param scn
+     */
+    public static void lmViewMenus(Connection conn, Scanner scn) {
+        Menu.showMenus(conn, scn);
+        return;
+    }
+
+    public static void lmViewMenus(Connection conn, Scanner scn, Location l) {
+        Menu.showMenus(conn, scn, l);
         return;
     }
 }
-
 
