@@ -171,6 +171,7 @@ public class Item {
                 return new Item(id, name, price);
             }
         } catch (Exception e) {
+            //e.printStackTrace();
             return null;
         }
      

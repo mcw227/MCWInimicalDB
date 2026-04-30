@@ -326,6 +326,11 @@ public class CustomerCreation extends Item {
         this.price += i.price * quantity;
     }
 
+    public void addIngredient(Recipe r) {
+        this.ingredients.add(r);
+        this.price += r.ingredient.price * r.quantity;
+    }
+
     /**
      * Prints a recipe summary of the customer creation object
      * @param conn The database connection to use in the case that a recipe is not populated yet
@@ -372,7 +377,7 @@ public class CustomerCreation extends Item {
             if (!rs.next())
                 return;
             do {
-                this.ingredients.add(Recipe.parseRecipeFromRS(rs, conn));
+                this.addIngredient(Recipe.parseRecipeFromRS(rs, conn));
             } while (rs.next());
             return;
 
@@ -390,13 +395,13 @@ public class CustomerCreation extends Item {
         try {
             this.price = 0;
             PreparedStatement getRecipes = conn.prepareStatement("SELECT * FROM recipes WHERE recipe_id=?");
-            getRecipes.setInt(1,this.id);
+            getRecipes.setInt(1, this.id);
             ResultSet rs = getRecipes.executeQuery();
             if (!rs.next())
                 return;
             do {
                 Recipe rec = Recipe.parseRecipeFromRS(rs, conn, l);
-                this.ingredients.add(rec);
+                this.addIngredient(rec);
                 
             } while (rs.next());
             return;

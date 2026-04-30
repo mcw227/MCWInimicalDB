@@ -39,7 +39,7 @@ public class DatabaseCLI {
         String resp = "";
         System.out.println("Welcome!");
         try (Scanner scn = new Scanner(System.in)) {
-            while (!resp.equals("q") && !resp.equalsIgnoreCase("quit")) {
+            while (!resp.equalsIgnoreCase("q") && !resp.equalsIgnoreCase("quit")) {
                 System.out.println("Would you like to login to the customer (c), management (m), or testing (t) interface? You may also quit (q)");
                 resp = scn.nextLine();
                 if (resp.equalsIgnoreCase("C") || resp.equalsIgnoreCase("customer")) {
