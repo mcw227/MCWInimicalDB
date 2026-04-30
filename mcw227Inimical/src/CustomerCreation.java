@@ -383,6 +383,29 @@ public class CustomerCreation extends Item {
         }
     }
 
+    /**
+     * Populates a customer creations' item list
+     */
+    public void populateRecipe(Connection conn, Location l) {
+        try {
+            this.price = 0;
+            PreparedStatement getRecipes = conn.prepareStatement("SELECT * FROM recipes WHERE recipe_id=?");
+            getRecipes.setInt(1,this.id);
+            ResultSet rs = getRecipes.executeQuery();
+            if (!rs.next())
+                return;
+            do {
+                this.ingredients.add(Recipe.parseRecipeFromRS(rs, conn, l));
+            } while (rs.next());
+            return;
+
+        } catch (Exception e) {
+            System.out.println("Unable to update populate recipe. Try again later.");
+            //e.printStackTrace();
+            return;
+        }
+    }
+
     @Override
     public String getSummary(Connection conn) {
         return getPrintableRecipeSummary(conn);
