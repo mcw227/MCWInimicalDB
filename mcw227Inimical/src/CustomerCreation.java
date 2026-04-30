@@ -123,7 +123,7 @@ public class CustomerCreation extends Item {
             PreparedStatement addToMenu = conn.prepareStatement("INSERT INTO menu_items (menu_id, item_id) VALUES (?,?)");
             conn.setAutoCommit(false);
             addCC.setString(1, cc.name);
-            addCC.setDouble(2, cc.price);
+            addCC.setDouble(2, 0);
             addCCtoCCList.setString(2, cc.creator);
             addToMenu.setInt(1, lm.id);
             

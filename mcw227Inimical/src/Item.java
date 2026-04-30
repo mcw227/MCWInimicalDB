@@ -246,6 +246,7 @@ public class Item {
                 ((CustomerCreation)r_item).populateRecipe(conn, l);
                 return r_item;
             } else {
+                System.out.println("Ur mom");
                 PriceChange pr = l.fetchPriceChange(r_item.id);
                 if (pr == null) {
                     r_item.price *= l.sales_tax;

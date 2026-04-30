@@ -236,14 +236,14 @@ BEGIN
 
     IF INSERTING THEN
         SELECT price INTO ingredient_price
-        FROM ingredients
+        FROM items
         WHERE id = :NEW.ingredient_id;
 
         added_cost := ingredient_price * :NEW.quantity;
 
     ELSIF DELETING THEN
         SELECT price INTO ingredient_price
-        FROM ingredients
+        FROM items
         WHERE id = :OLD.ingredient_id;
 
         added_cost := ingredient_price * :OLD.quantity * -1;

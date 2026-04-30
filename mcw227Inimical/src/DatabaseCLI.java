@@ -51,7 +51,8 @@ public class DatabaseCLI {
                 }
 
                 else if (resp.equalsIgnoreCase("T") || resp.equalsIgnoreCase("TESTING")) {
-                    System.out.println(Item.fetchItems(conn));
+                    CustomerCreation cc = (CustomerCreation)Item.createItemFromID(conn, 221, 76);
+                    System.out.print(cc.getPrintableRecipeSummary(conn));
                     Helper.nextOK(scn);
                 }
 
