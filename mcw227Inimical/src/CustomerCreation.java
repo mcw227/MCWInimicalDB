@@ -5,6 +5,7 @@ import java.util.Scanner;
 /** Customer creation object  */
 public class CustomerCreation extends Item {
     private final int ITEM_PAGE_SIZE = 10;
+    private final double MAX_PRICE = 99999999.99;
     public ArrayList<Recipe> ingredients;
     public String creator;
 
@@ -112,6 +113,10 @@ public class CustomerCreation extends Item {
      * @param lm The menu to add it to
      */
     public static boolean addItem(Connection conn, CustomerCreation cc, Menu lm) {
+        if (cc.price > 99999999.99) {
+            System.out.println("PRICE TOO HIGH!");
+            return false;
+        }
         try {
             PreparedStatement addCC = conn.prepareStatement("INSERT INTO items (name, price) VALUES (?, ?)", new String[]{"ID"});
             PreparedStatement addCCtoCCList = conn.prepareStatement("INSERT INTO customer_creations (id, creator) VALUES (?,?)");
@@ -298,6 +303,11 @@ public class CustomerCreation extends Item {
                     Helper.clearConsole();
                     break;
                 case 6:
+                    if (this.price > MAX_PRICE) {
+                        System.out.println("Price too high! Please remove some items. Type anything to continue.");
+                        Helper.nextOK(scn);
+                        break;
+                    }
                     return true;
                 default:
                     break;

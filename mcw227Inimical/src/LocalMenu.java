@@ -151,8 +151,12 @@ public class LocalMenu extends Menu {
                     lm.editMenu(scn);
                     break;
                 case (-6):
-                    if (lm.addMenu(conn))
+                    if (lm.addMenu(conn)) {
+                        System.out.println("Menu added successfully. Type anything to continue.");
+                        Helper.nextOK(scn);
                         return true;
+                    }
+
                     break;
                 default:
                     Item n_i = items.stream().filter(it -> it.id == r).findFirst().orElse(null);

@@ -400,8 +400,8 @@ public class Menu {
         while(true) {
             Helper.clearConsole();
             m.printCurrentPage();
-            System.out.println("Press (n)ext, (p)revious, an id to edit/check a menu, or (q)uit.");
-            int resp = Helper.nextPNQID(scn);
+            System.out.println("Press (n)ext, (p)revious, an id to edit/check a menu, (d)elete, or (q)uit.");
+            int resp = Helper.nextPNQDID(scn);
             if (resp == -2)
                 return;
             
@@ -411,6 +411,12 @@ public class Menu {
                     break;
                 case (-4):
                     m.nextPage();
+                    break;
+                case (-5):
+                    if (Menu.delMenuScreen(conn, scn, menus)) {
+                        menus = Menu.fetchMenus(conn, l);
+                        m = new Pager<Menu>(menus, MAX_PAGE_SIZE);
+                    }
                     break;
                 default:
                     if (resp < 0)
@@ -427,6 +433,45 @@ public class Menu {
             }
         }
         
+    }
+
+    /**
+     * Allows a user to delete a menu from the provided list of menus
+     * @param conn The database connection to use
+     * @param scn the scanner to grab input from
+     * @param m The list of menus the user may delete from
+     */
+    public static boolean delMenuScreen(Connection conn, Scanner scn, ArrayList<Menu> m) {
+        if (m == null || m.size() == 0)
+            return false;
+        System.out.println("Which menu would you like to delete? (Can type (q)uit to quit.)");
+        while (true) {
+            int r = Helper.nextId(scn);
+            if (r == -2)
+                return false;
+            else if (m.stream().anyMatch(men -> men.id == r))
+                return delMenu(conn, r);
+            System.out.println("Not a valid id!");
+        }
+    }
+
+    /**
+     * Allows the deletion of a menu from the database
+     * @param conn The database connection to use
+     * @param id The id of the menu to delete
+     */
+    public static boolean delMenu(Connection conn, int id) {
+        if (id > 0 && id < 4) //cannot delete master menus!
+            return false;
+        try {
+            PreparedStatement delMenu = conn.prepareStatement("DELETE FROM menus WHERE id = ?");
+            delMenu.setInt(1, id);
+            delMenu.executeQuery();
+            return true;
+        } catch (Exception e) {
+            System.out.printf("Unable to delete menu with ID: %d from database. Try again later.", id);
+            return false;
+        }
     }
 
     /**

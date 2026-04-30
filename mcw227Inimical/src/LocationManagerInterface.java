@@ -197,6 +197,7 @@ public class LocationManagerInterface {
      * @param e The employee making the change
      */
     public static void lmPriceChange(Connection conn, Scanner scn, Employee e) {
+        PriceChange.priceChangeScreen(conn, scn, e.location);
         return;
     }
 

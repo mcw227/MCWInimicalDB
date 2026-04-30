@@ -241,6 +241,59 @@ public final class Helper {
     }
 
     /**
+     * Obtains a safe double input from the user that must be less than the provided maximum, also allows the user to quit.
+     * @param scn The scanner to grab input from
+     * @param max The max value to be accepted
+     * @return the Double if it is corect, or -2 if the user quits.
+     */
+    public static double nextSafeDouble(Scanner scn, double max) {
+        while (true) {
+            try {
+                String resp = scn.nextLine();
+                if (resp.equalsIgnoreCase("q") || resp.equalsIgnoreCase("quit"))
+                    return -2.0;
+                double r = Double.parseDouble(resp);
+                if (r < 0 || r > max)
+                    System.out.printf("Number cannot be less than zero, nor greater than %f", max);
+                else
+                    return r;
+            } catch (NumberFormatException e) {
+                System.out.println("Please enter a float.");
+            }
+        }
+    }
+
+    /**
+     * This function handles previous/next/quit/delete input from user while also allowing them to .
+     * @param scn The scanner to grab input from
+     * @return -3 if user types previous, -4 if user types next, -6 if user types delete, -2 if user quits. Retries until a valid input is reached.
+     */
+    public static int nextPNQDID(Scanner scn) {
+        while (true) {
+            String resp = scn.nextLine();
+            try {
+                int id = Integer.parseInt(resp);
+                if (id <= 0) {
+                    System.out.println("ID must be greater than 0.");
+                } else {
+                    return id;
+                }
+            } catch (NumberFormatException e) {
+                if (resp.equalsIgnoreCase("q") || resp.equalsIgnoreCase("quit"))
+                    return -2;
+                else if (resp.equalsIgnoreCase("p") || resp.equalsIgnoreCase("previous"))
+                    return -3;
+                else if (resp.equalsIgnoreCase("n") || resp.equalsIgnoreCase("next"))
+                    return -4;
+                else if (resp.equalsIgnoreCase("d") || resp.equalsIgnoreCase("delete"))
+                    return -5;
+                System.out.println("Please type either (n)ext, (p)revious, (d)elete or (q)uit");
+            }
+           
+        }
+    }
+
+    /**
      * Handles user new/check/quit input
      * @param scn The scanner to grab input from
      * @return 1 if user wants new, 2 if user checks, -2 if user quits
@@ -306,6 +359,7 @@ public final class Helper {
         }
         return -2;
     }
+
 
     /**
      * This function handles previous/next/quit/add/delete/select input from user.
