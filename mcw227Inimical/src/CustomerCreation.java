@@ -343,6 +343,24 @@ public class CustomerCreation extends Item {
         return r;
     }
 
+     /**
+     * Prints a recipe summary of the customer creation object
+     * @param conn The database connection to use in the case that a recipe is not populated yet
+     * @param l The location to obtain prices from
+     */
+    public String getPrintableRecipeSummary(Connection conn, Location l) {
+        String r = "";
+        r += String.format("ID:%-3d\tNAME:%-50s\n", this.id, this.name);
+        if (ingredients == null || ingredients.size() == 0) {
+            this.populateRecipe(conn,l);
+        }
+        for (Recipe rec : ingredients) {
+            r += "\t" + rec.recipeItemSummary() + "\n";
+        }
+        r+= String.format("PRICE: %.2f\n", this.price);
+        return r;
+    }
+
     /**
      * Populates a customer creations' item list
      */
