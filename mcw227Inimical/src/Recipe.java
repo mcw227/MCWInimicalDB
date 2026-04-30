@@ -35,6 +35,16 @@ public class Recipe {
         this.ingredient = item;
     }
 
+    /**
+     * A helpful constructor that automatically populates the ingredients' details when possible
+     */
+    public Recipe(int r_id, int i_id, int quantity, Connection conn, Location l) {
+        this.recipe_id = r_id;
+        this.ingredient_id = i_id;
+        this.quantity = quantity;
+        getIngredientDetails(conn, l);
+    }
+
     /** Standard to string */
     public String toString() {
         return String.format("RECIPE ID:%-3d\t| INGREDIENT ID: %-3d\t| QUANTITY %-3d", this.recipe_id, this.ingredient_id, this.quantity);
