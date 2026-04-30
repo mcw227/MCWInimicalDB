@@ -177,8 +177,8 @@ public class PriceChange {
      */
     public static boolean addPCScreen(Connection conn, Scanner scn, ArrayList<PriceChange> price_changes, Location l) {
         ArrayList<Item> allowed_items = SignatureItem.fetchSignatures(conn);
-
-        System.out.println("What is the id of the item whose price you'd like to change?");
+        Helper.clearConsole();
+        System.out.println("What is the id of the item whose price you'd like to change? Note than only signature items may be changed..");
         int id = 0;
         boolean edit = false;
         while (id == 0) {
@@ -212,6 +212,7 @@ public class PriceChange {
      * @param l The location to add the price change to.
      */
     public static boolean delPCScreen(Connection conn, Scanner scn, ArrayList<PriceChange> price_changes, Location l) {
+        Helper.clearConsole();
         System.out.println("What is the id of the item whose price change you'd like to remove");
         int id = 0;
         while (id == 0) {
