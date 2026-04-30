@@ -153,7 +153,7 @@ CREATE TABLE price_change (
     price number(5,2),
     CONSTRAINT pc_item_fk
         FOREIGN KEY (item_id)
-        REFERENCES signature_items(id) ON DELETE CASCADE,
+        REFERENCES items(id) ON DELETE CASCADE,
     CONSTRAINT pc_location_fk
         FOREIGN KEY (location_id)
         REFERENCES locations(id) ON DELETE CASCADE,
@@ -236,14 +236,14 @@ BEGIN
 
     IF INSERTING THEN
         SELECT price INTO ingredient_price
-        FROM ingredients
+        FROM items
         WHERE id = :NEW.ingredient_id;
 
         added_cost := ingredient_price * :NEW.quantity;
 
     ELSIF DELETING THEN
         SELECT price INTO ingredient_price
-        FROM ingredients
+        FROM items
         WHERE id = :OLD.ingredient_id;
 
         added_cost := ingredient_price * :OLD.quantity * -1;

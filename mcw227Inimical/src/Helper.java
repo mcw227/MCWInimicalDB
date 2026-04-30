@@ -33,13 +33,15 @@ public final class Helper {
      * @return A positive integer or -1
      */
     public static int nextId(Scanner scn) {
-        try {
+        while (true) {
+            try {
             String resp = scn.nextLine();
             if (resp.equalsIgnoreCase("q") || resp.equalsIgnoreCase("quit")) return -2;
             return Integer.parseInt(resp);
-        } catch (Exception e) {
-            return -1;
-        }
+            } catch (Exception e) {
+                System.out.println("Please type an id");
+            }
+        }  
     }
 
 

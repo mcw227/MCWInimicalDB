@@ -84,6 +84,8 @@ public final class CustomerInterface {
             Helper.clearConsole();
             printCMenu(c);
             resp = Helper.nextId(scn);
+            if (resp == -2)
+                return;
             if (resp == 0 || resp > 7 || resp == -1) {
                 System.out.println("Please pick a valid option!");
             } else if (resp != -2) {

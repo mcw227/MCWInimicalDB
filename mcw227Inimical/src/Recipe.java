@@ -86,7 +86,7 @@ public class Recipe {
      * Parses a recipe from a result set, fills its item information
      * @param rs The result set to parse
      * @param conn The database connection to fill item information from
-     * @param l The location to generate local prices from
+     * @param l The location to grab prices from, if necessary
      * @return A recipe if the RS is valid, or null if not
      */
     public static Recipe parseRecipeFromRS(ResultSet rs, Connection conn, Location l) {
@@ -100,6 +100,7 @@ public class Recipe {
         }
     }
 
+
     /**
      * Populates the ingredient field using the ingredient id
      * @param conn The database connection to use.
@@ -109,11 +110,12 @@ public class Recipe {
     }
 
     /**
-     * Populates the ingredient field using the ingredient id and the local ingredient cost
+     * Populates the ingredient field using the ingredient id
      * @param conn The database connection to use.
      */
     public void getIngredientDetails(Connection conn, Location l) {
-        this.ingredient = Item.createItemFromID(conn, this.ingredient_id, l);
+        Item i = Item.createItemFromID(conn, this.ingredient_id, l.id);
+        this.ingredient = i;
     }
 
     /**
@@ -126,23 +128,5 @@ public class Recipe {
         addRecipe.setInt(3, this.quantity);
         addRecipe.executeUpdate();
         return true;
-    }
-
-        /**
-     * Parses a recipe from a result set, fills its item information
-     * @param rs The result set to parse
-     * @param conn The database connection to fill item information from
-     * @param l The location to generate local prices from
-     * @return A recipe if the RS is valid, or null if not
-     */
-    public static Recipe parseRecipeFromRS(ResultSet rs, Connection conn, Location l) {
-        try {
-            int r_id = rs.getInt("recipe_id");
-            int i_id = rs.getInt("ingredient_id");
-            int quantity = rs.getInt("quantity");
-            return new Recipe(r_id, i_id, quantity, conn, l);
-        } catch (Exception e) {
-            return null;
-        }
     }
 }

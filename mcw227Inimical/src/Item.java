@@ -171,6 +171,7 @@ public class Item {
                 return new Item(id, name, price);
             }
         } catch (Exception e) {
+            //e.printStackTrace();
             return null;
         }
      
@@ -212,7 +213,7 @@ public class Item {
      * @return The item found in the database, or null if it did not exist. Can be sig or customer creation
      */
     public static Item createItemFromID(Connection conn, int query_id, int loc_id) {
-        Location l = fetchLocation(conn, loc_id);
+        Location l = Location.fetchLocation(conn, loc_id);
         if (l == null) {
             System.out.println("Invalid location.");
             return null;
@@ -233,7 +234,7 @@ public class Item {
             r_item = parseItemFromRS(rs_gi);
 
             if (CustomerCreation.class.isInstance(r_item)) {
-                r_item.populateRecipe(conn, l) 
+                ((CustomerCreation)r_item).populateRecipe(conn, l);
                 return r_item;
             } else {
                 PriceChange pr = l.fetchPriceChange(r_item.id);

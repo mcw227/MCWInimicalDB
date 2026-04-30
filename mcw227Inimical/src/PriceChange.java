@@ -179,7 +179,7 @@ public class PriceChange {
     public static boolean addPCScreen(Connection conn, Scanner scn, ArrayList<PriceChange> price_changes, Location l) {
         ArrayList<Item> allowed_items = SignatureItem.fetchSignatures(conn);
         Helper.clearConsole();
-        System.out.println("What is the id of the item whose price you'd like to change? Note than only signature items may be changed..");
+        System.out.println("What is the id of the item whose price you'd like to change? Note that while we do not stop you from creating price changes on customer creations, they will not go into effect unless those items are turned into staple items or ingredients!.");
         int id = 0;
         boolean edit = false;
         while (id == 0) {

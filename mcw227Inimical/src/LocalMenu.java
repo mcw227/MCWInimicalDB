@@ -59,17 +59,19 @@ public class LocalMenu extends Menu {
             }
             else {
                 do {
-                    Item newItem = Item.parseItemFromRS(rs);
-                    PriceChange pr;
-                    if (CustomerCreation.class.isInstance(newItem)) {
-                        ((CustomerCreation)newItem).populateRecipe(conn, this.location); //this fills the cc with location-matched prices
-                        pr = null;
+                    Item r_item = Item.parseItemFromRS(rs);
+                    if (CustomerCreation.class.isInstance(r_item)) {
+                        ((CustomerCreation)r_item).populateRecipe(conn, this.location);
+                    } else {
+                        PriceChange pr = this.location.fetchPriceChange(r_item.id);
+                        if (pr == null) {
+                            r_item.price *= this.location.sales_tax;
+                        } else {
+                            r_item.price = pr.price * this.location.sales_tax;
+                        }
+                        
                     }
-                    else { pr = this.location.fetchPriceChange(newItem.id); }
-                    if (pr != null)
-                        newItem.price = pr.price;
-                    newItem.price *= this.location.sales_tax;
-                    this.items.add(newItem);
+                    this.items.add(r_item);
                 } while (rs.next());
             }
         } catch (Exception e) {
