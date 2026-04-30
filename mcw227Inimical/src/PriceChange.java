@@ -25,7 +25,7 @@ public class PriceChange {
      * Standard to string
      */
     public String toString() {
-        return String.format("LOCATION ID: %-5d\t| ITEM ID: %-5d\t| NEW PRICE: %10.2f", this.item_id, this.price);
+        return String.format("LOCATION ID: %-5d\t| ITEM ID: %-5d\t| NEW PRICE: %10.2f", this.location_id, this.item_id, this.price);
     }
 
     /**
@@ -87,6 +87,7 @@ public class PriceChange {
             return true;
         } catch (Exception e) {
             System.out.println("Could not edit the price change in the database. Try again later.");
+            e.printStackTrace();
             return false;
         }
     }
@@ -187,8 +188,10 @@ public class PriceChange {
                 return false;
             if (!allowed_items.stream().anyMatch(i -> i.id == r))
                 System.out.println("Please input the id of a valid item.");
-            else if (price_changes.stream().anyMatch(p -> p.item_id == r))
+            else if (price_changes.stream().anyMatch(p -> p.item_id == r)) {
                 edit = true;
+                id = r;
+            }
             else
                 id = r;
         }

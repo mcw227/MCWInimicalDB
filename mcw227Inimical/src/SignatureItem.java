@@ -95,8 +95,8 @@ public class SignatureItem extends Item {
      * Obtains all signature items currently in the database.
      * @param conn The database connection to use
      */
-    public static ArrayList<SignatureItem> fetchSignatures(Connection conn) {
-        ArrayList<SignatureItem> signature_items = new ArrayList<>();
+    public static ArrayList<Item> fetchSignatures(Connection conn) {
+        ArrayList<Item> signature_items = new ArrayList<>();
         try {
             PreparedStatement fetchSignatures = conn.prepareStatement("SELECT * FROM signature_item_view");
                 ResultSet rs = fetchSignatures.executeQuery();

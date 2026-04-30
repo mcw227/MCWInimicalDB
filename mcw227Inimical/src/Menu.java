@@ -54,7 +54,7 @@ public class Menu {
             this.items = filled_items;
         } catch (Exception e) {
             System.out.println("Unable to populate menu. Try again later.");
-            e.printStackTrace(); //debug
+            //e.printStackTrace(); //debug
         }
     }
 
@@ -64,7 +64,6 @@ public class Menu {
      * @param i The item to add to the menu
      */
     public boolean addItem(Connection conn, Item i) throws SQLException {
-        System.out.printf("MENU ID: %d | ITEM ID: %d\n",this.id, i.id);
         PreparedStatement addItem = conn.prepareStatement("INSERT INTO menu_items (menu_id, item_id) VALUES (?,?)");
         addItem.setInt(1, this.id);
         addItem.setInt(2, i.id);
@@ -148,7 +147,7 @@ public class Menu {
             return rm;
         } catch (Exception e) {
             System.out.printf("Could not get a populated menu with ID: %d\n", id);
-            e.printStackTrace(); //debug
+            //e.printStackTrace(); //debug
         }
         return null;
     }
@@ -281,7 +280,7 @@ public class Menu {
             return true;
         } catch (Exception e) {
             System.out.println("Could not add menu to database.");
-            e.printStackTrace();
+            //e.printStackTrace();
             try {
                 conn.rollback();
                 return false;
@@ -489,6 +488,7 @@ public class Menu {
 
         Menu m = null;
         while (m == null) {
+            Helper.clearConsole();
             System.out.println("Which would you like to do?\n\t1. Start From Scratch\n\t2. Start From Existing Menu\n Can also type (q)uit.");
             int r = Helper.nextId(scn);
             if (r == -2)
