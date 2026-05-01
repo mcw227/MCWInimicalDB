@@ -31,10 +31,10 @@ public class OrderItem extends Item {
      * @param i The order item to add
      */
     public static boolean addOrderItem(Connection conn, OrderItem i) throws SQLException {
-        PreparedStatement addItem = conn.prepareStatement("INSERT INTO order_items (order_id, name, price, quantity) VALUES (?,?,?,?)");
-        addItem.setString(2, i.name);
-        addItem.setDouble(3,i.price);
+        PreparedStatement addItem = conn.prepareStatement("INSERT INTO order_items (order_id, item_id, price, quantity) VALUES (?,?,?)");
+        addItem.setDouble(3, i.price);
         addItem.setInt(1, i.order_id);
+        addItem.setInt(2, i.id);
         addItem.setInt(4, i.quantity);
 
         System.out.print("Adding order item to Database...");
@@ -48,10 +48,10 @@ public class OrderItem extends Item {
      * @param conn The database connection to use
      */
     public boolean addOrderItem(Connection conn) throws SQLException {
-        PreparedStatement addItem = conn.prepareStatement("INSERT INTO order_items (order_id, name, price, quantity) VALUES (?,?,?,?)");
-        addItem.setString(2, this.name);
+        PreparedStatement addItem = conn.prepareStatement("INSERT INTO order_items (order_id, item_id, price, quantity) VALUES (?,?,?,?)");
         addItem.setDouble(3,this.price);
         addItem.setInt(1, this.order_id);
+        addItem.setInt(2, this.id);
         addItem.setInt(4, this.quantity);
 
         System.out.print("Adding order item to Database...");

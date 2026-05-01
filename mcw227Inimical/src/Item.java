@@ -328,6 +328,71 @@ public class Item {
     }
 
     /**
+     * Prints the items's data summary
+     * @param conn The connection to the database
+     * @param scn The scanner to grab input from
+     */
+    public void printItemSummary(Connection conn, Scanner scn) {
+        try {
+            Helper.clearConsole();
+            PreparedStatement totalSales = conn.prepareStatement("select sum(order_items.quantity) as total_items from order_items where order_items.item_id = ?");
+            totalSales.setInt(1, this.id);
+            ResultSet rs = totalSales.executeQuery();
+
+            int totalItems = 0;
+            double totalGross = 0.0;
+            String topFive = "";
+
+            if (!rs.next())
+                throw new Exception("No data found for location.");
+            
+            totalItems = rs.getInt("total_items");
+            
+            PreparedStatement getTotalGross = conn.prepareStatement("select sum(order_items.price) as gross_total from order_items where order_items.item_id = ?");
+
+            getTotalGross.setInt(1, this.id);
+            rs = getTotalGross.executeQuery();
+
+            if (!rs.next())
+                throw new Exception("No data found for location.");
+            
+            totalGross = rs.getDouble("gross_total");
+
+
+            PreparedStatement rankedLocations = conn.prepareStatement("select locations.address, locations.id, sum(order_items.price) as total_gross, sum(order_items.quantity) as total_sold, dense_rank() over (order by sum(order_items.price) DESC) as item_rank from orders join order_items on order_items.order_id = orders.id join locations on locations.id = orders.location_id where order_items.item_id = ? group by locations.id, locations.address order by item_rank ASC FETCH FIRST 5 ROWS ONLY");
+            rankedLocations.setInt(1, this.id);
+
+            rs = rankedLocations.executeQuery();
+            if (!rs.next())
+                topFive = "\nItem has no sales yet.";
+            
+            else {
+                do {    
+                    int location_id = rs.getInt("id");
+                    String location_address = rs.getString("address");
+                    double gross = rs.getDouble("total_gross");
+                    int total_sold = rs.getInt("total_sold");
+                    int rank = rs.getInt("item_rank");
+                    topFive += String.format("RANK: %-4d\t| ID:%-5d\t| ADDRESS: %-50s\t| AMOUNT SOLD: $%-6.2f\t| GROSS EARNINGS: $%.2f\n\n", rank, location_id, location_address, total_sold, gross);
+                } while (rs.next());
+            }
+
+            System.out.printf("SUMMARY FOR ITEM WITH ID: %d\n\tNAME: %s\n\tTOTAL ITEMS SOLD: %d\tGROSS TOTAL: %.2f\n\t\n--- TOP FIVE ITEMS ---\n", this.id, this.name, totalItems, totalGross);
+            System.out.println(topFive);
+
+            System.out.println("\nType anything to continue.");
+            Helper.nextOK(scn);
+            return;
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Could not generate statistics from the database. Try again later.");
+            System.out.println("Type anything to continue.");
+            Helper.nextOK(scn);
+            return;
+        }
+    } 
+
+    /**
      * Summarizes an item. Prints the recipe if it is a customer creation
      * @param i The item to summarize
      * @return A string summarizing the item's details

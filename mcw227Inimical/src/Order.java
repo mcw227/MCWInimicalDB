@@ -217,7 +217,7 @@ public class Order {
     public boolean addOrder(Connection conn) {
         try {
             conn.setAutoCommit(false);
-            PreparedStatement addOrder = conn.prepareStatement("INSERT INTO orders (location_id, customer_id, payment_id, status, total) VALUES (?, ?, ?, ?, ?)");
+            PreparedStatement addOrder = conn.prepareStatement("INSERT INTO orders (location_id, customer_id, payment_id, status, total) VALUES (?, ?, ?, ?, ?)", new String[] {"ID"});
             addOrder.setInt(1, this.location.id); addOrder.setInt(2, this.customer_id);
             addOrder.setInt(3, this.payment_id); addOrder.setInt(4, this.status);
             addOrder.setDouble(5, this.total);
@@ -228,18 +228,25 @@ public class Order {
                     if (rs.next()) {
                         int newId = (int)rs.getLong(1);
                         for (OrderItem item : this.bag) {
+                            System.out.println("ADDING ITEM TO DB");
                             item.order_id = newId;
                             item.addOrderItem(conn);
                         }
+                        conn.commit();
                     }
+                } catch (Exception f) {
+                    f.printStackTrace();
+                    throw new Exception("Failed to acquire generated id!");
                 }
+            } else {
+                throw new Exception("Failed to execute update!");
             }
             return true;
         } catch (Exception e) {
             try {
                 conn.rollback();
                 System.out.println("Could not place order. Try again later.");
-                //e.printStackTrace(); //debug
+                e.printStackTrace(); //debug
                 return false;
             } catch (Exception f) {
                 System.err.println("Critical database error. Please restart software.");

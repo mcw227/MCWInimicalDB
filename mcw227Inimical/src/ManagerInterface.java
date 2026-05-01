@@ -65,8 +65,8 @@ public class ManagerInterface {
      */
     static void mMenu(Connection conn, Scanner scn, Employee e) {
         int resp = 0;
-        Helper.clearConsole();
         while (resp != -2) {
+            Helper.clearConsole();
             printMMenu(e);
             resp = Helper.nextId(scn);
             switch (resp) {
@@ -110,6 +110,11 @@ public class ManagerInterface {
      * @param scn The scanner to grab input from
      */
     public static void mViewItems(Connection conn, Scanner scn) {
-        return;
+        while (true) {
+            Item i = Item.itemSelectScreen(conn, scn);
+            if (i == null)
+                return;
+            i.printItemSummary(conn, scn);
+        }
     }
 }
