@@ -134,7 +134,7 @@ CREATE TABLE order_items (
     order_id NUMBER,
     item_id NUMBER,
     quantity NUMBER NOT NULL,
-    price NUMBER(5,2) NOT NULL, --individual item cost. This needs to be set like this to account for price adjustments based on location
+    price NUMBER(10,2) NOT NULL, --individual item cost. This needs to be set like this to account for price adjustments based on location
     CONSTRAINT order_id_fk
         FOREIGN KEY (order_id)
         REFERENCES orders(id) ON DELETE CASCADE,
