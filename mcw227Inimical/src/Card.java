@@ -108,6 +108,7 @@ public class Card {
             return Card.removeCard(c, conn, id);
         } catch (Exception e) {
             System.out.println("Unable to remove card from database, please try again later.");
+            e.printStackTrace();
             return false;
         }
     }
@@ -157,10 +158,10 @@ public class Card {
             resp = Helper.safeCheckQuit(scn, MAX_CARD_NUM_LEN);
             if (resp == null)
                 return false;
-            if (!Helper.matchRegex(resp, "\\d+$"))
-                resp = null;
-            else
+            if (!Helper.matchRegex(resp, "\\d+$")) {
                 System.out.println("Should not contain spaces or non-numerics");
+                resp = null;
+            }
         }
         card_number = resp;
 
