@@ -64,6 +64,52 @@ public class ManagerInterface {
      * @param e
      */
     static void mMenu(Connection conn, Scanner scn, Employee e) {
+        int resp = 0;
+        Helper.clearConsole();
+        while (resp != -2) {
+            printMMenu(e);
+            resp = Helper.nextId(scn);
+            switch (resp) {
+                case (1):
+                    mViewLocations(conn, scn);
+                    break;
+                case (2):
+                    mViewItems(conn, scn);
+                    break;
+            }
+        }
+    }
+
+    /**
+     * Prints the Manager options menu
+     * @param e Employee who is currently logged in
+     */
+    public static void printMMenu(Employee e) {
+        System.out.flush();
+        System.out.printf("\n\nHello, %s! Welcome to the statistics portal!", e.name);
+        System.out.printf("\nWhat would you like to do today?\n\t1. View Location Sales Summaries\n\t2. View Item Summaries\n");
+    }
+
+    /**
+     * Prints basic location summary metrics
+     * @param conn The database connection to use
+     * @param scn The scanner to grab input from
+     */
+    public static void mViewLocations(Connection conn, Scanner scn) {
+        while (true) {
+            Location l = Location.locationSelectScreen(conn, scn);
+            if (l == null)
+                return;
+            l.printLocSummary(conn, scn);
+        }
+    }
+
+    /**
+     * Prints basic item summary metrics
+     * @param conn The database connection to use
+     * @param scn The scanner to grab input from
+     */
+    public static void mViewItems(Connection conn, Scanner scn) {
         return;
     }
 }

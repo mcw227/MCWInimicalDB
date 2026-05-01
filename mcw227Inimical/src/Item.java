@@ -6,6 +6,9 @@ import java.util.ArrayList;
 
 /** Note that type can either be "creation", "signature" or  */
 public class Item {
+
+    private static final int ITEM_PAGE_SIZE = 10;
+
     public int id;
     public String name;
     public double price;
@@ -283,6 +286,43 @@ public class Item {
                 Helper.nextOK(scn);
                 Helper.clearConsole();
                 return;
+            }
+        }
+    }
+
+    /**
+     * Allows the selection of items
+     * @param conn The database connection to use
+     * @param scn The scanner to grab input from
+     * @return An item or null if the user decided to quit
+     * NEEDS TO BE IMPLEMENTED!
+     */
+    public static Item itemSelectScreen(Connection conn, Scanner scn) {
+        Helper.clearConsole();
+        Pager<Item> items = new Pager<>(Item.fetchItems(conn), ITEM_PAGE_SIZE);
+        while (true) {
+            items.printCurrentPage();
+            if (!items.list.isEmpty()) {
+                System.out.println("Press n to go to next page, p to go to previous, q to quit.");
+                System.out.println("Please select an item using an id.");
+                int resp = Helper.nextPNQID(scn);
+                switch (resp) {
+                    case -2:
+                        return null;
+                    case -3:
+                        Helper.clearConsole();
+                        items.previousPage();
+                        break;
+                    case -4:
+                        Helper.clearConsole();
+                        items.nextPage();
+                        break;
+                    default:
+                        return items.list.stream().filter(item -> item.id == resp).findFirst().orElse(null); //returns the location object
+                }
+            }
+            else {
+                return null;
             }
         }
     }

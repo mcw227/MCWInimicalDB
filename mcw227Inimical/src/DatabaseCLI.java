@@ -51,36 +51,21 @@ public class DatabaseCLI {
                 }
 
                 else if (resp.equalsIgnoreCase("T") || resp.equalsIgnoreCase("TESTING")) {
-                    CustomerCreation cc = (CustomerCreation)Item.createItemFromID(conn, 221, 76);
-                    System.out.print(cc.getPrintableRecipeSummary(conn));
+                    Item item = Item.itemSelectScreen(conn, scn);
+                    System.out.println(item);
                     Helper.nextOK(scn);
                 }
 
                 else if (!resp.equalsIgnoreCase("q") && !resp.equalsIgnoreCase("quit")) {
                     System.out.println("Please pick a valid interface!");
                 }
+                Helper.clearConsole();
             }
         } catch (Exception e) {
             System.err.println("An unexpected error occured.");
             e.printStackTrace();
         }
         System.out.println("Goodbye! :)");
-        return;
-    }
-
-    /**
-     * Location Manager Interface Functions
-     */
-    static void lmInterface(Connection conn, Scanner scn) {
-        System.out.println("Enter your location manager id:");
-        return;
-    }
-
-    /**
-     * General Manager Interface Functions
-     */
-    static void gmInterface(Connection conn, Scanner scn) {
-        System.out.println("Enter your general manager id:");
         return;
     }
 
