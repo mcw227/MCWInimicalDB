@@ -60,6 +60,7 @@ public class Card {
 
         System.out.print("Adding card to Database...");
         addCard.executeUpdate();
+        addCard.close();
         System.out.println("Done!");
         return true;
     }
@@ -86,10 +87,12 @@ public class Card {
         int row_update = delCard.executeUpdate();
         if (row_update == 0) {
             System.out.printf("Card with id %d not found!\n", id);
+            delCard.close();
             return false;
         }
         else {
             System.out.println("Done!");
+            delCard.close();
             return true;
         }
     }
@@ -237,10 +240,10 @@ public class Card {
 
                 cards.add(new Card(id, cid, brand, name, card_number, expr_date, cvv));
             } while (rs.next()); //since we checked rs.next() above we have to use a do while loop instead, otherwise we skip the first one :(
-
+            getCards.close();
         } catch (Exception e) {
             System.out.println("Could not query Database for cards. Please try again later.");
-            e.printStackTrace(); //debug
+            //e.printStackTrace(); //debug
             return null;
         }
         return cards;

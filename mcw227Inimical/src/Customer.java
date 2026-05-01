@@ -71,7 +71,7 @@ public class Customer {
                 c.id = newId;
             }
  
-
+            addCustomer.close();
             return true;
         } catch (Exception e) {
             System.out.println("Could not add customer to database. Try again later");
@@ -144,6 +144,8 @@ public class Customer {
                 cancelMembership.executeUpdate();
                 setPointsZero.executeUpdate();
                 conn.commit();
+                cancelMembership.close();
+                setPointsZero.close();
                 System.out.println("Done!");
                 return true;
             } catch (Exception e) {
@@ -223,6 +225,7 @@ public class Customer {
             System.out.print("Enrolling in membership... ");
             enrollMembership.executeUpdate();
             System.out.println("Done!");
+            enrollMembership.close();
             return true;
         } catch (Exception e) {
             System.out.println("Could not update membership status. Please try again later.");
@@ -245,6 +248,7 @@ public class Customer {
             System.out.print("Enrolling in membership... ");
             enrollMembership.executeUpdate();
             System.out.println("Done!");
+            enrollMembership.close();
             return true;
         } catch (Exception e) {
                 System.out.println("Could not update membership status. Please try again later.");
@@ -267,6 +271,7 @@ public class Customer {
             emailChange.setInt(2, this.id);
             emailChange.executeUpdate();
             System.out.println("email updated.");
+            emailChange.close();
             return true;
         } catch (Exception e) {
             System.out.println("Could not update customer email. Please try again later.");
@@ -291,6 +296,7 @@ public class Customer {
             emailChange.setInt(2, id);
             emailChange.executeUpdate();
             System.out.println("email updated.");
+            emailChange.close();
             return true;
         } catch (Exception e) {
             System.out.println("Could not update customer email. Please try again later.");
@@ -314,6 +320,7 @@ public class Customer {
             nameChange.setInt(2, this.id);
             nameChange.executeUpdate();
             System.out.println("Name updated.");
+            nameChange.close();
             return true;
         } catch (Exception e) {
             System.out.println("Could not update customer name. Try again later.");
@@ -337,6 +344,7 @@ public class Customer {
             nameChange.setInt(2, id);
             nameChange.executeUpdate();
             System.out.println("Name updated.");
+            nameChange.close();
             return true;
         } catch (Exception e) {
             System.out.println("Could not update customer name. Try again later.");
@@ -505,6 +513,7 @@ public class Customer {
                 c.membership = (rs.getInt("membership") == 1) ? true : false;
                 c.points = rs.getInt("points");
             }
+            findCustomer.close();
         } catch (Exception e) {
             System.out.println("Could not update customer info.\n");
         }

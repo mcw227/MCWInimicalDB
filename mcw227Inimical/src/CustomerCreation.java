@@ -67,6 +67,7 @@ public class CustomerCreation extends Item {
                 } while (rs.next());
             }
 
+            fetchCustomerCreations.close();
             return menu_items;
         } catch (Exception e) {
             System.out.println("Unable to fetch customer creations. Try again later.");
@@ -96,7 +97,7 @@ public class CustomerCreation extends Item {
                     menu_items.add(new CustomerCreation(id, name, price, creator, conn));
                 } while (rs.next());
             }
-
+            getCustomerCreations.close();
             return menu_items;
         } catch (Exception e) {
             System.out.println("Unable to fetch customer creations. Try again later.");
@@ -144,11 +145,13 @@ public class CustomerCreation extends Item {
                             r.recipe_id = newId;
                             r.addRecipe(conn);
                         }
+                        addCC.close(); addCCtoCCList.close(); addToMenu.close();
                         return true;
                     }
                 }
             } else {
                     System.out.println("Could not add item to database! Try again later.");
+                    addCC.close(); addCCtoCCList.close(); addToMenu.close();
                     throw new Exception("Row not added!");
                 }
             } catch (Exception e) {
@@ -380,6 +383,7 @@ public class CustomerCreation extends Item {
             do {
                 this.addIngredient(Recipe.parseRecipeFromRS(rs, conn));
             } while (rs.next());
+            getRecipes.close();
             return;
 
         } catch (Exception e) {
@@ -405,6 +409,7 @@ public class CustomerCreation extends Item {
                 this.addIngredient(rec);
                 
             } while (rs.next());
+            getRecipes.close();
             return;
 
         } catch (Exception e) {

@@ -63,9 +63,10 @@ public final class CustomerInterface {
                         rs = null;
                     }
                 }
+                findCustomer.close();
             } catch (Exception e) {
                 System.out.println("Could not query database, or found invalid customer, please try again.");
-                e.printStackTrace();
+                //e.printStackTrace();
             }
             
         }     
@@ -331,6 +332,7 @@ public final class CustomerInterface {
             deactivateAccount.executeUpdate();
             System.out.println("Done! Goodbye!");
             c = Customer.InactiveCustomer(); //set c to inactive customer
+            deactivateAccount.close();
             return true;
         } catch (Exception e) {
             System.out.println("Could not delete account. Try again later.");
