@@ -157,11 +157,10 @@ public class Card {
             resp = Helper.safeCheckQuit(scn, MAX_CARD_NUM_LEN);
             if (resp == null)
                 return false;
-
-            if (resp.contains(" ")) {
+            if (!Helper.matchRegex(resp, "\\d+$"))
                 resp = null;
-                System.out.println("Do not enter spaces or non-numerics.");
-            }
+            else
+                System.out.println("Should not contain spaces or non-numerics");
         }
         card_number = resp;
 

@@ -269,13 +269,17 @@ def gen_recipes():
 
 # generates customer order numbers
 def gen_orders():
-    df = pd.DataFrame(columns=["location_id","customer_id","payment_id"])
-    df["location_id"] = np.random.randint(1,101,15)
-    df["customer_id"] = np.random.randint(1,101,15)
-    df["payment_id"] = np.random.randint(1,101,15)
-    df["total"] = 0
-    df["status"] = 4
- 
+
+    df = pd.DataFrame(columns=["location_id","customer_id","payment_id","total","status"])
+    for i in range(1,21):
+        for _ in range(5):
+            row = [i, np.random.randint(1,101), np.random.randint(1,101), 0, 4]
+            df.loc[len(df)] = row
+
+    df["order_id"].astype(int)
+    df["item_id"].astype(int)
+    df["quantity"].astype(int)
+    
     try:
         engine = create_engine(connection_url)
 
@@ -290,14 +294,15 @@ def gen_orders():
 
 # generates items in customer orders
 def gen_order_items():
-    df = pd.DataFrame(gen_unique_pairs(16, 91, 27), columns=["order_id","item_id"])
-    df["quantity"] = np.random.randint(1,5,27)
+    df = pd.DataFrame(columns=["order_id", "item_id", "quantity", "price"])
+    for i in range(1,101):
+        for j in range(1,3):
+            row = [i, j*np.random.randint(1,50), np.random.randint(1,11), np.round(np.random.uniform(5.00, 50.00),2)]
+            df.loc[len(df)] = row
 
-    raw_data = np.random.uniform(0.00, 10.00, size=27)
-
-    formatted_numbers = np.round(raw_data, 2)
-    df["price"] = formatted_numbers
-
+    df["order_id"].astype(int)
+    df["item_id"].astype(int)
+    df["quantity"].astype(int)
     try:
         engine = create_engine(connection_url)
 
@@ -359,8 +364,8 @@ def populate_db():
     #done = gen_price_change()
     #while (not done):
        # done = gen_price_change()
-
-populate_db()
-
+done = gen_order_items()
+while (not done):
+    done = gen_order_items()
 
 
