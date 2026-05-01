@@ -361,11 +361,10 @@ def populate_db():
     done = gen_order_items()
     while (not done):
         done = gen_order_items() #This and the other try until it works statements are a hallmark of how bad this code is! 
-    #done = gen_price_change()
-    #while (not done):
-       # done = gen_price_change()
-done = gen_order_items()
-while (not done):
-    done = gen_order_items()
+    done = gen_price_change()
+    while (not done):
+       done = gen_price_change()
+
+populate_db()
 
 

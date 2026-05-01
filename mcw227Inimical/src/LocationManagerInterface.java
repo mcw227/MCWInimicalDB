@@ -17,6 +17,8 @@ public class LocationManagerInterface {
         while (resp != -2) {
             printLMMenu(e);
             resp = Helper.nextId(scn);
+            if (resp > 7)
+                System.out.println("Please pick a valid option!");
             switch (resp) {
                 case (1):
                     lmViewOrders(conn, scn, e);
@@ -36,6 +38,12 @@ public class LocationManagerInterface {
                 case (6):
                     Customer.addCustomerScreen(conn, scn);
                     break;
+                case (7):
+                    System.out.println("What is the ID of the account you'd like to activate?");
+                    int id = Helper.nextId(scn);
+                    if (id == -2)
+                        break;
+                    Customer.activateAccount(conn, scn, id);
             }
         }
     }
@@ -48,7 +56,7 @@ public class LocationManagerInterface {
         System.out.flush();
         System.out.printf("\n\nHello, %s! You logged into location: %d\n", e.name, e.location_id);
         System.out.printf("\tRestaurant Address: %s\n\n", e.location.address);
-        System.out.printf("\nWhat would you like to do today?\n\t1. View/Update Order Status\n\t2. View All Items\n\t3. View All Locations\n\t4. View/Edit Menus\n\t5. Create A Local Price Change\n\t6. Create Customer Account\nEnter a 1-6 to select an option or enter quit (q) to quit!\n", e.name);
+        System.out.printf("\nWhat would you like to do today?\n\t1. View/Update Order Status\n\t2. View All Items\n\t3. View All Locations\n\t4. View/Edit Menus\n\t5. Create A Local Price Change\n\t6. Create Customer Account\n\t7. Reinstate (Reactivate) Customer Account\nEnter a 1-6 to select an option or enter quit (q) to quit!\n", e.name);
     }
 
     /**

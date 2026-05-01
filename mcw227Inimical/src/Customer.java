@@ -656,4 +656,45 @@ public class Customer {
             }
         }
     }
+
+    /**
+     * Deactivates account
+     */
+    public static boolean deactivateAccount(Connection conn, Scanner scn, Customer c) {
+        try {
+            PreparedStatement deactivateAccount = conn.prepareStatement("UPDATE customers SET active=0 WHERE id=?");
+            deactivateAccount.setInt(1,c.id);
+            System.out.print("Deactivating account... ");
+            deactivateAccount.executeUpdate();
+            System.out.println("Done! Goodbye!");
+            c = Customer.InactiveCustomer(); //mark as inactive customer
+            return true;
+        } catch (Exception e) {
+            System.out.println("Could not inactivate account. Try again later.");
+            return false;
+        } finally {
+            System.out.println("Type anything to continue.");
+            Helper.nextOK(scn);
+        }
+    }
+
+    /**
+     * Activates account
+     */
+    public static boolean activateAccount(Connection conn, Scanner scn, int c_id) {
+        try {
+            PreparedStatement deactivateAccount = conn.prepareStatement("UPDATE customers SET active=1 WHERE id=?");
+            deactivateAccount.setInt(1,c_id);
+            System.out.print("Activating account... ");
+            deactivateAccount.executeUpdate();
+            System.out.println("Done!");
+            return true;
+        } catch (Exception e) {
+            System.out.println("Could not reactivate account. Try again later.");
+            return false;
+        } finally {
+            System.out.println("Type anything to continue.");
+            Helper.nextOK(scn);
+        }
+    }
 }

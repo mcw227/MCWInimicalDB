@@ -14,4 +14,7 @@ $(APP_NAME): $(SOURCES)
 	jar cfmv $(APP_NAME) Manifest.MF $(CLASSES)
 
 clean:
+	rm -f *.class
+	
+true_clean:
 	rm -f *.class $(APP_NAME)

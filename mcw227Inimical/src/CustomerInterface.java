@@ -86,8 +86,10 @@ public final class CustomerInterface {
             resp = Helper.nextId(scn);
             if (resp == -2)
                 return;
-            if (resp == 0 || resp > 7 || resp == -1) {
+            if (resp == 0 || resp > 8 || resp == -1) {
                 System.out.println("Please pick a valid option!");
+                System.out.println("Type anything to continue.");
+                Helper.nextOK(scn);
             } else if (resp != -2) {
                 switch(resp) {
                     case 1:
@@ -324,18 +326,7 @@ public final class CustomerInterface {
             return false;
 
         System.out.println("Okay...");
-        try {
-            PreparedStatement deactivateAccount = conn.prepareStatement("UPDATE customers SET active=0 WHERE id=?");
-            deactivateAccount.setInt(1,c.id);
-            System.out.print("Deactivating account... ");
-            deactivateAccount.executeUpdate();
-            System.out.println("Done! Goodbye!");
-            c = Customer.InactiveCustomer(); //set c to inactive customer
-            return true;
-        } catch (Exception e) {
-            System.out.println("Could not delete account. Try again later.");
-            return false;
-        }
+        return Customer.deactivateAccount(conn, scn, c);
     }
 
     /** Prints the customer control menu */
