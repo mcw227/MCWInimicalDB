@@ -14,19 +14,18 @@ public final class Helper {
     /** Attempts to clear console */
     /** This code was found on stack overflow, I'm pretty sure. (BUT! It came up in copilot when i searched online.) */
     public static void clearConsole() {
-        return;
-        // try {
-        //     String os = System.getProperty("os.name");
-        //     if (os.contains("Windows")) { //windwos needs special handling bc its so special...
-        //         new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
-        //     } else { //unix-like systems
-        //         new ProcessBuilder("clear").inheritIO().start().waitFor();
-        //     }
-        //     return;
-        // } catch (Exception e) {
-        //     System.out.println("Cannot clear console."); //debug
-        //     return;
-        // }
+        try {
+            String os = System.getProperty("os.name");
+            if (os.contains("Windows")) { //windwos needs special handling bc its so special...
+                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+            } else { //unix-like systems
+                new ProcessBuilder("clear").inheritIO().start().waitFor();
+            }
+            return;
+        } catch (Exception e) {
+            System.out.println("Cannot clear console."); //debug
+            return;
+        }
     }
     /**
      * This is also used to get non-negative integer input while handling quit case

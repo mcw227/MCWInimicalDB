@@ -132,6 +132,7 @@ public class CustomerCreation extends Item {
                 try (ResultSet rs = addCC.getGeneratedKeys()) { //This obtains the identity key that was generated when the item was inserted
                     if (rs.next()) {
                         int newId = (int)rs.getLong(1);
+                        cc.id = newId;
                         addCCtoCCList.setInt(1, newId);
                         addCCtoCCList.executeUpdate();
 

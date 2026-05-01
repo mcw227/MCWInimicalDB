@@ -424,7 +424,8 @@ public class Order {
                                 continue;
                             if (quantity == 0)
                                 break;
-                            customer_order.addItemToBag(new OrderItem(cr, -1, quantity));
+                            OrderItem oi = new OrderItem(cr, -1, quantity);
+                            customer_order.addItemToBag(oi);
                             break;
                         }
                         
