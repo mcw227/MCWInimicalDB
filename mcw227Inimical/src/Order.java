@@ -327,6 +327,12 @@ public class Order {
         }
     }
 
+    /**
+     * Allows the user to create a new order
+     * @param c The customer placing the order
+     * @param conn The database connection to use
+     * @param scn The scanner to grab input from
+     */
     public static void newOrderScreen(Customer c, Connection conn, Scanner scn) {
         Order customer_order = new Order(c);
         Location loc = Location.locationSelectScreen(conn, scn); //User must first select a location
