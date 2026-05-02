@@ -38,8 +38,7 @@ public class Menu {
      */
     public void fillItems(Connection conn) {
         ArrayList<Item> filled_items = new ArrayList<>();
-        try {
-            PreparedStatement getMenuItems = conn.prepareStatement("SELECT * FROM menu_items m JOIN all_items_class_view i ON m.item_id = i.id WHERE m.menu_id = ? ORDER BY i.id DESC");
+        try (PreparedStatement getMenuItems = conn.prepareStatement("SELECT * FROM menu_items m JOIN all_items_class_view i ON m.item_id = i.id WHERE m.menu_id = ? ORDER BY i.id DESC")) {
             getMenuItems.setInt(1, this.id);
 
             ResultSet rs = getMenuItems.executeQuery();
@@ -80,8 +79,8 @@ public class Menu {
         PreparedStatement delItem = conn.prepareStatement("DELETE FROM menu_items WHERE menu_id = ? AND item_id = ?");
         delItem.setInt(1, this.id);
         delItem.setInt(2, i.id);
-
         delItem.executeUpdate();
+        delItem.close();
         return true;
     }
 
@@ -92,8 +91,7 @@ public class Menu {
      * @param m The menu to add the item to
      */
     public static boolean addItem(Connection conn, Item i, Menu m) {
-        try {
-            PreparedStatement addItem = conn.prepareStatement("INSERT INTO menu_items (menu_id, item_id) VALUES (?,?)");
+        try (PreparedStatement addItem = conn.prepareStatement("INSERT INTO menu_items (menu_id, item_id) VALUES (?,?)")){
             addItem.setInt(1, m.id);
             addItem.setInt(2, i.id);
 
@@ -112,8 +110,7 @@ public class Menu {
      * @param m The menu to add the item to
      */
     public boolean delItem(Connection conn, Item i, Menu m) {
-        try {
-            PreparedStatement delItem = conn.prepareStatement("DELETE FROM menu_items WHERE menu_id = ? AND item_id = ?");
+        try (PreparedStatement delItem = conn.prepareStatement("DELETE FROM menu_items WHERE menu_id = ? AND item_id = ?")) {
             delItem.setInt(1, this.id);
             delItem.setInt(2, i.id);
 
@@ -134,8 +131,7 @@ public class Menu {
      */
     public static Menu getPopulatedMenu(Connection conn, int id) {
         Menu rm;
-        try {
-            PreparedStatement getMenu = conn.prepareStatement("SELECT * FROM menus WHERE id=?");
+        try (PreparedStatement getMenu = conn.prepareStatement("SELECT * FROM menus WHERE id=?")) {
             getMenu.setInt(1, id);
 
             ResultSet rs_gm = getMenu.executeQuery();
@@ -169,8 +165,7 @@ public class Menu {
     public static ArrayList<Menu> fetchMenus(Connection conn) {
         ArrayList<Menu> menus = new ArrayList<>();
 
-        try {
-            PreparedStatement getMenus = conn.prepareStatement("SELECT * FROM menus");
+        try (PreparedStatement getMenus = conn.prepareStatement("SELECT * FROM menus")) {
             ResultSet rs = getMenus.executeQuery();
             
             if (!rs.next()) { //No cards, return empty arraylist
@@ -201,8 +196,7 @@ public class Menu {
         }
         ArrayList<Menu> menus = new ArrayList<>();
 
-        try {
-            PreparedStatement getMenus = conn.prepareStatement("SELECT * FROM local_menu_view WHERE location_id = ?");
+        try (PreparedStatement getMenus = conn.prepareStatement("SELECT * FROM local_menu_view WHERE location_id = ?")) {
             getMenus.setInt(1, l.id);
             ResultSet rs = getMenus.executeQuery();
             
@@ -245,23 +239,23 @@ public class Menu {
     public boolean addMenu(Connection conn) {
         if (this.id == 1) //cannot alter master menu.
             return false;
-        try {
+        try (PreparedStatement getMenu = conn.prepareStatement("SELECT * FROM menu_items JOIN menus on menus.id = menu_items.menu_id WHERE menu_id = ?")) {
             conn.setAutoCommit(false);
-            PreparedStatement getMenu = conn.prepareStatement("SELECT * FROM menu_items JOIN menus on menus.id = menu_items.menu_id WHERE menu_id = ?");
             getMenu.setInt(1, this.id);
 
             ResultSet rs = getMenu.executeQuery();
             if (rs.next()) { //menu exists, so just wipe all menu items from db
                 this.wipeItems(conn);
             } else { //menu does not exist yet, so add it to menu list
-                PreparedStatement addMenu = conn.prepareStatement("INSERT INTO menus (name) VALUES (?)", new String[] {"ID"});
-                addMenu.setString(1, this.name);
-                if (addMenu.executeUpdate() != 0) {
-                    ResultSet newIDRS = addMenu.getGeneratedKeys();
-                    if (newIDRS.next())
-                        this.id = (int)newIDRS.getLong(1);
-                    else
-                        throw new Exception("ID was not generated!");
+                try (PreparedStatement addMenu = conn.prepareStatement("INSERT INTO menus (name) VALUES (?)", new String[] {"ID"})) {
+                    addMenu.setString(1, this.name);
+                    if (addMenu.executeUpdate() != 0) {
+                        ResultSet newIDRS = addMenu.getGeneratedKeys();
+                        if (newIDRS.next())
+                            this.id = (int)newIDRS.getLong(1);
+                        else
+                            throw new Exception("ID was not generated!");
+                    }
                 }
             }
 
@@ -270,11 +264,12 @@ public class Menu {
             }
 
             if (LocalMenu.class.isInstance(this)) { //If local menu, add it to local menu table
-                PreparedStatement addLocalMenu = conn.prepareStatement("INSERT INTO local_menus (menu_id, location_id) VALUES (?,?)");
-                LocalMenu temp = (LocalMenu)this;
-                addLocalMenu.setInt(1,this.id);
-                addLocalMenu.setInt(2,temp.location_id);
-                addLocalMenu.executeUpdate();
+                try (PreparedStatement addLocalMenu = conn.prepareStatement("INSERT INTO local_menus (menu_id, location_id) VALUES (?,?)")) {
+                    LocalMenu temp = (LocalMenu)this;
+                    addLocalMenu.setInt(1,this.id);
+                    addLocalMenu.setInt(2,temp.location_id);
+                    addLocalMenu.executeUpdate();
+                }
             }
 
             return true;
@@ -303,6 +298,7 @@ public class Menu {
         PreparedStatement wipeItems = conn.prepareStatement("DELETE FROM menu_items WHERE menu_id = ?");
         wipeItems.setInt(1, this.id);
         wipeItems.executeUpdate();
+        wipeItems.close();
         return;
     }
 
@@ -461,8 +457,7 @@ public class Menu {
     public static boolean delMenu(Connection conn, int id) {
         if (id > 0 && id < 4) //cannot delete master menus!
             return false;
-        try {
-            PreparedStatement delMenu = conn.prepareStatement("DELETE FROM menus WHERE id = ?");
+        try (PreparedStatement delMenu = conn.prepareStatement("DELETE FROM menus WHERE id = ?")) {
             delMenu.setInt(1, id);
             delMenu.executeQuery();
             return true;

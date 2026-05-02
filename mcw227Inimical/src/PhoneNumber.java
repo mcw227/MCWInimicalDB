@@ -131,15 +131,10 @@ public class PhoneNumber {
      */
     public static ArrayList<PhoneNumber> fetchPhones(int c_id, Connection conn) {
         ArrayList<PhoneNumber> phones = new ArrayList<>();
-
-        try {
-            PreparedStatement getPhones;
-            if (c_id == -1)
-                getPhones = conn.prepareStatement("SELECT * FROM phone_numbers");
-            else {
-                getPhones = conn.prepareStatement("SELECT * FROM phone_numbers WHERE customer_id = ?");
+        String sql = (c_id == -1) ? "SELECT * FROM phone_numbers" : "SELECT * FROM phone_numbers WHERE customer_id = ?"; // I am so smard
+        try (PreparedStatement getPhones = conn.prepareStatement(sql)) {
+            if (c_id != -1)
                 getPhones.setInt(1, c_id);
-            }
             ResultSet rs = getPhones.executeQuery();
             
             if (!rs.next()) { //No cards, return empty arraylist
@@ -158,6 +153,8 @@ public class PhoneNumber {
             System.out.println("Could not query Database for phone numbers. Please try again later.");
             //e.printStackTrace(); //debug
             return null;
+        } finally {
+
         }
         return phones;
     }

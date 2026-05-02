@@ -54,8 +54,7 @@ public class PriceChange {
             System.out.println("Price too high! Must be less than 99,999,999.99");
             return false;
         }
-        try {
-            PreparedStatement addPC = conn.prepareStatement("INSERT INTO price_change (item_id, location_id, price) VALUES (?, ?, ?)");
+        try (PreparedStatement addPC = conn.prepareStatement("INSERT INTO price_change (item_id, location_id, price) VALUES (?, ?, ?)")) {
             addPC.setInt(1, this.item_id);
             addPC.setInt(2, this.location_id);
             addPC.setDouble(3, this.price);
@@ -77,8 +76,7 @@ public class PriceChange {
             System.out.println("Price too high! Must be less than 99,999,999.99");
             return false;
         }
-        try {
-            PreparedStatement addPC = conn.prepareStatement("UPDATE price_change SET price = ? WHERE item_id = ? AND location_id = ?");
+        try (PreparedStatement addPC = conn.prepareStatement("UPDATE price_change SET price = ? WHERE item_id = ? AND location_id = ?")) {
             addPC.setDouble(1, this.price);
             addPC.setInt(2, this.item_id);
             addPC.setInt(3, this.location_id);
@@ -99,8 +97,7 @@ public class PriceChange {
      * @param id The id of the item whose price change we want to remove
      */
     public static boolean delPriceChange(Connection conn, Location l, int id) {
-        try {
-            PreparedStatement delPC = conn.prepareStatement("DELETE FROM price_change WHERE item_id = ? AND location_id = ?");
+        try (PreparedStatement delPC = conn.prepareStatement("DELETE FROM price_change WHERE item_id = ? AND location_id = ?")) {
             delPC.setInt(1, id);
             delPC.setInt(2, l.id);
 

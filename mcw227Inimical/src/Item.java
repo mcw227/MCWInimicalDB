@@ -6,6 +6,9 @@ import java.util.ArrayList;
 
 /** Note that type can either be "creation", "signature" or  */
 public class Item {
+
+    private static final int ITEM_PAGE_SIZE = 10;
+
     public int id;
     public String name;
     public double price;
@@ -34,6 +37,7 @@ public class Item {
         System.out.print("Adding item to Database...");
         addItem.executeUpdate();
         System.out.println("Done!");
+        addItem.close();
         return true;
     }
 
@@ -48,6 +52,7 @@ public class Item {
         System.out.print("Removing item from Database...");
         delItem.executeUpdate();
         System.out.println("Done!");
+        delItem.close();
         return true;
     }
 
@@ -57,8 +62,7 @@ public class Item {
      */
     public static ArrayList<Item> fetchItems(Connection conn) {
         ArrayList<Item> items = new ArrayList<>();
-        try {
-            PreparedStatement fetchItems = conn.prepareStatement("SELECT * FROM all_items_class_view");
+        try (PreparedStatement fetchItems = conn.prepareStatement("SELECT * FROM all_items_class_view")) {
             ResultSet rs = fetchItems.executeQuery();
 
             if (!rs.next()) //no items in db for some reason..
@@ -102,8 +106,7 @@ public class Item {
      */
     public static ArrayList<Item> fetchIngredients(Connection conn) {
         ArrayList<Item> ingredients = new ArrayList<>();
-        try {
-            PreparedStatement getIngredients = conn.prepareStatement("SELECT * FROM ingredients");
+        try (PreparedStatement getIngredients = conn.prepareStatement("SELECT * FROM ingredients")) {
             ResultSet rs = getIngredients.executeQuery();
 
             if (!rs.next())
@@ -184,9 +187,8 @@ public class Item {
      * @return The item found in the database, or null if it did not exist. Although cast as an item, it may be subclass Sig or CustomerCreation
      */
     public static Item createItemFromID(Connection conn, int query_id) {
-        try {
+        try (PreparedStatement getItem = conn.prepareStatement("SELECT * FROM all_items_class_view WHERE id = ?")) {
             Item r_item = null;
-            PreparedStatement getItem = conn.prepareStatement("SELECT * FROM all_items_class_view WHERE id = ?");
             getItem.setInt(1, query_id);
             ResultSet rs_gi = getItem.executeQuery();
 
@@ -220,9 +222,8 @@ public class Item {
         }
         l.fetchPriceChanges(conn);
 
-        try {
+        try (PreparedStatement getItem = conn.prepareStatement("SELECT * FROM all_items_class_view WHERE id = ?")) {
             Item r_item = null;
-            PreparedStatement getItem = conn.prepareStatement("SELECT * FROM all_items_class_view WHERE id = ?");
             getItem.setInt(1, query_id);
             ResultSet rs_gi = getItem.executeQuery();
 
@@ -276,6 +277,111 @@ public class Item {
             }
         }
     }
+
+    /**
+     * Allows the selection of items
+     * @param conn The database connection to use
+     * @param scn The scanner to grab input from
+     * @return An item or null if the user decided to quit
+     * NEEDS TO BE IMPLEMENTED!
+     */
+    public static Item itemSelectScreen(Connection conn, Scanner scn) {
+        Helper.clearConsole();
+        Pager<Item> items = new Pager<>(Item.fetchItems(conn), ITEM_PAGE_SIZE);
+        while (true) {
+            items.printCurrentPage();
+            if (!items.list.isEmpty()) {
+                System.out.println("Press n to go to next page, p to go to previous, q to quit.");
+                System.out.println("Please select an item using an id.");
+                int resp = Helper.nextPNQID(scn);
+                switch (resp) {
+                    case -2:
+                        return null;
+                    case -3:
+                        Helper.clearConsole();
+                        items.previousPage();
+                        break;
+                    case -4:
+                        Helper.clearConsole();
+                        items.nextPage();
+                        break;
+                    default:
+                        return items.list.stream().filter(item -> item.id == resp).findFirst().orElse(null); //returns the location object
+                }
+            }
+            else {
+                return null;
+            }
+        }
+    }
+
+    /**
+     * Prints the items's data summary
+     * @param conn The connection to the database
+     * @param scn The scanner to grab input from
+     */
+    public void printItemSummary(Connection conn, Scanner scn) {
+        try {
+            Helper.clearConsole();
+            PreparedStatement totalSales = conn.prepareStatement("select sum(order_items.quantity) as total_items from order_items where order_items.item_id = ?");
+            totalSales.setInt(1, this.id);
+            ResultSet rs = totalSales.executeQuery();
+
+            int totalItems = 0;
+            double totalGross = 0.0;
+            String topFive = "";
+
+            if (!rs.next())
+                throw new Exception("No data found for location.");
+            
+            totalItems = rs.getInt("total_items");
+            totalSales.close();
+            
+            PreparedStatement getTotalGross = conn.prepareStatement("select sum(order_items.price) as gross_total from order_items where order_items.item_id = ?");
+
+            getTotalGross.setInt(1, this.id);
+            rs = getTotalGross.executeQuery();
+
+            if (!rs.next())
+                throw new Exception("No data found for location.");
+            
+            totalGross = rs.getDouble("gross_total");
+            getTotalGross.close();
+
+
+            PreparedStatement rankedLocations = conn.prepareStatement("select locations.address, locations.id, sum(order_items.price) as total_gross, sum(order_items.quantity) as total_sold, dense_rank() over (order by sum(order_items.price) DESC) as item_rank from orders join order_items on order_items.order_id = orders.id join locations on locations.id = orders.location_id where order_items.item_id = ? group by locations.id, locations.address order by item_rank ASC FETCH FIRST 5 ROWS ONLY");
+            rankedLocations.setInt(1, this.id);
+
+            rs = rankedLocations.executeQuery();
+            if (!rs.next())
+                topFive = "\nItem has no sales yet.";
+            
+            else {
+                do {    
+                    int location_id = rs.getInt("id");
+                    String location_address = rs.getString("address");
+                    double gross = rs.getDouble("total_gross");
+                    int total_sold = rs.getInt("total_sold");
+                    int rank = rs.getInt("item_rank");
+                    topFive += String.format("RANK: %-4d\t| ID:%-5d\t| ADDRESS: %-50s\t| AMOUNT SOLD: $%-6.2f\t| GROSS EARNINGS: $%.2f\n\n", rank, location_id, location_address, total_sold, gross);
+                } while (rs.next());
+                rankedLocations.close();
+            }
+
+            System.out.printf("SUMMARY FOR ITEM WITH ID: %d\n\tNAME: %s\n\tTOTAL ITEMS SOLD: %d\tGROSS TOTAL: %.2f\n\t\n--- TOP FIVE ITEMS ---\n", this.id, this.name, totalItems, totalGross);
+            System.out.println(topFive);
+
+            System.out.println("\nType anything to continue.");
+            Helper.nextOK(scn);
+            return;
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Could not generate statistics from the database. Try again later.");
+            System.out.println("Type anything to continue.");
+            Helper.nextOK(scn);
+            return;
+        }
+    } 
 
     /**
      * Summarizes an item. Prints the recipe if it is a customer creation

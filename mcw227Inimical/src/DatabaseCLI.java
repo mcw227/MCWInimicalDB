@@ -36,11 +36,11 @@ public class DatabaseCLI {
      * @param conn Database connection to use
      */
     static void userLogin(Connection conn) {
-        String resp = "";
+        String resp = null;
         System.out.println("Welcome!");
         try (Scanner scn = new Scanner(System.in)) {
-            while (!resp.equalsIgnoreCase("q") && !resp.equalsIgnoreCase("quit")) {
-                System.out.println("Would you like to login to the customer (c), management (m), or testing (t) interface? You may also quit (q)");
+            while (resp == null) {
+                System.out.println("Would you like to login to the customer (c) or management (m) interface? You may also quit (q)");
                 resp = scn.nextLine();
                 if (resp.equalsIgnoreCase("C") || resp.equalsIgnoreCase("customer")) {
                     CustomerInterface.start(conn, scn);
@@ -50,37 +50,17 @@ public class DatabaseCLI {
                     ManagerInterface.start(conn,scn);
                 }
 
-                else if (resp.equalsIgnoreCase("T") || resp.equalsIgnoreCase("TESTING")) {
-                    CustomerCreation cc = (CustomerCreation)Item.createItemFromID(conn, 221, 76);
-                    System.out.print(cc.getPrintableRecipeSummary(conn));
-                    Helper.nextOK(scn);
-                }
-
                 else if (!resp.equalsIgnoreCase("q") && !resp.equalsIgnoreCase("quit")) {
                     System.out.println("Please pick a valid interface!");
+                    resp = null;
                 }
+                Helper.clearConsole();
             }
         } catch (Exception e) {
             System.err.println("An unexpected error occured.");
             //e.printStackTrace();
         }
         System.out.println("Goodbye! :)");
-        return;
-    }
-
-    /**
-     * Location Manager Interface Functions
-     */
-    static void lmInterface(Connection conn, Scanner scn) {
-        System.out.println("Enter your location manager id:");
-        return;
-    }
-
-    /**
-     * General Manager Interface Functions
-     */
-    static void gmInterface(Connection conn, Scanner scn) {
-        System.out.println("Enter your general manager id:");
         return;
     }
 

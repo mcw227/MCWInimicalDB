@@ -49,8 +49,7 @@ public class LocalMenu extends Menu {
             System.out.println("Could not fetch location to fill items for local menu.");
             return;
         }
-        try {
-            PreparedStatement getMenuItems = conn.prepareStatement("SELECT * FROM menu_items m JOIN all_items_class_view i ON m.item_id = i.id WHERE m.menu_id = ? ORDER BY i.id DESC");
+        try (PreparedStatement getMenuItems = conn.prepareStatement("SELECT * FROM menu_items m JOIN all_items_class_view i ON m.item_id = i.id WHERE m.menu_id = ? ORDER BY i.id DESC")) {
             getMenuItems.setInt(1, this.id);
 
             ResultSet rs = getMenuItems.executeQuery();
@@ -89,8 +88,7 @@ public class LocalMenu extends Menu {
      */
     public static LocalMenu getPopulatedMenu(Connection conn, int id, int location_id) {
         LocalMenu rm;
-        try {
-            PreparedStatement getMenu = conn.prepareStatement("SELECT * FROM menus WHERE id=?");
+        try (PreparedStatement getMenu = conn.prepareStatement("SELECT * FROM menus WHERE id=?")) {
             getMenu.setInt(1, id);
 
             ResultSet rs_gm = getMenu.executeQuery();

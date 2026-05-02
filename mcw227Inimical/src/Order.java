@@ -99,8 +99,7 @@ public class Order {
      */
     public static ArrayList<Order> fetchOrders(Connection conn) {
         ArrayList<Order> orders = new ArrayList<>();
-        try {
-            PreparedStatement getOrders = conn.prepareStatement("SELECT * FROM orders");
+        try (PreparedStatement getOrders = conn.prepareStatement("SELECT * FROM orders")) {
             ResultSet rs = getOrders.executeQuery();
             if (!rs.next())
                 return orders;
@@ -123,8 +122,7 @@ public class Order {
      */
     public static ArrayList<Order> fetchOrders(Connection conn, int loc_id) {
         ArrayList<Order> orders = new ArrayList<>();
-        try {
-            PreparedStatement getOrders = conn.prepareStatement("SELECT * FROM orders WHERE location_id = ?");
+        try (PreparedStatement getOrders = conn.prepareStatement("SELECT * FROM orders WHERE location_id = ?")) {
             getOrders.setInt(1,loc_id);
             ResultSet rs = getOrders.executeQuery();
             if (!rs.next())
@@ -149,8 +147,7 @@ public class Order {
      */
     public static ArrayList<Order> fetchOrdersByCustomer(Connection conn, int c_id) {
         ArrayList<Order> orders = new ArrayList<>();
-        try {
-            PreparedStatement getOrders = conn.prepareStatement("SELECT * FROM orders WHERE customer_id = ?");
+        try (PreparedStatement getOrders = conn.prepareStatement("SELECT * FROM orders WHERE customer_id = ?")) {
             getOrders.setInt(1, c_id);
             ResultSet rs = getOrders.executeQuery();
             if (!rs.next())
@@ -174,8 +171,7 @@ public class Order {
      */
     public static ArrayList<Order> fetchOrdersByLocation(Connection conn, int l_id) {
         ArrayList<Order> orders = new ArrayList<>();
-        try {
-            PreparedStatement getOrders = conn.prepareStatement("SELECT * FROM orders WHERE location_id = ?");
+        try (PreparedStatement getOrders = conn.prepareStatement("SELECT * FROM orders WHERE location_id = ?")) {
             getOrders.setInt(1, l_id);
             ResultSet rs = getOrders.executeQuery();
             if (!rs.next())
@@ -215,9 +211,8 @@ public class Order {
      * @param conn The database connection to use
      */
     public boolean addOrder(Connection conn) {
-        try {
+        try (PreparedStatement addOrder = conn.prepareStatement("INSERT INTO orders (location_id, customer_id, payment_id, status, total) VALUES (?, ?, ?, ?, ?)", new String[] {"ID"})) {
             conn.setAutoCommit(false);
-            PreparedStatement addOrder = conn.prepareStatement("INSERT INTO orders (location_id, customer_id, payment_id, status, total) VALUES (?, ?, ?, ?, ?)");
             addOrder.setInt(1, this.location.id); addOrder.setInt(2, this.customer_id);
             addOrder.setInt(3, this.payment_id); addOrder.setInt(4, this.status);
             addOrder.setDouble(5, this.total);
@@ -228,18 +223,25 @@ public class Order {
                     if (rs.next()) {
                         int newId = (int)rs.getLong(1);
                         for (OrderItem item : this.bag) {
+                            System.out.println("ADDING ITEM TO DB");
                             item.order_id = newId;
                             item.addOrderItem(conn);
                         }
+                        conn.commit();
                     }
+                } catch (Exception f) {
+                    f.printStackTrace();
+                    throw new Exception("Failed to acquire generated id!");
                 }
+            } else {
+                throw new Exception("Failed to execute update!");
             }
             return true;
         } catch (Exception e) {
             try {
                 conn.rollback();
                 System.out.println("Could not place order. Try again later.");
-                //e.printStackTrace(); //debug
+                e.printStackTrace(); //debug
                 return false;
             } catch (Exception f) {
                 System.err.println("Critical database error. Please restart software.");
@@ -270,8 +272,7 @@ public class Order {
      * @param conn The database connection to use
      */
     public boolean delOrder(Connection conn) {
-        try {
-            PreparedStatement delOrder = conn.prepareStatement("DELETE FROM orders WHERE id = ?");
+        try (PreparedStatement delOrder = conn.prepareStatement("DELETE FROM orders WHERE id = ?")) {
             delOrder.setInt(1, this.id);
             int upd = delOrder.executeUpdate();
             if (upd == 0) {
@@ -294,8 +295,7 @@ public class Order {
     public boolean editStatus(Connection conn, int status) {
         if (status >= 5 || status < 0)
             return false;
-        try {
-            PreparedStatement updStatus = conn.prepareStatement("UPDATE orders SET status = ? WHERE id = ?");
+        try (PreparedStatement updStatus = conn.prepareStatement("UPDATE orders SET status = ? WHERE id = ?")) {
             updStatus.setInt(1, status);
             updStatus.setInt(2, this.id);
             updStatus.executeUpdate();
@@ -312,8 +312,7 @@ public class Order {
      * @param id The id of the order to delete
      */
     public static boolean delOrder(Connection conn, int id) {
-        try {
-            PreparedStatement delOrder = conn.prepareStatement("DELETE FROM orders WHERE id = ?");
+        try (PreparedStatement delOrder = conn.prepareStatement("DELETE FROM orders WHERE id = ?")) {
             delOrder.setInt(1, id);
             int upd = delOrder.executeUpdate();
             if (upd == 0) {
@@ -327,6 +326,12 @@ public class Order {
         }
     }
 
+    /**
+     * Allows the user to create a new order
+     * @param c The customer placing the order
+     * @param conn The database connection to use
+     * @param scn The scanner to grab input from
+     */
     public static void newOrderScreen(Customer c, Connection conn, Scanner scn) {
         Order customer_order = new Order(c);
         Location loc = Location.locationSelectScreen(conn, scn); //User must first select a location
@@ -411,7 +416,8 @@ public class Order {
                                 continue;
                             if (quantity == 0)
                                 break;
-                            customer_order.addItemToBag(new OrderItem(cr, -1, quantity));
+                            OrderItem oi = new OrderItem(cr, -1, quantity);
+                            customer_order.addItemToBag(oi);
                             break;
                         }
                         
@@ -518,6 +524,7 @@ public class Order {
                     return;
                 if (quantity == 0) {
                     this.removeItemFromBag(id);
+                    return;
                 }
                 if (quantity <= 99) {
                     OrderItem oi = getBagItem(id);
