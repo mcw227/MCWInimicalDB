@@ -5,6 +5,12 @@ CSE241 Final Project
 &emsp;Welcome to the README for Mina's Inimical database interface implementations. This terminal-based application is intended to function as a customer and managereal interface for a fictional restaurant called *Inimical's.* There are three main interfaces built so far: Customer, Location Manager and Sales Manager (Manager). The details of these interfaces, alongside other helpful or insightful information will be discussed down below.
 &emsp;Also, all of the transactions within the features are *hopefully* atomic. Otherwise... what would be the point of using a database, you know?
 
+<br><br>***IMPORTANT***
+In order to test the two manager interfaces, log in with id = 2 for location manager and id = 3 for sales manager. The rest of the employees are randomly defined.
+
+<br>Also, my ERD changed since I submitted my previous one. The new one is zipped into the file.
+
+
 ## Table of Contents
 * [Introduction](#introduction)
 * [AI Use Disclosure](#ai-use-disclosure)
@@ -49,6 +55,10 @@ CSE241 Final Project
 
 &emsp;The only one of note is table_populator.py which can be used to generate mock data that fits within the expectations of the CLI.
 It is some *really* dodgy code, but it works! I would like to apologize to all of my comp. sci. professors for creating such a wretched collection of bad coding practices.
+
+## File Details
+&emsp;All java source files are located in mcw227/src. Almost all of them are POJOs that represent entities in the database. They are all... mostly... well commented.
+&emsp;There is a makefile that can be used to re-compile the jar from that code as necessary. It is what I used to test my project throughout development
 
 ## SQL Extras
 &emsp; There are a number of extra views and triggers that I created in order to "make my life easier"... or so I said. The reality turned out not to be quite so kind... I'll never use triggers again! But-- here is a list of views and triggers I wrote:

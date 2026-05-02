@@ -61,6 +61,8 @@ def gen_employees():
     df = pd.read_csv('Mock Data/EMPLOYEE_DATA.csv')
     df['role'] = np.random.choice([1,2], size=len(df), p=[0.7,0.3]) # weighted so we dont end up with a bunch of general managers...
     df['location_id'] = np.random.randint(1,101, size=len(df))
+    df.loc[1, 'role'] = 1
+    df.loc[2, 'role'] = 2
 
     try:
         engine = create_engine(connection_url)
