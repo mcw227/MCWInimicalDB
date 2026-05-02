@@ -134,7 +134,7 @@ CREATE TABLE order_items (
     order_id NUMBER,
     item_id NUMBER,
     quantity NUMBER NOT NULL,
-    price NUMBER(5,2) NOT NULL, --individual item cost. This needs to be set like this to account for price adjustments based on location
+    price NUMBER(10,2) NOT NULL, --individual item cost. This needs to be set like this to account for price adjustments based on location
     CONSTRAINT order_id_fk
         FOREIGN KEY (order_id)
         REFERENCES orders(id) ON DELETE CASCADE,
@@ -224,8 +224,151 @@ SELECT m.id, m.name, lm.location_id
 FROM menus m
 JOIN local_menus lm ON m.id=lm.menu_id;
 
--- This trigger allows us to update the cost of signature items when ingredients are added or removed from them
--- Please note that for this specific query, AI sources were consulted (as one may look at stack overflow...) in order to understand how to obtain the values of the target rows
+
+-- Add a trigger that adds an item to the master menu
+-- This is probably the ONLY good trigger I wrote...
+CREATE OR REPLACE TRIGGER master_menu
+AFTER INSERT ON items
+FOR EACH ROW
+BEGIN
+    INSERT INTO menu_items (menu_id, item_id)
+    VALUES (1, :NEW.id);
+END;
+/
+
+-- -- Updates an order's total based on the price of it's items and its local sales tax
+-- create or replace TRIGGER upd_order_price
+-- AFTER INSERT OR DELETE ON order_items
+-- FOR EACH ROW
+-- DECLARE 
+--     item_price NUMBER;
+--     added_cost NUMBER;
+--     upd_loc_id NUMBER;
+--     local_sales_tax NUMBER;
+-- BEGIN
+
+--     SELECT location_id INTO upd_loc_id
+--     FROM orders
+--     WHERE orders.id = nvl(:NEW.order_id, :OLD.order_id);
+
+--     SELECT sales_tax INTO local_sales_tax
+--     FROM locations
+--     WHERE id = upd_loc_id;
+
+--     IF INSERTING THEN
+--         SELECT price INTO item_price
+--         FROM items
+--         WHERE id = :NEW.item_id;
+
+--         added_cost := :NEW.price * :NEW.quantity * local_sales_tax;
+
+--     ELSIF DELETING THEN
+--         SELECT price INTO item_price
+--         FROM items
+--         WHERE id = :OLD.item_id;
+
+--         added_cost := :OLD.price * :OLD.quantity * -1 * local_sales_tax;
+--     END IF;
+
+--     UPDATE orders
+--     SET total = nvl(total, 0) + added_cost
+--     WHERE orders.id = nvl(:NEW.order_id, :OLD.order_id);
+
+-- EXCEPTION
+--     WHEN NO_DATA_FOUND THEN
+--     NULL;
+
+-- END;
+-- /
+
+-- this trigger was created by consulting AI resources, however code was not copy pasted.
+-- essentially, the above trigger was causing issues due to "recursive mutations." As in, it updates the table that it also selects from...
+-- this is especially bad because I have cascading delete policies on foreign keys. So, when an order is deleted, it also deletes the corresponding
+-- order_items. However! As you can see, this triggers the problematic "recursive mutation," since after the order is deleted, the order_items,
+-- upon their deletion, attempt to update the order row.
+-- Now, a *much* better way of representing orders would have been a view. But, alas, I only realized that *after* I had put in a lot of work already and did not feel like changing it...
+-- Then, the "recursive mutations" issue was discovered at around noon on the final submission day, and I feared that I would not be able to restructure fast
+-- enough to rewrite my representation to use a view instead... hence! I shall now use a compound trigger.
+
+-- Although I consulted AI sources, as I said, I have done my best to prove to you that I have actually learned something from this,
+-- so I hope you will understand...
+CREATE OR REPLACE TRIGGER upd_order_price
+FOR INSERT OR DELETE ON order_items
+COMPOUND TRIGGER
+
+    -- type t_order_ids... This was covered in class, defines a new type.
+    -- "is table of"... this is a list/collection of...
+    -- "orders.id%TYPE"... obtains the type of my defined column "id" in my defined orders table.
+    -- plain english: "create new collection/list type called t_order_ids that holds the same type of objects as the id column in the 'orders' table"
+    TYPE t_order_ids IS TABLE OF orders.id%TYPE; 
+    
+    -- creates an actual instance of the aforementioned type called "v_order_ids". I suppose that t_order_ids() is the standard constructor for lists/collections
+    v_order_ids t_order_ids := t_order_ids();
+
+    AFTER EACH ROW IS
+    BEGIN
+        v_order_ids.EXTEND; --make the list bigger!
+        v_order_ids(v_order_ids.LAST) := NVL(:NEW.order_id, :OLD.order_id); -- set the last item of v_order_ids to either the new order id, or the old one... whichever is not null.
+    END AFTER EACH ROW;
+
+    AFTER STATEMENT IS
+    BEGIN
+        -- this is essentially just standard for-each, just illustrated in SQL. Pretty cool!
+        FORALL i in 1 .. v_order_ids.COUNT -- for (i in range(len(v_order_ids)))
+            UPDATE orders o
+            SET o.total = (
+                SELECT SUM(oi.price * oi.quantity * l.sales_tax)
+                FROM order_items oi
+                JOIN locations l ON l.id = o.location_id
+                WHERE oi.order_id = o.id
+            )
+            WHERE o.id = v_order_ids(i)
+            AND EXISTS (SELECT 1 FROM orders WHERE id = v_order_ids(i)); -- This only updates rows where an order_item has been added or deleted. Also prevents a deadlock when deleting customers...
+            -- see! I learned about deadlocks through my own terrible code! 
+    END AFTER STATEMENT;
+END upd_order_price;
+/
+
+-- Here's something fun...
+-- After I fixed the previous trigger, I realized that THIS trigger causes a deadlock!
+-- How fun. Yes.. I am really experiencing the content of this course.
+-- First, issues with recursive mutations that oracle stops to prevent differences values the end user sees when querying database
+-- and then deadlocking! I am really getting the 'concurrency special' here...
+-- Honestly... I don't know how to fix it at this point. Really, I should have used a view to calculate customer points but alas! It is a bit late for that now..
+-- If there's anything I've learned from this experience... It is that triggers are a huge pain! I'll never use them again...
+create or replace TRIGGER upd_customer_points
+AFTER INSERT ON orders
+FOR EACH ROW
+DECLARE 
+    added_points NUMBER;
+    customer_membership NUMBER;
+BEGIN
+
+    added_points := floor(:NEW.total / 2);
+    IF added_points > 9999999 THEN
+        added_points := 9999999;
+    END IF;
+    
+    SELECT membership INTO customer_membership
+    FROM customers
+    WHERE id = :NEW.customer_id;
+    
+    IF customer_membership = 1 THEN --only track points for members.
+        UPDATE customers
+        SET points = nvl(points, 0) + added_points
+        WHERE id = :NEW.customer_id;
+    END IF;
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+    NULL;
+
+END;
+/
+
+-- This trigger is also faulty! How sad..
+-- Too bad I can't change it now!!!!
+-- Like I said for the others... This also should have been a view.
 create or replace TRIGGER upd_item_price
 AFTER INSERT OR DELETE ON recipes
 FOR EACH ROW
@@ -253,91 +396,6 @@ BEGIN
     UPDATE items
     SET price = nvl(price, 0) + added_cost
     WHERE items.id = nvl(:NEW.recipe_id, :OLD.recipe_id);
-
-EXCEPTION
-    WHEN NO_DATA_FOUND THEN
-    NULL;
-
-END;
-/
-
--- Add a trigger that adds an item to the master menu
-CREATE OR REPLACE TRIGGER master_menu
-AFTER INSERT ON items
-FOR EACH ROW
-BEGIN
-    INSERT INTO menu_items (menu_id, item_id)
-    VALUES (1, :NEW.id);
-END;
-/
-
--- Updates an order's total based on the price of it's items and its local sales tax
-create or replace TRIGGER upd_order_price
-AFTER INSERT OR DELETE ON order_items
-FOR EACH ROW
-DECLARE 
-    item_price NUMBER;
-    added_cost NUMBER;
-    upd_loc_id NUMBER;
-    local_sales_tax NUMBER;
-BEGIN
-
-    SELECT location_id INTO upd_loc_id
-    FROM orders
-    WHERE orders.id = nvl(:NEW.order_id, :OLD.order_id);
-
-    SELECT sales_tax INTO local_sales_tax
-    FROM locations
-    WHERE id = upd_loc_id;
-
-    IF INSERTING THEN
-        SELECT price INTO item_price
-        FROM items
-        WHERE id = :NEW.item_id;
-
-        added_cost := :NEW.price * :NEW.quantity * local_sales_tax;
-
-    ELSIF DELETING THEN
-        SELECT price INTO item_price
-        FROM items
-        WHERE id = :OLD.item_id;
-
-        added_cost := :OLD.price * :OLD.quantity * -1 * local_sales_tax;
-    END IF;
-
-    UPDATE orders
-    SET total = nvl(total, 0) + added_cost
-    WHERE orders.id = nvl(:NEW.order_id, :OLD.order_id);
-
-EXCEPTION
-    WHEN NO_DATA_FOUND THEN
-    NULL;
-
-END;
-/
-
-create or replace TRIGGER upd_customer_points
-AFTER INSERT OR DELETE ON orders
-FOR EACH ROW
-DECLARE 
-    added_points NUMBER;
-    customer_membership NUMBER;
-BEGIN
-
-    added_points := floor(:NEW.total / 2);
-    IF added_points > 9999999 THEN
-        added_points := 9999999;
-    END IF;
-    
-    SELECT membership INTO customer_membership
-    FROM customers
-    WHERE id = :NEW.customer_id;
-    
-    IF customer_membership = 1 THEN --only track points for members.
-        UPDATE customers
-        SET points = nvl(points, 0) + added_points
-        WHERE id = :NEW.customer_id;
-    END IF;
 
 EXCEPTION
     WHEN NO_DATA_FOUND THEN
