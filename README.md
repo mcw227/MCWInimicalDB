@@ -9,6 +9,9 @@
 <br><br>***IMPORTANT***
 In order to test the two manager interfaces, log in with **id = 2 for location manager** and **id = 3 for sales manager**. The rest of the employees are randomly defined. <br>**You may enter any number 1-100 for the customer database.**
 
+<br>**TO RECOMPILE CODE**: `make run_jar`
+
+
 <br>Also, my ERD changed since I submitted my previous one. The new one is zipped into the file.
 
 

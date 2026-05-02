@@ -12,6 +12,8 @@ Also, all of the transactions within the features are *hopefully* atomic. Otherw
 In order to test the two manager interfaces, log in with **id = 2 for location manager** and **id = 3 for sales manager**. The rest of the employees are randomly defined. <br>**You may enter any number 1-100 for the customer database.**
 Also, my ERD changed since I submitted my previous one. The new one is zipped into the file.
 
+**TO RECOMPILE CODE**: `make run_jar`
+
 ## Table of Contents
 * [Introduction](#introduction)
 * [AI Use Disclosure](#ai-use-disclosure)
