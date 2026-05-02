@@ -46,14 +46,13 @@ public final class CustomerInterface {
                 if (id == -2) return null; //quit casz
             }
 
-            try {
-                PreparedStatement findCustomer = conn.prepareStatement("SELECT * FROM customers WHERE id = ?");
+            try (PreparedStatement findCustomer = conn.prepareStatement("SELECT * FROM customers WHERE id = ?")){
+
                 findCustomer.setInt(1, id);
                 rs = findCustomer.executeQuery();
-                if (rs == null)
+                if (!rs.next())
                     System.out.println("User id not found, try again.");
                 else {
-                    rs.next();
                     if (rs.getInt("active") != 0) { //Account is inactive. They cannot login.
                         c = new Customer(rs.getInt("id"), rs.getString("name"), rs.getString("email"), rs.getInt("membership"), rs.getInt("points"));
                     } else {
@@ -61,7 +60,6 @@ public final class CustomerInterface {
                         rs = null;
                     }
                 }
-                findCustomer.close();
             } catch (Exception e) {
                 System.out.println("Could not query database, or found invalid customer, please try again.");
                 //e.printStackTrace();

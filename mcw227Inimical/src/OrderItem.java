@@ -100,7 +100,7 @@ public class OrderItem extends Item {
 
         } catch (Exception e) {
             System.out.println("Unable to fetch order items. Try again later");
-            e.printStackTrace();
+            //e.printStackTrace();
             return null;
         }
         return null;
@@ -130,7 +130,7 @@ public class OrderItem extends Item {
 
         } catch (Exception e) {
             System.out.println("Unable to fetch order items. Try again later");
-            e.printStackTrace();
+            //e.printStackTrace();
             return null;
         }
         return null;

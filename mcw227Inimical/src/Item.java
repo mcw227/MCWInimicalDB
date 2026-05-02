@@ -375,7 +375,7 @@ public class Item {
             Helper.nextOK(scn);
             return;
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             System.out.println("Could not generate statistics from the database. Try again later.");
             System.out.println("Type anything to continue.");
             Helper.nextOK(scn);

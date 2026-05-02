@@ -241,7 +241,7 @@ public class Order {
             try {
                 conn.rollback();
                 System.out.println("Could not place order. Try again later.");
-                e.printStackTrace(); //debug
+                //e.printStackTrace(); //debug
                 return false;
             } catch (Exception f) {
                 System.err.println("Critical database error. Please restart software.");

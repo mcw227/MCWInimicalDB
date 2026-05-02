@@ -101,7 +101,7 @@ public class CustomerCreation extends Item {
             return menu_items;
         } catch (Exception e) {
             System.out.println("Unable to fetch customer creations. Try again later.");
-            e.printStackTrace();
+            //e.printStackTrace();
             return null;
         }
     }
@@ -156,7 +156,7 @@ public class CustomerCreation extends Item {
                 }
             } catch (Exception e) {
                 System.out.println("Could not add customer creation to database.");
-                e.printStackTrace();
+                //e.printStackTrace();
                 try {
                     conn.rollback();
                     return false;
@@ -388,7 +388,7 @@ public class CustomerCreation extends Item {
 
         } catch (Exception e) {
             System.out.println("Unable to update populate recipe. Try again later.");
-            e.printStackTrace();
+            //e.printStackTrace();
             return;
         }
     }
