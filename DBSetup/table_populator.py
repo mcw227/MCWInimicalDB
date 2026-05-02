@@ -276,9 +276,10 @@ def gen_orders():
             row = [i, np.random.randint(1,101), np.random.randint(1,101), 0, 4]
             df.loc[len(df)] = row
 
-    df["order_id"].astype(int)
-    df["item_id"].astype(int)
-    df["quantity"].astype(int)
+    df["location_id"].astype(int)
+    df["customer_id"].astype(int)
+    df["payment_id"].astype(int)
+    df["status"].astype(int)
     
     try:
         engine = create_engine(connection_url)
