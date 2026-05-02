@@ -339,7 +339,7 @@ public class Location {
                 rankedItems.close();
             }
 
-            System.out.printf("SUMMARY FOR LOCATION WITH ID: %d\n\tADDRESS: %s\n\tTOTAL ITEMS SOLD: %d\tGROSS TOTAL: %.2f\n\t\n--- TOP FIVE ITEMS ---\n", this.id, this.address, totalItems, totalGross);
+            System.out.printf("SUMMARY FOR LOCATION WITH ID: %d\n\tADDRESS: %s\n\tTOTAL ITEMS SOLD: %d\tGROSS TOTAL: $%.2f\n\t\n--- TOP FIVE ITEMS ---\n", this.id, this.address, totalItems, totalGross);
             System.out.println(topFive);
 
             System.out.println("\nType anything to continue.");

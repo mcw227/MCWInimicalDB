@@ -363,12 +363,12 @@ public class Item {
                     double gross = rs.getDouble("total_gross");
                     int total_sold = rs.getInt("total_sold");
                     int rank = rs.getInt("item_rank");
-                    topFive += String.format("RANK: %-4d\t| ID:%-5d\t| ADDRESS: %-50s\t| AMOUNT SOLD: $%-6.2f\t| GROSS EARNINGS: $%.2f\n\n", rank, location_id, location_address, total_sold, gross);
+                    topFive += String.format("RANK: %-4d\t| ID:%-5d\t| ADDRESS: %-50s\t| AMOUNT SOLD: $%-5d\t| GROSS EARNINGS: $%-6.2f\n\n", rank, location_id, location_address, total_sold, gross);
                 } while (rs.next());
                 rankedLocations.close();
             }
 
-            System.out.printf("SUMMARY FOR ITEM WITH ID: %d\n\tNAME: %s\n\tTOTAL ITEMS SOLD: %d\tGROSS TOTAL: %.2f\n\t\n--- TOP FIVE ITEMS ---\n", this.id, this.name, totalItems, totalGross);
+            System.out.printf("%s\n\tTOTAL ITEMS SOLD: %d\tGROSS TOTAL: $%.2f\n\t\n--- TOP FIVE LOCATIONS ---\n", this.getSummary(conn), totalItems, totalGross);
             System.out.println(topFive);
 
             System.out.println("\nType anything to continue.");
@@ -377,6 +377,7 @@ public class Item {
         } catch (Exception e) {
             //e.printStackTrace();
             System.out.println("Could not generate statistics from the database. Try again later.");
+            e.printStackTrace();
             System.out.println("Type anything to continue.");
             Helper.nextOK(scn);
             return;

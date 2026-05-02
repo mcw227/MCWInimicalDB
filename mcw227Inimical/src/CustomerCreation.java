@@ -341,7 +341,7 @@ public class CustomerCreation extends Item {
      */
     public String getPrintableRecipeSummary(Connection conn) {
         String r = "";
-        r += String.format("ID:%-3d\tNAME:%-50s\n", this.id, this.name);
+        r += String.format("ID:%-3d\tNAME: %-50s\n", this.id, this.name);
         if (ingredients == null || ingredients.size() == 0) {
             this.populateRecipe(conn);
         }

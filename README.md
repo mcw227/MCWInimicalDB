@@ -16,7 +16,6 @@ CSE241 Final Project
 * [Business Decisions](#business-decisions)
 * [Afterword](#afterword)
 * [Key Take-Aways](#key-take-aways)
-* [Final ERD](#final-erd)
     
 
 ## AI Use Disclosure
@@ -110,6 +109,5 @@ It is some *really* dodgy code, but it works! I would like to apologize to all o
 ## Key Take-Aways
 1. Always use views instead of triggers where possible
 2. Develop records/POJOs for Database entities early on to avoid refactoring
-3. When creating the ERD, 
-
-## *Final* ERD
+3. When creating the ERD, *really* make sure that you know all the requirements and have a clear view of the scenario in mind.
+4. Always make sure you close PreparedStatements/ResultSets
