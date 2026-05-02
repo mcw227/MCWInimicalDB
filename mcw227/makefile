@@ -1,10 +1,10 @@
-APP_NAME = DatabaseCLI.jar
+APP_NAME = mcw227.jar
 SRC_FOLDER = src
 SOURCES = $(wildcard $(SRC_FOLDER)/*.java)
 CLASSES = $(patsubst $(SRC_FOLDER)/%.java, %.class, $(SOURCES))
 
 run_jar: $(APP_NAME)
-	java -jar DatabaseCLI.jar
+	java -jar $(APP_NAME)
 
 run: $(APP_NAME)
 	java -cp "ojdbc11.jar:." DatabaseCLI
