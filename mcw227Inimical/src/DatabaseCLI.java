@@ -3,10 +3,7 @@
  */
 import java.sql.*;
 import java.util.Scanner;
-import java.util.InputMismatchException;
-import java.util.ArrayList;
 
-import java.util.regex.*;
 
 /** Provided to CSE241 Spring 2026
  * This class uses System.console() to protect the user's password from displaying (System.in would show it).

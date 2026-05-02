@@ -36,6 +36,16 @@ public class LocationManagerInterface {
                 case (6):
                     Customer.addCustomerScreen(conn, scn);
                     break;
+                case (7):
+                    Helper.clearConsole();
+                    System.out.println("What is the id of the customer whose account you want to reactivate?");
+                    int r = Helper.nextId(scn);
+                    if (r == -2)
+                        return;
+                    Customer.activateAccount(r, conn, scn);
+                    break;
+                default:
+                    break;
             }
         }
     }
@@ -48,7 +58,7 @@ public class LocationManagerInterface {
         System.out.flush();
         System.out.printf("\n\nHello, %s! You logged into location: %d\n", e.name, e.location_id);
         System.out.printf("\tRestaurant Address: %s\n\n", e.location.address);
-        System.out.printf("\nWhat would you like to do today?\n\t1. View/Update Order Status\n\t2. View All Items\n\t3. View All Locations\n\t4. View/Edit Menus\n\t5. Create A Local Price Change\n\t6. Create Customer Account\nEnter a 1-6 to select an option or enter quit (q) to quit!\n", e.name);
+        System.out.printf("\nWhat would you like to do today?\n\t1. View/Update Order Status\n\t2. View All Items\n\t3. View All Locations\n\t4. View/Edit Menus\n\t5. Create A Local Price Change\n\t6. Create Customer Account\n\t7. Activate/Reinstate Customer Account\nEnter a 1-7 to select an option or enter quit (q) to quit!\n", e.name);
     }
 
     /**

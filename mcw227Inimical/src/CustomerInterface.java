@@ -1,9 +1,7 @@
 import java.sql.*;
 import java.util.Scanner;
-import java.util.InputMismatchException;
 import java.util.ArrayList;
 
-import java.util.regex.*;
 
 /**
  * This is a utility class encapsulating the behavior of the customer interface.
@@ -87,7 +85,7 @@ public final class CustomerInterface {
             resp = Helper.nextId(scn);
             if (resp == -2)
                 return;
-            if (resp == 0 || resp > 7 || resp == -1) {
+            if (resp == 0 || resp > 8 || resp == -1) {
                 System.out.println("Please pick a valid option!");
             } else if (resp != -2) {
                 switch(resp) {
@@ -207,11 +205,11 @@ public final class CustomerInterface {
      */
     static void cCheckPhoneNumbers(Customer c, Connection conn, Scanner scn) {
         Helper.clearConsole();
-        Pager<PhoneNumber> phones = new Pager(PhoneNumber.fetchPhones(c.id, conn), 5);
+        Pager<PhoneNumber> phones = new Pager<>(PhoneNumber.fetchPhones(c.id, conn), 5);
         boolean update = false;
         while (true) {
             if (update) //update, restart list
-                phones = new Pager(PhoneNumber.fetchPhones(c.id, conn), 5);
+                phones = new Pager<>(PhoneNumber.fetchPhones(c.id, conn), 5);
             phones.printCurrentPage();
             if (!phones.list.isEmpty()) {
                 System.out.println("Press n to go to next page, p to go to previous, q to quit.");
@@ -325,19 +323,7 @@ public final class CustomerInterface {
             return false;
 
         System.out.println("Okay...");
-        try {
-            PreparedStatement deactivateAccount = conn.prepareStatement("UPDATE customers SET active=0 WHERE id=?");
-            deactivateAccount.setInt(1,c.id);
-            System.out.print("Deactivating account... ");
-            deactivateAccount.executeUpdate();
-            System.out.println("Done! Goodbye!");
-            c = Customer.InactiveCustomer(); //set c to inactive customer
-            deactivateAccount.close();
-            return true;
-        } catch (Exception e) {
-            System.out.println("Could not delete account. Try again later.");
-            return false;
-        }
+        return c.deactivateAccount(conn,scn);
     }
 
     /** Prints the customer control menu */

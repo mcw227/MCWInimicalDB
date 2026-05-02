@@ -1,7 +1,8 @@
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Scanner;
 
+/**
+ * Public class employee models an entry into the database under the employee table
+ */
 public class Employee {
     public int id;
     public String name;

@@ -126,6 +126,76 @@ public class Customer {
     }
 
     /**
+     * Allows the deactivation of a customer's account.
+     * @param c The customer whose account you want to deactivate
+     * @param conn The connection to the database
+     * @param scn The scanner to grab input from
+     * @return True if deactivated, false if not
+     */
+    public static boolean deactivateAccount(int id, Connection conn, Scanner scn) {
+        try (PreparedStatement deactivateAccount = conn.prepareStatement("UPDATE customers SET active=0 WHERE id=?")) {
+            deactivateAccount.setInt(1,id);
+            System.out.print("Deactivating account... ");
+            deactivateAccount.executeUpdate();
+            System.out.println("Done! Goodbye!");
+            System.out.println("Type anything to continue.");
+            deactivateAccount.close();
+            Helper.nextOK(scn);
+            return true;
+        } catch (Exception e) {
+            System.out.println("Could not delete account. Try again later.");
+            System.out.println("Type anything to continue.");
+            Helper.nextOK(scn);
+            return false;
+        }
+    }
+
+    /**
+     * Allows the deactivation of a customer's account.
+     * @param c The customer whose account you want to deactivate
+     * @param conn The connection to the database
+     * @param scn The scanner to grab input from
+     * @return True if deactivated, false if not
+     */
+    public static boolean activateAccount(int id, Connection conn, Scanner scn) {
+        try (PreparedStatement activateAccount = conn.prepareStatement("UPDATE customers SET active=1 WHERE id=?")) {
+            activateAccount.setInt(1,id);
+            System.out.print("Activating account... ");
+            activateAccount.executeUpdate();
+            System.out.println("Done!");
+            System.out.println("Type anything to continue.");
+            activateAccount.close();
+            Helper.nextOK(scn);
+            return true;
+        } catch (Exception e) {
+            System.out.println("Could not delete account. Try again later.");
+            System.out.println("Type anything to continue.");
+            Helper.nextOK(scn);
+            return false;
+        }
+    }
+
+    /**
+     * Deactivates an account
+     * @param conn The connection to the database
+     * @param scn The scanner to grab input from
+     * @return True if deactivated, false if not
+     */
+    public boolean deactivateAccount(Connection conn, Scanner scn) {
+        return Customer.deactivateAccount(this.id, conn, scn);
+    }
+
+    /**
+     * Activates an account
+     * @param conn The connection to the database
+     * @param scn The scanner to grab input from
+     * @return True if activated, false if not
+     */
+    public boolean activateAccount(Connection conn, Scanner scn) {
+        return Customer.activateAccount(this.id, conn, scn);
+    }
+
+    /**
      * Deactivates the customer's membership
      * @return true if membership was deactivated, false if not
      */
@@ -540,11 +610,11 @@ public class Customer {
 
     public void cardScreen(Connection conn, Scanner scn) {
         Helper.clearConsole();
-        Pager<Card> cards = new Pager(Card.fetchCards(this.id, conn), 5);
+        Pager<Card> cards = new Pager<>(Card.fetchCards(this.id, conn), 5);
         boolean update = false;
         while (true) {
             if (update) //update, restart list
-                cards = new Pager(Card.fetchCards(this.id, conn), 5);
+                cards = new Pager<>(Card.fetchCards(this.id, conn), 5);
             cards.printCurrentPage();
             if (!cards.list.isEmpty()) {
                 System.out.println("Press n to go to next page, p to go to previous, q to quit.");
@@ -582,11 +652,11 @@ public class Customer {
 
     public int selectCardScreen(Connection conn, Scanner scn) {
         Helper.clearConsole();
-        Pager<Card> cards = new Pager(Card.fetchCards(this.id, conn), 5);
+        Pager<Card> cards = new Pager<>(Card.fetchCards(this.id, conn), 5);
         boolean update = false;
         while (true) {
             if (update) //update, restart list
-                cards = new Pager(Card.fetchCards(this.id, conn), 5);
+                cards = new Pager<>(Card.fetchCards(this.id, conn), 5);
             cards.printCurrentPage();
             if (!cards.list.isEmpty()) {
                 System.out.println("Press n to go to next page, p to go to previous, q to quit");
@@ -645,7 +715,7 @@ public class Customer {
             Helper.nextYN(scn);
             return;
         }
-        Pager<Order> order_pager = new Pager(orders, 10);
+        Pager<Order> order_pager = new Pager<>(orders, 10);
         while (true) {
             order_pager.printCurrentPage();
             System.out.println("Press n to go to next page, p to go to previous, q to quit.");

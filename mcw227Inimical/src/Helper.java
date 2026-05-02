@@ -37,9 +37,12 @@ public final class Helper {
             try {
             String resp = scn.nextLine();
             if (resp.equalsIgnoreCase("q") || resp.equalsIgnoreCase("quit")) return -2;
-            return Integer.parseInt(resp);
+            int r = Integer.parseInt(resp);
+            if (r < 0)
+                throw new Exception();
+            return r;
             } catch (Exception e) {
-                System.out.println("Please type an id");
+                System.out.println("Please type a positive number!");
             }
         }  
     }
