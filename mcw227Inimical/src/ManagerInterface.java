@@ -37,8 +37,7 @@ public class ManagerInterface {
                 if (id == -2) return null; //quit casz
             }
 
-            try {
-                PreparedStatement findEmployee = conn.prepareStatement("SELECT * FROM employees WHERE id = ?");
+            try (PreparedStatement findEmployee = conn.prepareStatement("SELECT * FROM employees WHERE id = ?")) {
                 findEmployee.setInt(1, id);
                 rs = findEmployee.executeQuery();
                 if (rs == null)

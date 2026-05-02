@@ -40,6 +40,7 @@ public class OrderItem extends Item {
         System.out.print("Adding order item to Database...");
         addItem.executeUpdate();
         System.out.println("Done!");
+        addItem.close();
         return true;
     }
 
@@ -57,6 +58,7 @@ public class OrderItem extends Item {
         System.out.print("Adding order item to Database...");
         addItem.executeUpdate();
         System.out.println("Done!");
+        addItem.close();
         return true;
     }
 
@@ -72,6 +74,7 @@ public class OrderItem extends Item {
         System.out.print("Removing order_item from Database...");
         delItem.executeUpdate();
         System.out.println("Done!");
+        delItem.close();
         return true;
     }
 
@@ -81,8 +84,7 @@ public class OrderItem extends Item {
      */
     public static ArrayList<OrderItem> fetchOrderItems(Connection conn) {
         ArrayList<OrderItem> items = new ArrayList<>();
-        try {
-            PreparedStatement fetchItems = conn.prepareStatement("SELECT * FROM order_items");
+        try (PreparedStatement fetchItems = conn.prepareStatement("SELECT * FROM order_item_view")) {
             ResultSet rs = fetchItems.executeQuery();
 
             if (!rs.next()) //no items in db for some reason..
@@ -98,6 +100,7 @@ public class OrderItem extends Item {
 
         } catch (Exception e) {
             System.out.println("Unable to fetch order items. Try again later");
+            e.printStackTrace();
             return null;
         }
         return null;
@@ -111,8 +114,7 @@ public class OrderItem extends Item {
      */
     public static ArrayList<OrderItem> fetchOrderItems(Connection conn, int order_id) {
         ArrayList<OrderItem> items = new ArrayList<>();
-        try {
-            PreparedStatement fetchItems = conn.prepareStatement("SELECT * FROM order_items WHERE order_id = ?");
+        try (PreparedStatement fetchItems = conn.prepareStatement("SELECT * FROM order_item_view WHERE order_id = ?")) {
             fetchItems.setInt(1, order_id);
             ResultSet rs = fetchItems.executeQuery();
 
@@ -128,6 +130,7 @@ public class OrderItem extends Item {
 
         } catch (Exception e) {
             System.out.println("Unable to fetch order items. Try again later");
+            e.printStackTrace();
             return null;
         }
         return null;

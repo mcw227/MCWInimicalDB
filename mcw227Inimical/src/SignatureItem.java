@@ -17,9 +17,8 @@ public class SignatureItem extends Item {
      */
     public static void addSig(Connection conn, SignatureItem si) {
         
-        try {
-            PreparedStatement addSig = conn.prepareStatement("INSERT INTO items (name, price) VALUES (?, ?)");
-            PreparedStatement addSigToSigList = conn.prepareStatement("INSERT INTO signature_items (id) VALUES (?)");
+        try (PreparedStatement addSigToSigList = conn.prepareStatement("INSERT INTO signature_items (id) VALUES (?)"); PreparedStatement addSig = conn.prepareStatement("INSERT INTO items (name, price) VALUES (?, ?)")) {
+            
             conn.setAutoCommit(false);
             addSig.setString(1, si.name);
             addSig.setDouble(2, si.price);
@@ -97,8 +96,7 @@ public class SignatureItem extends Item {
      */
     public static ArrayList<Item> fetchSignatures(Connection conn) {
         ArrayList<Item> signature_items = new ArrayList<>();
-        try {
-            PreparedStatement fetchSignatures = conn.prepareStatement("SELECT * FROM signature_item_view");
+        try (PreparedStatement fetchSignatures = conn.prepareStatement("SELECT * FROM signature_item_view")) {
                 ResultSet rs = fetchSignatures.executeQuery();
 
                 if (!rs.next())
@@ -125,8 +123,7 @@ public class SignatureItem extends Item {
      */
     public static ArrayList<SignatureItem> fetchSignatures(Connection conn, Menu m) {
         ArrayList<SignatureItem> signature_items = new ArrayList<>();
-        try {
-            PreparedStatement fetchSignatures = conn.prepareStatement("SELECT * FROM menu_items m JOIN signature_item_view sig ON m.item_id = sig.id WHERE m.menu_id = ?");
+        try (PreparedStatement fetchSignatures = conn.prepareStatement("SELECT * FROM menu_items m JOIN signature_item_view sig ON m.item_id = sig.id WHERE m.menu_id = ?")) {
                 ResultSet rs = fetchSignatures.executeQuery();
 
                 if (!rs.next())

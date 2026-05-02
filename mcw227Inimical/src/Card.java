@@ -160,8 +160,7 @@ public class Card {
             resp = Helper.safeCheckQuit(scn, MAX_CARD_NUM_LEN);
             if (resp == null)
                 return false;
-
-            if (resp.contains(" ")) {
+            if (!Helper.matchRegex(resp, "\\d+\\s*")) {
                 resp = null;
                 System.out.println("Do not enter spaces or non-numerics.");
             }
@@ -201,7 +200,7 @@ public class Card {
             return true;
         } catch (Exception e) {
             System.err.println("Could not update database. Try again later.");
-            e.printStackTrace(); //debug
+            //e.printStackTrace(); //debug
         }
         return false;
     }

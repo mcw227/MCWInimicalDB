@@ -117,6 +117,7 @@ public class Recipe {
         addRecipe.setInt(1, this.recipe_id); addRecipe.setInt(2, this.ingredient_id);
         addRecipe.setInt(3, this.quantity);
         addRecipe.executeUpdate();
+        addRecipe.close();
         return true;
     }
 }
