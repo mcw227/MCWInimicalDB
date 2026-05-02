@@ -2,7 +2,8 @@
 CSE241 Final Project
 
 ## Introduction
-Welcome to the README for Mina's Inimical database interface implementations. This terminal-based application is intended to function as a customer and managereal interface for a fictional restaurant called *Inimical's.* There are three main interfaces built so far: Customer, Location Manager and Sales Manager (Manager). The details of these interfaces, alongside other helpful or insightful information will be discussed down below.
+&emsp;Welcome to the README for Mina's Inimical database interface implementations. This terminal-based application is intended to function as a customer and managereal interface for a fictional restaurant called *Inimical's.* There are three main interfaces built so far: Customer, Location Manager and Sales Manager (Manager). The details of these interfaces, alongside other helpful or insightful information will be discussed down below.
+&emsp;Also, all of the transactions within the features are *hopefully* atomic. Otherwise... what would be the point of using a database, you know?
 
 ## Table of Contents
 * [Introduction](#introduction)
@@ -14,11 +15,13 @@ Welcome to the README for Mina's Inimical database interface implementations. Th
     * [Sales Manager](#sales-manager)
 * [Business Decisions](#business-decisions)
 * [Afterword](#afterword)
+* [Key Take-Aways](#key-take-aways)
+* [Final ERD](#final-erd)
     
 
 ## AI Use Disclosure
 &emsp;Generally, I do avoid (to the best of my abilities.. you can't even search these days!) using any kind of AI with my projects because I feel it defeats the point of taking the course. You haven't really learned anything if you have to rely on a tool to do the job for you.<br>
-&emsp;BUT! I think that AI *should* be used as a powerful tool (alongside personal effort) to speed up project workflow and debugging. In this case, by "workflow", I mean parts of the project that are either strictly aesthetic (list pager class), unrelated to the content of this class (I forgot how method overriding vs overloading works... so I had to ask Gemini what the difference was...), or "outside" the scope of this class (e.g.: what are & how to write compound triggers & why you may need them; How to fetch generated ID from an update query in java; What is a good regex expression to capture emails?). <br>
+&emsp;BUT! I think that AI *should* be used as a powerful tool (alongside personal effort) to speed up project workflow and debugging. In this case, by "workflow", I mean parts of the project that are either strictly aesthetic (list pager class), unrelated to the content of this class (I forgot how method overriding vs overloading works... so I had to ask Gemini what the difference was...), or "outside" the scope of this class (e.g.: How to fetch generated ID from an update query in java; What is a good regex expression to capture emails?). <br>
 &emsp;That being said, there should be only one example of AI code that was copy-pasted into any of my files. That being Pager.java class. That class was originally written by hand (you may be able to see its many iterations through my github repo), but never worked quite right. I spent about three hours on it throughout the project, but I really just could not get it to work consistently. In the end, I decided my time was better spent elsewhere in the project and on code actually relevant to the course, so I resorted to Gemini for debugging and it told me that my math was not only unnecessarily complex, but also logically flawed... and then gave me a much shorter solution that worked 100% of the time.
 <br>&emsp;Unfortunately I don't have access to the exact prompt & response anymore, but I believe it was something like this:<br>
 
@@ -48,13 +51,65 @@ Welcome to the README for Mina's Inimical database interface implementations. Th
 It is some *really* dodgy code, but it works! I would like to apologize to all of my comp. sci. professors for creating such a wretched collection of bad coding practices.
 
 ## Customer Interface
+&emsp;The customer interface is the most fleshed out of all the interfaces, and is also intended to be the most "convenient" to use. Unlike the other interfaces, I tried to make sure that *all* the necessary information was presented-- unlike in the managereal interfaces where I assume that the user will already know IDs or is at least okay with moving between windows to find them.
+
+**FEATURES**
+* ID Sign-in
+* Name/Email Change
+* Add Credit Cards and Phone Numbers
+* Activate/Deactivate Membership
+* Make/Check Orders
+    * *It is during the order creation process one can make custom items*
+* Deactivate Account
 
 ## Manager Interfaces
+&emsp;The next two interfaces are wrapped into the same "parent" interface since they both use the same "employee" table and ids to log into the platform. Then-- depending on the role the employee is assigned-- they will be logged into either the Local Manager Interface (role == 1) or the Sales Manager Interface (role == 2).
 
 ### Location Manager
+&emsp;The location manager interface is the second most powerful interface, and is intended to be used by managers who serve in-house at the *Inimical's* stores.
+
+**FEATURES**
+* View/Update The Status Of Orders
+* View Items
+    * *Intended so that they may view the ingredients of customer creations*
+* View Locations
+* View/Edit Local Menus
+    * *They may only edit the menus of their own restaurant*
+* Create Local Price Changes
+    * *Only for their own restaurant*
+* Create New Customer Account
+* Re-Activate A Deactivated Customer Account
 
 ### Sales Manager
+&emsp;The sales manager account is the least powerful interface, with only two measly capabilities. It is mainly intended for a sales manager who wants to observe basic sales information about the locations and items.
+
+**FEATURES**
+* Check Location Sales Summary
+* Check Item Sales Summary
 
 ## Business Decisions
+&emsp;There were a few important business decisions I made throughout the project, either due to accidental technical restraints I imposed on myself, or as an adaptation to flexibile project description. The larger business decisions are discussed here. (The smaller ones I forgot)
+1. **Customers have to ask managers to create accounts at restaurants**
+    * Inimical's is a very tight knit community. They only let outsiders in after they visit the in person restaurant a few times and take part in some sort of... "ritual"?
+1. **There is a Membership Program**
+    * Customers may sign up for a membership in order to accrue points, rather than simply adding a card to their account. It seems that with the benefit of "frequent eater" points, also comes the assumption that one siphons some of their soul to the dark realm daily. That's the only way they can make up for the financial loss...
+    <br>*This change was made because the interface forces customers to add a card under their account.*
+1. **Customers May Only Create Items In The Order Screen**
+    * Due to differing prices and availability of ingredients at different locations, *Inimical's* customer creations cannot be made until a location is chosen on the order screen, in order to make sure the price changes and availability of ingredients at those locations is accounted for.
+    * Also, customer creations are not automatically made available at all locations (due to aforementioned ingredient availability differences). Instead, they are added to a "Master Menu" that the Location Manager may use to migrate customer creations over to their local menus.
+1. **Customer Accounts Cannot Be Deleted, Only Marked As Inactive**
+    * *Inimical's*, like many other customer database users, does not delete customer accounts until strictly necessary for record keeping purposes
+    *This is also true for credit cards... they definitely aren't stealing your credit card info!*
 
 ## Afterword
+&emsp;I definitely learned a lot through doing this project. Most notably.. I learned just how hard it is to build a good database front-end. I had to refactor my code-base at least three times... and it still isn't even that nice to use... 
+<br>&emsp;Then there was the database itself! I ended up revising my ERD at least a two more times after I submitted the "final" iteration. I also went ahead and created views and triggers... sort of wherever I could put them-- and as a result I ended up shooting myself in the foot later on. All of my triggers (which should have all been view, by the way!!) cause major deadlock issues when deleting items. So, I had to create systems that worked around it. However, I will say it was at least mildly amusing to see the issues of concurrency that we discussed in class in action... Though I wish it wasn't in *my* code...
+<br>&emsp;Hey! At least I won't have any issues dealing with concurrency questions on the final!
+<br>&emsp;Speaking of concurrency... For some reason I thought that Java garbage collection would automatically close my PreparedStatements when they went out of scope... So I completely forgot to use "try-with-resources" statements on **EVERY SINGLE ONE** of them... I had to spend like... an hour fixing that.
+
+## Key Take-Aways
+1. Always use views instead of triggers where possible
+2. Develop records/POJOs for Database entities early on to avoid refactoring
+3. When creating the ERD, 
+
+## *Final* ERD
