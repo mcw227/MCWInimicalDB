@@ -174,7 +174,7 @@ public class PriceChange {
      * @param l The location to add the price change to.
      */
     public static boolean addPCScreen(Connection conn, Scanner scn, ArrayList<PriceChange> price_changes, Location l) {
-        ArrayList<Item> allowed_items = SignatureItem.fetchSignatures(conn);
+        ArrayList<Item> allowed_items = Item.fetchItems(conn);
         Helper.clearConsole();
         System.out.println("What is the id of the item whose price you'd like to change? Note that while we do not stop you from creating price changes on customer creations, they will not go into effect unless those items are turned into staple items or ingredients!.");
         int id = 0;

@@ -17,7 +17,7 @@ public class CustomerCreation extends Item {
         this.ingredients = ingredients;
     }
 
-    public CustomerCreation(int id, String name, String creator, Connection conn) {
+    public CustomerCreation(int id, String name, double price, String creator, Connection conn) {
         super(id, name, price);
         if (creator == null) { this.creator = "Anonymous"; }
         else { this.creator = creator; }
@@ -101,7 +101,7 @@ public class CustomerCreation extends Item {
             return menu_items;
         } catch (Exception e) {
             System.out.println("Unable to fetch customer creations. Try again later.");
-            //e.printStackTrace();
+            e.printStackTrace();
             return null;
         }
     }
@@ -156,7 +156,7 @@ public class CustomerCreation extends Item {
                 }
             } catch (Exception e) {
                 System.out.println("Could not add customer creation to database.");
-                //e.printStackTrace();
+                e.printStackTrace();
                 try {
                     conn.rollback();
                     return false;
@@ -371,29 +371,10 @@ public class CustomerCreation extends Item {
     }
 
     /**
-     * Prints a recipe summary of the customer creation object
-     * @param conn The database connection to use in the case that a recipe is not populated yet
-     * @param l The location to obtain prices from
-     */
-    public String getPrintableRecipeSummary(Connection conn, Location l) {
-        String r = "";
-        r += String.format("ID:%-3d\tNAME:%-50s\n", this.id, this.name);
-        if (ingredients == null || ingredients.size() == 0) {
-            this.populateRecipe(conn,l);
-        }
-        for (Recipe rec : ingredients) {
-            r += "\t" + rec.recipeItemSummary() + "\n";
-        }
-        r+= String.format("PRICE: %.2f\n", this.price);
-        return r;
-    }
-
-    /**
      * Populates a customer creations' item list
      */
     public void populateRecipe(Connection conn) {
         try {
-            this.price = 0;
             PreparedStatement getRecipes = conn.prepareStatement("SELECT * FROM recipes WHERE recipe_id=?");
             getRecipes.setInt(1,this.id);
             ResultSet rs = getRecipes.executeQuery();
@@ -407,30 +388,7 @@ public class CustomerCreation extends Item {
 
         } catch (Exception e) {
             System.out.println("Unable to update populate recipe. Try again later.");
-            //e.printStackTrace();
-            return;
-        }
-    }
-
-    /**
-     * Populates a customer creations' item list
-     */
-    public void populateRecipe(Connection conn, Location l) {
-        try {
-            this.price = 0;
-            PreparedStatement getRecipes = conn.prepareStatement("SELECT * FROM recipes WHERE recipe_id=?");
-            getRecipes.setInt(1,this.id);
-            ResultSet rs = getRecipes.executeQuery();
-            if (!rs.next())
-                return;
-            do {
-                this.ingredients.add(Recipe.parseRecipeFromRS(rs, conn, l));
-            } while (rs.next());
-            return;
-
-        } catch (Exception e) {
-            System.out.println("Unable to update populate recipe. Try again later.");
-            //e.printStackTrace();
+            e.printStackTrace();
             return;
         }
     }

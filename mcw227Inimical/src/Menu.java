@@ -511,6 +511,7 @@ public class Menu {
                                 m = null;
                             else {
                                 m.id = -1;
+                                m.name = n;
                                 break;
                             }
 

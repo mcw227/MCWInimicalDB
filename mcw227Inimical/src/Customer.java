@@ -548,7 +548,7 @@ public class Customer {
             cards.printCurrentPage();
             if (!cards.list.isEmpty()) {
                 System.out.println("Press n to go to next page, p to go to previous, q to quit.");
-                System.out.println("You may type a to add or d to delete");
+                System.out.println("You may type a to add a card");
                 int resp = Helper.nextPNQAD(scn);
                 switch (resp) {
                     case -2:
@@ -564,8 +564,7 @@ public class Customer {
                     case 3:
                         update = Card.addCardScreen(this, conn, scn);
                         break;
-                    case 4:
-                        update = Card.removeCardScreen(this, conn, scn);
+                    default:
                         break;
                 }
             }
@@ -591,9 +590,9 @@ public class Customer {
             cards.printCurrentPage();
             if (!cards.list.isEmpty()) {
                 System.out.println("Press n to go to next page, p to go to previous, q to quit");
-                System.out.println("You may type a to add or d to delete");
+                System.out.println("You may type a to add a card");
                 System.out.println("Press s to select a card");
-                int resp = Helper.nextPNQADS(scn);
+                int resp = Helper.nextPNQAS(scn);
                 switch (resp) {
                     case -2:
                         return -2;
@@ -608,9 +607,6 @@ public class Customer {
                     case 3:
                         update = Card.addCardScreen(this, conn, scn);
                         break;
-                    case 4:
-                        update = Card.removeCardScreen(this, conn, scn);
-                        break;
                     case 5:
                         System.out.println("What card would you like to select? (!q)uit to return");
                         while (true) {
@@ -623,6 +619,8 @@ public class Customer {
                                 System.out.printf("Card with id %d not found!\n", id);
                             }
                         }
+                    default:
+                        break;
                 }
             }
             else {

@@ -390,6 +390,31 @@ public final class Helper {
     }
 
     /**
+     * This function handles previous/next/quit/add/delete/select input from user.
+     * @param scn The scanner to grab input from
+     * @return 1 if user types previous, 2 if user types next, 3 if user types add 5 if user types select, -2 if user quits. Retries until a valid input is reached.
+     */
+    public static int nextPNQAS(Scanner scn) {
+        int r = 0;
+        while (r == 0) {
+            String resp = scn.nextLine();
+            if (resp.equalsIgnoreCase("q") || resp.equalsIgnoreCase("quit"))
+                return -2;
+            else if (resp.equalsIgnoreCase("p") || resp.equalsIgnoreCase("previous"))
+                return 1;
+            else if (resp.equalsIgnoreCase("n") || resp.equalsIgnoreCase("next"))
+                return 2;
+            else if (resp.equalsIgnoreCase("a") || resp.equalsIgnoreCase("add"))
+                return 3;
+            else if (resp.equalsIgnoreCase("s") || resp.equalsIgnoreCase("select"))
+                return 5;
+            System.out.println("Please type either (n)ext, (p)revious, (a)dd, or (q)uit");
+
+        }
+        return -2;
+    }
+
+    /**
      * Handles add/check quit input (intended for use with orders/signature items, but may be used elsewhere)
      * @param scn The scanner to grab input from
      * @return 1 if user inputs add, 2 if user inputs check, -2 if quit
