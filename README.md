@@ -9,6 +9,7 @@ CSE241 Final Project
 * [Introduction](#introduction)
 * [AI Use Disclosure](#ai-use-disclosure)
 * [Mock Data Generation](#mock-data-generation)
+* [SQL Extras](#sql-extras)
 * [Customer Interface](#customer-interface)
 * [Manager Interfaces](#manager-interfaces)
     * [Location Manager](#location-manager)
@@ -48,6 +49,23 @@ CSE241 Final Project
 
 &emsp;The only one of note is table_populator.py which can be used to generate mock data that fits within the expectations of the CLI.
 It is some *really* dodgy code, but it works! I would like to apologize to all of my comp. sci. professors for creating such a wretched collection of bad coding practices.
+
+## SQL Extras
+&emsp; There are a number of extra views and triggers that I created in order to "make my life easier"... or so I said. The reality turned out not to be quite so kind... I'll never use triggers again! But-- here is a list of views and triggers I wrote:
+**VIEWS**
+1. all_items_class_view (for classifying items as "ingredient," "customer creation," or "signature")
+1. customer_creations_view (class view)
+1. signature_item_view (class view)
+1. ingredients (class view)
+1. order_customer_view (convenience)
+1. order_item_view (convenience)
+1. menu_item_view (convenience)
+1. local_menu_view (convenience)
+**TRIGGERS**
+1. master_menu (adds all new items to the master menu with id = 1)
+1. upd_customer_points (updates customer points based on order totals)
+1. upd_item_price (updates the price of signature items... should have been a view)
+1. upd_order_price (updates the price of orders based on their order items... should have been a view)
 
 ## Customer Interface
 &emsp;The customer interface is the most fleshed out of all the interfaces, and is also intended to be the most "convenient" to use. Unlike the other interfaces, I tried to make sure that *all* the necessary information was presented-- unlike in the managereal interfaces where I assume that the user will already know IDs or is at least okay with moving between windows to find them.
