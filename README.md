@@ -1,12 +1,13 @@
-# Mina Catherine Warner's 
-CSE241 Final Project
+# Mina Warner's
+**CSE241 Final Project**<br>
+[**Github Repo Link**](https://github.com/mcw227/MCWInimicalDB.git)
 
 ## Introduction
 &emsp;Welcome to the README for Mina's Inimical database interface implementations. This terminal-based application is intended to function as a customer and managereal interface for a fictional restaurant called *Inimical's.* There are three main interfaces built so far: Customer, Location Manager and Sales Manager (Manager). The details of these interfaces, alongside other helpful or insightful information will be discussed down below.
 &emsp;Also, all of the transactions within the features are *hopefully* atomic. Otherwise... what would be the point of using a database, you know?
 
 <br><br>***IMPORTANT***
-In order to test the two manager interfaces, log in with id = 2 for location manager and id = 3 for sales manager. The rest of the employees are randomly defined.
+In order to test the two manager interfaces, log in with **id = 2 for location manager** and **id = 3 for sales manager**. The rest of the employees are randomly defined. <br>**You may enter any number 1-100 for the customer database.**
 
 <br>Also, my ERD changed since I submitted my previous one. The new one is zipped into the file.
 
